@@ -100,6 +100,7 @@ const T = {
     carNote:"💡 North Shore is 1 hr+ from Waikīkī — a rental car is strongly recommended.",
     shuffle:"Try different plan ↻",back:"← Change my window",
     budgetTitle:"ESTIMATED COST",perPerson:"per person",free:"Free",
+    budgetToggleShow:"💵 See estimated cost",budgetToggleHide:"Hide cost ↑",
     budgetCat:{volunteer:"Volunteering",food:"Food",activity:"Activities",transport:"Getting around"},
     budgetNote:"Volunteering is usually free — most of your budget goes to food and activities you'd pay for anyway.",
     foot:"A Little V · Prototype v1 · Sample data · Rule-based · No login needed · Final data from Honolulu field research",
@@ -134,6 +135,7 @@ const T = {
     carNote:"💡 ノースショアはワイキキから車で1時間以上。レンタカーを強く推奨します。",
     shuffle:"別のプランを見る ↻",back:"← 時間を変える",
     budgetTitle:"予想費用",perPerson:"1人あたり",free:"無料",
+    budgetToggleShow:"💵 予想費用を見る",budgetToggleHide:"費用をとじる ↑",
     budgetCat:{volunteer:"ボランティア",food:"食事",activity:"アクティビティ",transport:"移動"},
     budgetNote:"ボランティアはほぼ無料。費用の大部分は、どのみちかかる食事やアクティビティ代です。",
     foot:"A Little V · プロトタイプv1 · サンプルデータ · ルールベース · ログイン不要 · 本データは現地調査後に反映",
@@ -378,6 +380,7 @@ function App() {
   const [transport, setTransport] = useState("transit");
   const [offset, setOffset] = useState(0);
   const [openId, setOpenId] = useState(null);
+  const [showBudget, setShowBudget] = useState(false);
   const startRef = useRef(null), endRef = useRef(null), dateRef = useRef(null);
   const openPicker = ref => { try { ref.current && ref.current.showPicker && ref.current.showPicker(); } catch (e) {} };
   const t = T[lang];
@@ -536,7 +539,7 @@ function App() {
               )}
             </div>
 
-            <button onClick={() => { setScreen("plan"); setOffset(0); setOpenId(null); }}
+            <button onClick={() => { setScreen("plan"); setOffset(0); setOpenId(null); setShowBudget(false); }}
               disabled={availH <= 0}
               style={{ width: "100%", padding: "17px", borderRadius: 18,
                 background: availH > 0 ? `linear-gradient(110deg,${C.sky},#00D8EE)` : "#ccc",
@@ -558,7 +561,19 @@ function App() {
             </div>
             {date && <p style={{ fontSize: 12, color: C.fade, marginBottom: 10, fontWeight: 600 }}>{date}</p>}
 
-            {plan.length > 0 && <BudgetSummary plan={plan} t={t} />}
+            {plan.length > 0 && (
+              <div style={{ marginBottom: 14 }}>
+                <button onClick={() => setShowBudget(!showBudget)}
+                  style={{ width: "100%", textAlign: "left", padding: "10px 14px", borderRadius: 14,
+                    background: showBudget ? C.white : C.skyPale, border: `1.5px solid ${C.line}`,
+                    fontSize: 12, fontWeight: 800, color: C.sky, cursor: "pointer",
+                    fontFamily: "Poppins,sans-serif", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span>{showBudget ? t.budgetToggleHide : t.budgetToggleShow}</span>
+                  <span style={{ fontSize: 10, color: C.fade }}>{showBudget ? "" : "▾"}</span>
+                </button>
+                {showBudget && <div style={{ marginTop: 8 }}><BudgetSummary plan={plan} t={t} /></div>}
+              </div>
+            )}
 
             {/* pace note */}
             {pace === "easygoing" && (
