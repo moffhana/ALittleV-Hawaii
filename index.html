@@ -279,7 +279,7 @@ function PlanCard({ slot, t, lang, openId, setOpenId }) {
           <div style={{ background: `linear-gradient(110deg,${C.sky} 0%,#0DD8EE 60%,#00E5BE 100%)`, padding: "10px 16px", position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.22) 1.5px,transparent 1.5px)", backgroundSize: "13px 13px" }} />
             <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ width: 22, height: 22, borderRadius: "50%", background: C.white, color: C.leaf, display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 13, flexShrink: 0 }}>V</span>
+              <span style={{ fontWeight: 900, fontSize: 18, color: C.white, lineHeight: 1 }}>V</span>
               <span style={{ fontWeight: 800, fontSize: 11, letterSpacing: "0.14em", color: C.white, fontFamily: "Poppins,sans-serif" }}>{t.giveLabel}</span>
             </div>
           </div>
@@ -357,7 +357,7 @@ function App() {
           position: "sticky", top: 0, zIndex: 10 }}>
           <button onClick={() => { setScreen("home"); setOpenId(null); }}
             style={{ fontWeight: 900, fontSize: 16, color: C.white, background: "none", border: "none", cursor: "pointer", letterSpacing: "-0.02em", fontFamily: "Poppins,sans-serif" }}>
-            <span style={{ fontWeight: 500, opacity: 0.92 }}>a little&nbsp;</span><span style={{ display: "inline-flex", width: 24, height: 24, borderRadius: "50%", background: C.white, color: C.leaf, alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 15, verticalAlign: "middle" }}>V</span>
+            <span style={{ fontWeight: 300, letterSpacing: "0.06em", opacity: 0.88 }}>a&nbsp;little&nbsp;</span><span style={{ fontWeight: 900, fontSize: 20, color: C.sun, letterSpacing: "-0.02em" }}>V</span>
           </button>
           <button onClick={() => setLang(lang === "en" ? "ja" : "en")}
             style={{ fontSize: 11, fontWeight: 800, padding: "5px 12px", borderRadius: 999,
@@ -371,19 +371,13 @@ function App() {
         {screen === "home" && (
           <div>
             <div style={{ background: `linear-gradient(140deg,${C.sky} 0%,#0DCDE8 55%,#00DDBF 100%)`, padding: "36px 24px 44px", borderRadius: "0 0 28px 28px" }}>
-              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.18em", color: "rgba(255,255,255,0.75)", marginBottom: 14 }}>{t.tag}</div>
-              <h1 style={{ fontWeight: 900, fontSize: 37, lineHeight: 1.18, color: C.white, letterSpacing: "-0.03em" }}>
-                {t.h1} {t.h1b}{" "}
-                <span style={{ display: "inline-flex", width: 50, height: 50, borderRadius: "50%", background: C.white, color: C.leaf, alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 32, verticalAlign: "middle", boxShadow: "0 4px 14px rgba(0,0,0,0.18)" }}>V</span>
-                <br />{t.h1c}
-              </h1>
-              <p style={{ marginTop: 10, fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>{t.vnote}</p>
-              <div style={{ display: "flex", alignItems: "center", gap: 2, margin: "20px 0 18px" }}>
-                {["🏖","··","··","🌺","··","··","🍍","··","··","🌅"].map((s, i) => (
-                  <span key={i} style={{ fontSize: s.length > 2 ? 20 : 10, color: s === "🌺" ? C.sun : "rgba(255,255,255,0.55)", transform: s === "🌺" ? "scale(1.35)" : "none", display: "inline-block" }}>{s}</span>
-                ))}
-              </div>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.92)", lineHeight: 1.65, maxWidth: 320 }}>{t.sub}</p>
+              {/* ---- ロゴ: a little / 巨大V / tagline ---- */}
+              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.18em", color: "rgba(255,255,255,0.65)", marginBottom: 18 }}>{t.tag}</div>
+              <div style={{ fontWeight: 300, fontSize: 17, letterSpacing: "0.06em", color: "rgba(255,255,255,0.85)" }}>{t.h1} {t.h1b}</div>
+              <div style={{ fontWeight: 900, fontSize: 108, lineHeight: 0.82, color: C.sun, letterSpacing: "-0.07em", margin: "4px 0 8px -5px" }}>V</div>
+              <div style={{ fontWeight: 800, fontSize: 21, color: C.white, letterSpacing: "-0.02em", lineHeight: 1.2, marginBottom: 6 }}>{t.h1c}</div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.72)", letterSpacing: "0.04em", marginBottom: 20 }}>{t.vnote}</div>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.9)", lineHeight: 1.65, maxWidth: 320 }}>{t.sub}</p>
             </div>
             <div style={{ padding: "20px 20px 0" }}>
               <button onClick={() => setScreen("form")}
@@ -554,7 +548,6 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>
 </body>
 </html>
