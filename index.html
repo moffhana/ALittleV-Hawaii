@@ -3,20 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>A Little V — Add a little V to your vacation</title>
-<!--
-  A Little V prototype (single-file, GitHub Pages ready)
-  構成: React (CDN) + Babel standalone。ビルド不要、このファイル1つで動く。
-  データ = DATA配列 / 移動時間 = DRIVE表 / 翻訳 = Tオブジェクト / プラン生成 = buildPlan関数(ルールベース)
--->
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<title>A Little V — Add a little Volunteer to your vacation</title>
+<script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.23.2/babel.min.js"></script>
 </head>
 <body style="margin:0">
 <div id="root"></div>
-<script type="text/babel">
-const { useState } = React;
+<script type="text/babel" data-presets="react">
+const { useState, useRef } = React;
 
 const C = {
   sky:"#0BBEEB",skyDark:"#0898C0",skyLight:"#E0F6FD",skyPale:"#FBF7EF",
@@ -77,7 +72,7 @@ const DATA = [
 const T = {
   en:{
     tag:"PROTOTYPE · SAMPLE DATA",
-    h1:"Add",h1b:"a little",h1c:"to your vacation.",vnote:"The V stands for Volunteer.",
+    h1:"Add a little",h1c:"to your vacation.",bigWord:"Volunteer",
     sub:"Tell us when you're free, and we'll weave one little V — just 1–2 hours of volunteering — into your window.",
     start:"Plan my free time →",how:"No sign-up · No app · Works right now",
     fTitle:"Your free window",
@@ -108,7 +103,7 @@ const T = {
   },
   ja:{
     tag:"プロトタイプ · サンプルデータ",
-    h1:"その旅に、",h1b:"ちいさな",h1c:"をひとつ。",vnote:"VはVolunteer(ボランティア)のV。",
+    h1:"その旅に、",h1c:"をひとつ。",bigWord:"Volunteer",
     sub:"空いてる時間を教えてください。1〜2時間のちいさなVを、あなたのプランに織り込みます。",
     start:"空き時間でプランをつくる →",how:"登録不要 · アプリ不要 · 即日OK",
     fTitle:"空いてる時間は?",
@@ -335,6 +330,8 @@ function App() {
   const [transport, setTransport] = useState("transit");
   const [offset, setOffset] = useState(0);
   const [openId, setOpenId] = useState(null);
+  const startRef = useRef(null), endRef = useRef(null), dateRef = useRef(null);
+  const openPicker = ref => { try { ref.current && ref.current.showPicker && ref.current.showPicker(); } catch (e) {} };
   const t = T[lang];
 
   const startMins = parseTime(startTime), endMins = parseTime(endTime);
@@ -373,10 +370,10 @@ function App() {
             <div style={{ background: `linear-gradient(140deg,${C.sky} 0%,#0DCDE8 55%,#00DDBF 100%)`, padding: "36px 24px 44px", borderRadius: "0 0 28px 28px" }}>
               {/* ---- ロゴ: a little / 巨大V / tagline ---- */}
               <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.18em", color: "rgba(255,255,255,0.65)", marginBottom: 18 }}>{t.tag}</div>
-              <div style={{ fontWeight: 300, fontSize: 17, letterSpacing: "0.06em", color: "rgba(255,255,255,0.85)" }}>{t.h1} {t.h1b}</div>
-              <div style={{ fontWeight: 900, fontSize: 108, lineHeight: 0.82, color: C.sun, letterSpacing: "-0.07em", margin: "4px 0 8px -5px" }}>V</div>
+              <div style={{ fontWeight: 300, fontSize: 16, letterSpacing: "0.08em", color: "rgba(255,255,255,0.82)", textTransform: "uppercase" }}>{t.h1}</div>
+              <div style={{ fontWeight: 800, fontSize: 52, lineHeight: 1.15, color: C.sun, letterSpacing: "0.01em", margin: "8px 0 10px 0" }}>{t.bigWord}</div>
               <div style={{ fontWeight: 800, fontSize: 21, color: C.white, letterSpacing: "-0.02em", lineHeight: 1.2, marginBottom: 6 }}>{t.h1c}</div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.72)", letterSpacing: "0.04em", marginBottom: 20 }}>{t.vnote}</div>
+              
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.9)", lineHeight: 1.65, maxWidth: 320 }}>{t.sub}</p>
             </div>
             <div style={{ padding: "20px 20px 0" }}>
@@ -414,11 +411,17 @@ function App() {
             <div style={{ background: C.white, borderRadius: 20, padding: "16px", border: `1.5px solid ${C.line}`, marginBottom: 14 }}>
               <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 12 }}>{t.fTime}</div>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)}
-                  style={{ flex: 1, padding: "10px 10px", borderRadius: 12, border: `1.5px solid ${C.line}`, fontSize: 17, fontWeight: 800, color: C.ink, background: C.skyPale, fontFamily: "Poppins,sans-serif", outline: "none" }} />
+                <div onClick={() => openPicker(startRef)}
+                  style={{ flex: 1, padding: "10px 10px", borderRadius: 12, border: `1.5px solid ${C.line}`, background: C.skyPale, cursor: "pointer" }}>
+                  <input ref={startRef} type="time" value={startTime} onChange={e => setStartTime(e.target.value)}
+                    style={{ width: "100%", border: "none", background: "transparent", fontSize: 17, fontWeight: 800, color: C.ink, fontFamily: "Poppins,sans-serif", outline: "none", pointerEvents: "none" }} />
+                </div>
                 <span style={{ fontSize: 18, color: C.sky, fontWeight: 900 }}>→</span>
-                <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)}
-                  style={{ flex: 1, padding: "10px 10px", borderRadius: 12, border: `1.5px solid ${C.line}`, fontSize: 17, fontWeight: 800, color: C.ink, background: C.skyPale, fontFamily: "Poppins,sans-serif", outline: "none" }} />
+                <div onClick={() => openPicker(endRef)}
+                  style={{ flex: 1, padding: "10px 10px", borderRadius: 12, border: `1.5px solid ${C.line}`, background: C.skyPale, cursor: "pointer" }}>
+                  <input ref={endRef} type="time" value={endTime} onChange={e => setEndTime(e.target.value)}
+                    style={{ width: "100%", border: "none", background: "transparent", fontSize: 17, fontWeight: 800, color: C.ink, fontFamily: "Poppins,sans-serif", outline: "none", pointerEvents: "none" }} />
+                </div>
               </div>
               {availH > 0 && (
                 <div style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 12px", borderRadius: 999,
@@ -434,8 +437,11 @@ function App() {
             {/* date optional */}
             <div style={{ marginBottom: 14 }}>
               <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 8 }}>{t.fDate}</div>
-              <input type="date" value={date} onChange={e => setDate(e.target.value)}
-                style={{ width: "100%", padding: "10px 14px", borderRadius: 14, border: `1.5px solid ${C.line}`, fontSize: 14, color: C.ink, background: C.white, fontFamily: "Poppins,sans-serif", outline: "none" }} />
+              <div onClick={() => openPicker(dateRef)}
+                style={{ width: "100%", padding: "10px 14px", borderRadius: 14, border: `1.5px solid ${C.line}`, background: C.white, cursor: "pointer" }}>
+                <input ref={dateRef} type="date" value={date} onChange={e => setDate(e.target.value)}
+                  style={{ width: "100%", border: "none", background: "transparent", fontSize: 14, color: C.ink, fontFamily: "Poppins,sans-serif", outline: "none", pointerEvents: "none" }} />
+              </div>
             </div>
 
             {/* area + party */}
@@ -548,6 +554,8 @@ function App() {
   );
 }
 
+
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
 </script>
 </body>
 </html>
