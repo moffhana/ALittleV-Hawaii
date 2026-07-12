@@ -32,40 +32,40 @@ const DRIVE = {
 function travelInfo(fromA, toA, transport) {
   if (fromA === toA) return null;
   const base = DRIVE[fromA]?.[toA] ?? 45;
-  let mins, icon, en, ja, warn = false;
+  let mins, icon, en, ja, warn = false, cost = 0;
   if (transport === "car") {
-    mins = base; icon = "🚗";
-    en = `Drive  ~${mins} min`; ja = `車で 約${mins}分`;
+    mins = base; icon = "🚗"; cost = 0;
+    en = `Drive  ~${mins} min  (rental already covers this)`; ja = `車で 約${mins}分(レンタカー代に含む)`;
   } else if (transport === "transit") {
-    mins = Math.round(base * 1.5); icon = "🚌";
-    en = `TheBus / Uber  ~${mins} min`; ja = `バス・Uber  約${mins}分`;
+    mins = Math.round(base * 1.5); icon = "🚌"; cost = 3;
+    en = `TheBus / Uber  ~${mins} min  · ~$3`; ja = `バス・Uber  約${mins}分 · 約$3`;
     if (base >= 50) warn = true;
   } else {
     mins = base <= 20 ? Math.round(base * 2.5) : Math.round(base * 1.5);
-    if (base <= 20) { icon = "🚲"; en = `Walk / bike  ~${mins} min`; ja = `徒歩・自転車  約${mins}分`; }
-    else { icon = "🚖"; en = `Uber / taxi  ~${mins} min  (walking not practical)`; ja = `Uber・タクシー  約${mins}分 (徒歩は困難)`; warn = true; }
+    if (base <= 20) { icon = "🚲"; cost = 0; en = `Walk / bike  ~${mins} min  · Free`; ja = `徒歩・自転車  約${mins}分 · 無料`; }
+    else { icon = "🚖"; cost = Math.round(mins * 1.8); en = `Uber / taxi  ~${mins} min  · ~$${Math.round(mins*1.8)}  (walking not practical)`; ja = `Uber・タクシー  約${mins}分 · 約$${Math.round(mins*1.8)}(徒歩は困難)`; warn = true; }
   }
-  return { mins, icon, en, ja, warn };
+  return { mins, icon, en, ja, warn, cost };
 }
 
 /* ---- data ---- */
 const DATA = [
-  {id:"v1",type:"volunteer",name:"Beach Cleanup — Sustainable Coastlines Hawaiʻi",org:"Sustainable Coastlines Hawaiʻi",area:"north",dur:3,fam:2,diff:"medium",tags:["ocean","nature"],booking:"check",url:"https://www.sustainablecoastlineshawaii.org/schedule",en:"Join a community beach cleanup on the North Shore. Gloves and bags provided — just show up. Check the schedule for the next date.",ja:"ノースショアのビーチクリーン。手袋・袋は用意あり。開催日はスケジュールページで確認を。"},
-  {id:"v2",type:"volunteer",name:"Community Cleanup — 808 Cleanups",org:"808 Cleanups",area:"honolulu",dur:2,fam:1,diff:"easy",tags:["ocean","nature"],booking:"rsvp",url:"https://808cleanups.org/",en:"Year-round cleanups of beaches, parks and trails. Pick a date and RSVP on the website.",ja:"オアフ各地で年間多数開催。カレンダーから日程を選んでRSVP。"},
-  {id:"v3",type:"volunteer",name:"Native Tree Planting Hike — travel2change",org:"travel2change",area:"north",dur:3,fam:1,diff:"hard",tags:["nature","culture"],booking:"rsvp",url:"https://travel2change.org/",en:"A guided hike where you plant native trees along the trail — fun and impact in one morning.",ja:"ハイキングしながら在来種の木を植える。楽しさと貢献が同時に。"},
-  {id:"v4",type:"volunteer",name:"Waikīkī Beach Cleanup — via Kanu Hawaii",org:"Kanu Hawaii portal",area:"waikiki",dur:1.5,fam:2,diff:"easy",tags:["ocean"],booking:"dropin",url:"https://www.kanuhawaii.org/",en:"A short drop-in cleanup near your hotel — no booking needed. Find events on the Kanu Hawaii portal.",ja:"ホテル近くで当日参加OK。Kanu Hawaiiポータルでイベントを検索。"},
-  {id:"v5",type:"volunteer",name:"Fishpond Restoration — via Kanu Hawaii",org:"Local fishpond nonprofits",area:"east",dur:3,fam:2,diff:"medium",tags:["culture","nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/",en:"Restore a traditional Hawaiian fishpond and learn how early Hawaiians farmed the sea.",ja:"伝統の養魚池の復元を手伝い、昔のハワイの海の営みを学ぶ。"},
-  {id:"f1",type:"food",name:"Malasadas at Leonard's Bakery",org:"",area:"honolulu",dur:0.5,fam:2,diff:"easy",tags:["food"],booking:"none",url:"",en:"Famous for malasadas — warm Portuguese-style doughnuts. A quick, sweet stop.",ja:"ハワイ名物マラサダで有名な老舗ベーカリー。"},
-  {id:"f2",type:"food",name:"Garlic Shrimp Plate — North Shore trucks",org:"",area:"north",dur:1,fam:2,diff:"easy",tags:["food"],booking:"none",url:"",en:"The North Shore classic: garlic shrimp from a roadside truck at a picnic table.",ja:"ノースショアの定番ガーリックシュリンプ。"},
-  {id:"f3",type:"food",name:"Poke Bowl by the beach",org:"",area:"waikiki",dur:0.5,fam:1,diff:"easy",tags:["food","ocean"],booking:"none",url:"",en:"Fresh poke bowl from a local market, eaten by the water.",ja:"地元マーケットで新鮮なポケボウルを買ってビーチで。"},
-  {id:"f4",type:"food",name:"Picnic at Kalapawai Market",org:"",area:"east",dur:1,fam:2,diff:"easy",tags:["food"],booking:"none",url:"",en:"A Kailua landmark since 1932 — sandwiches for a perfect beach picnic.",ja:"1932年から続くカイルアの名物。サンドイッチでビーチピクニック。"},
-  {id:"a1",type:"activity",name:"Surf Lesson in Waikīkī",org:"",area:"waikiki",dur:2,fam:1,diff:"medium",tags:["ocean"],booking:"rsvp",url:"",en:"Learn to stand up on a longboard on gentle Waikīkī waves — where modern surfing began.",ja:"ワイキキの穏やかな波でロングボードに挑戦。"},
-  {id:"a2",type:"activity",name:"Diamond Head Summit Hike",org:"",area:"waikiki",dur:2,fam:1,diff:"hard",tags:["nature"],booking:"rsvp",url:"",en:"A short but steep hike to the crater rim with a 180° view of Waikīkī. Reserve online.",ja:"急な登りがあるがワイキキを一望できる火口縁まで約2時間。要事前予約。"},
-  {id:"a3",type:"activity",name:"Bishop Museum",org:"",area:"honolulu",dur:2.5,fam:2,diff:"easy",tags:["culture"],booking:"none",url:"",en:"Hawaiʻi's natural and cultural history museum — understand the islands you helped protect.",ja:"ハワイの自然と文化の歴史博物館。今日守った島をもっと深く知る。"},
-  {id:"a4",type:"activity",name:"Snorkeling at Hanauma Bay",org:"",area:"east",dur:3,fam:2,diff:"medium",tags:["ocean","animals"],booking:"rsvp",url:"",en:"A protected marine preserve full of reef fish. Reserve online — entry is limited.",ja:"サンゴ礁の魚でいっぱいの海洋保護区。入場制限あり、要事前予約。"},
-  {id:"a5",type:"activity",name:"Lanikai Beach Afternoon",org:"",area:"east",dur:2,fam:2,diff:"easy",tags:["ocean"],booking:"none",url:"",en:"Soft white sand, calm turquoise water — one of Oʻahu's most loved beaches.",ja:"白砂とターコイズの海。オアフで最も愛されるビーチ。"},
-  {id:"a6",type:"activity",name:"Waimea Valley Walk",org:"",area:"north",dur:2.5,fam:2,diff:"medium",tags:["nature","culture"],booking:"none",url:"",en:"Botanical gardens and cultural sites, ending at a waterfall you can swim under.",ja:"植物園と遺跡をめぐり、最後は泳げる滝へ。"},
-  {id:"a7",type:"activity",name:"Honolulu Zoo",org:"",area:"waikiki",dur:2,fam:2,diff:"easy",tags:["animals"],booking:"none",url:"",en:"A relaxed zoo at Kapiʻolani Park — perfect for kids or a gentle afternoon.",ja:"カピオラニ公園の動物園。子連れや、ゆっくりしたい午後にぴったり。"},
+  {id:"v1",cost:0,type:"volunteer",name:"Beach Cleanup — Sustainable Coastlines Hawaiʻi",org:"Sustainable Coastlines Hawaiʻi",area:"north",dur:3,fam:2,diff:"medium",tags:["ocean","nature"],booking:"check",url:"https://www.sustainablecoastlineshawaii.org/schedule",en:"Join a community beach cleanup on the North Shore. Gloves and bags provided — just show up. Check the schedule for the next date.",ja:"ノースショアのビーチクリーン。手袋・袋は用意あり。開催日はスケジュールページで確認を。"},
+  {id:"v2",cost:0,type:"volunteer",name:"Community Cleanup — 808 Cleanups",org:"808 Cleanups",area:"honolulu",dur:2,fam:1,diff:"easy",tags:["ocean","nature"],booking:"rsvp",url:"https://808cleanups.org/",en:"Year-round cleanups of beaches, parks and trails. Pick a date and RSVP on the website.",ja:"オアフ各地で年間多数開催。カレンダーから日程を選んでRSVP。"},
+  {id:"v3",cost:0,type:"volunteer",name:"Native Tree Planting Hike — travel2change",org:"travel2change",area:"north",dur:3,fam:1,diff:"hard",tags:["nature","culture"],booking:"rsvp",url:"https://travel2change.org/",en:"A guided hike where you plant native trees along the trail — fun and impact in one morning.",ja:"ハイキングしながら在来種の木を植える。楽しさと貢献が同時に。"},
+  {id:"v4",cost:0,type:"volunteer",name:"Waikīkī Beach Cleanup — via Kanu Hawaii",org:"Kanu Hawaii portal",area:"waikiki",dur:1.5,fam:2,diff:"easy",tags:["ocean"],booking:"dropin",url:"https://www.kanuhawaii.org/",en:"A short drop-in cleanup near your hotel — no booking needed. Find events on the Kanu Hawaii portal.",ja:"ホテル近くで当日参加OK。Kanu Hawaiiポータルでイベントを検索。"},
+  {id:"v5",cost:0,type:"volunteer",name:"Fishpond Restoration — via Kanu Hawaii",org:"Local fishpond nonprofits",area:"east",dur:3,fam:2,diff:"medium",tags:["culture","nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/",en:"Restore a traditional Hawaiian fishpond and learn how early Hawaiians farmed the sea.",ja:"伝統の養魚池の復元を手伝い、昔のハワイの海の営みを学ぶ。"},
+  {id:"f1",cost:5,type:"food",name:"Malasadas at Leonard's Bakery",org:"",area:"honolulu",dur:0.5,fam:2,diff:"easy",tags:["food"],booking:"none",url:"",en:"Famous for malasadas — warm Portuguese-style doughnuts. A quick, sweet stop.",ja:"ハワイ名物マラサダで有名な老舗ベーカリー。"},
+  {id:"f2",cost:15,type:"food",name:"Garlic Shrimp Plate — North Shore trucks",org:"",area:"north",dur:1,fam:2,diff:"easy",tags:["food"],booking:"none",url:"",en:"The North Shore classic: garlic shrimp from a roadside truck at a picnic table.",ja:"ノースショアの定番ガーリックシュリンプ。"},
+  {id:"f3",cost:14,type:"food",name:"Poke Bowl by the beach",org:"",area:"waikiki",dur:0.5,fam:1,diff:"easy",tags:["food","ocean"],booking:"none",url:"",en:"Fresh poke bowl from a local market, eaten by the water.",ja:"地元マーケットで新鮮なポケボウルを買ってビーチで。"},
+  {id:"f4",cost:18,type:"food",name:"Picnic at Kalapawai Market",org:"",area:"east",dur:1,fam:2,diff:"easy",tags:["food"],booking:"none",url:"",en:"A Kailua landmark since 1932 — sandwiches for a perfect beach picnic.",ja:"1932年から続くカイルアの名物。サンドイッチでビーチピクニック。"},
+  {id:"a1",cost:90,type:"activity",name:"Surf Lesson in Waikīkī",org:"",area:"waikiki",dur:2,fam:1,diff:"medium",tags:["ocean"],booking:"rsvp",url:"",en:"Learn to stand up on a longboard on gentle Waikīkī waves — where modern surfing began.",ja:"ワイキキの穏やかな波でロングボードに挑戦。"},
+  {id:"a2",cost:5,type:"activity",name:"Diamond Head Summit Hike",org:"",area:"waikiki",dur:2,fam:1,diff:"hard",tags:["nature"],booking:"rsvp",url:"",en:"A short but steep hike to the crater rim with a 180° view of Waikīkī. Reserve online.",ja:"急な登りがあるがワイキキを一望できる火口縁まで約2時間。要事前予約。"},
+  {id:"a3",cost:28,type:"activity",name:"Bishop Museum",org:"",area:"honolulu",dur:2.5,fam:2,diff:"easy",tags:["culture"],booking:"none",url:"",en:"Hawaiʻi's natural and cultural history museum — understand the islands you helped protect.",ja:"ハワイの自然と文化の歴史博物館。今日守った島をもっと深く知る。"},
+  {id:"a4",cost:25,type:"activity",name:"Snorkeling at Hanauma Bay",org:"",area:"east",dur:3,fam:2,diff:"medium",tags:["ocean","animals"],booking:"rsvp",url:"",en:"A protected marine preserve full of reef fish. Reserve online — entry is limited.",ja:"サンゴ礁の魚でいっぱいの海洋保護区。入場制限あり、要事前予約。"},
+  {id:"a5",cost:0,type:"activity",name:"Lanikai Beach Afternoon",org:"",area:"east",dur:2,fam:2,diff:"easy",tags:["ocean"],booking:"none",url:"",en:"Soft white sand, calm turquoise water — one of Oʻahu's most loved beaches.",ja:"白砂とターコイズの海。オアフで最も愛されるビーチ。"},
+  {id:"a6",cost:20,type:"activity",name:"Waimea Valley Walk",org:"",area:"north",dur:2.5,fam:2,diff:"medium",tags:["nature","culture"],booking:"none",url:"",en:"Botanical gardens and cultural sites, ending at a waterfall you can swim under.",ja:"植物園と遺跡をめぐり、最後は泳げる滝へ。"},
+  {id:"a7",cost:19,type:"activity",name:"Honolulu Zoo",org:"",area:"waikiki",dur:2,fam:2,diff:"easy",tags:["animals"],booking:"none",url:"",en:"A relaxed zoo at Kapiʻolani Park — perfect for kids or a gentle afternoon.",ja:"カピオラニ公園の動物園。子連れや、ゆっくりしたい午後にぴったり。"},
 ];
 
 /* ---- translations ---- */
@@ -99,6 +99,9 @@ const T = {
     easyNote:"Relaxed pace · easy activities · rest breaks included",
     carNote:"💡 North Shore is 1 hr+ from Waikīkī — a rental car is strongly recommended.",
     shuffle:"Try different plan ↻",back:"← Change my window",
+    budgetTitle:"ESTIMATED COST",perPerson:"per person",free:"Free",
+    budgetCat:{volunteer:"Volunteering",food:"Food",activity:"Activities",transport:"Getting around"},
+    budgetNote:"Volunteering is usually free — most of your budget goes to food and activities you'd pay for anyway.",
     foot:"A Little V · Prototype v1 · Sample data · Rule-based · No login needed · Final data from Honolulu field research",
   },
   ja:{
@@ -130,6 +133,9 @@ const T = {
     easyNote:"ゆったりペース · 難易度低めの活動 · 休憩あり",
     carNote:"💡 ノースショアはワイキキから車で1時間以上。レンタカーを強く推奨します。",
     shuffle:"別のプランを見る ↻",back:"← 時間を変える",
+    budgetTitle:"予想費用",perPerson:"1人あたり",free:"無料",
+    budgetCat:{volunteer:"ボランティア",food:"食事",activity:"アクティビティ",transport:"移動"},
+    budgetNote:"ボランティアはほぼ無料。費用の大部分は、どのみちかかる食事やアクティビティ代です。",
     foot:"A Little V · プロトタイプv1 · サンプルデータ · ルールベース · ログイン不要 · 本データは現地調査後に反映",
   },
 };
@@ -284,6 +290,7 @@ function PlanCard({ slot, t, lang, openId, setOpenId }) {
           <div style={{ display: "flex", gap: 14, marginTop: 5, fontSize: 11, color: C.fade, fontFamily: "Poppins,sans-serif" }}>
             <span>⏱ {item.dur}h</span>
             <span>📍 {t.areas[item.area]}</span>
+            <span style={{ fontWeight: 800, color: item.cost === 0 ? C.leaf : C.ink }}>💵 {item.cost === 0 ? t.free : `$${item.cost}`}</span>
             {item.diff === "hard" && <span>💪 {lang==="ja"?"体力必要":"Strenuous"}</span>}
             {item.diff === "easy" && <span>🌴 {lang==="ja"?"楽々":"Easy"}</span>}
           </div>
@@ -312,6 +319,47 @@ function PlanCard({ slot, t, lang, openId, setOpenId }) {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function BudgetSummary({ plan, t }) {
+  const budget = plan.reduce((acc, s) => {
+    if (s.travelCard) acc.transport += s.cost || 0;
+    else if (s.item) {
+      const key = s.item.type === "volunteer" ? "volunteer" : s.item.type === "food" ? "food" : "activity";
+      acc[key] += s.item.cost || 0;
+    }
+    return acc;
+  }, { volunteer: 0, food: 0, activity: 0, transport: 0 });
+  const total = budget.volunteer + budget.food + budget.activity + budget.transport;
+  const rows = [
+    { key: "volunteer", color: C.leaf },
+    { key: "food", color: C.sun },
+    { key: "activity", color: C.sky },
+    { key: "transport", color: C.fade },
+  ].map(r => ({ ...r, label: t.budgetCat[r.key], val: budget[r.key] }));
+  const max = Math.max(1, ...rows.map(r => r.val));
+
+  return (
+    <div style={{ background: C.white, borderRadius: 18, border: `1.5px solid ${C.line}`, padding: "16px 18px", marginBottom: 14 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+        <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", fontFamily: "Poppins,sans-serif" }}>{t.budgetTitle}</div>
+        <div style={{ fontSize: 10, color: C.fade, fontWeight: 700, fontFamily: "Poppins,sans-serif" }}>{t.perPerson}</div>
+      </div>
+      <div style={{ fontSize: 34, fontWeight: 900, color: C.ink, marginTop: 2, marginBottom: 12, fontFamily: "Poppins,sans-serif" }}>${total}</div>
+      {rows.map(r => (
+        <div key={r.key} style={{ marginBottom: 8 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 3, fontFamily: "Poppins,sans-serif" }}>
+            <span>{r.label}</span>
+            <span>{r.val === 0 ? t.free : `$${r.val}`}</span>
+          </div>
+          <div style={{ height: 6, borderRadius: 999, background: C.skyPale, overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${Math.max(4, (r.val / max) * 100)}%`, background: r.color, borderRadius: 999 }} />
+          </div>
+        </div>
+      ))}
+      <p style={{ fontSize: 10, color: C.fade, marginTop: 10, lineHeight: 1.5, fontFamily: "Poppins,sans-serif" }}>{t.budgetNote}</p>
     </div>
   );
 }
@@ -509,6 +557,8 @@ function App() {
               {t.planSub(startTime, endTime, t.areas[area])}
             </div>
             {date && <p style={{ fontSize: 12, color: C.fade, marginBottom: 10, fontWeight: 600 }}>{date}</p>}
+
+            {plan.length > 0 && <BudgetSummary plan={plan} t={t} />}
 
             {/* pace note */}
             {pace === "easygoing" && (
