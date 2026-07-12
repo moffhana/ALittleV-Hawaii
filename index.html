@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Little V — Add a little V to your vacation</title>
+<!--
+  A Little V prototype (single-file, GitHub Pages ready)
+  構成: React (CDN) + Babel standalone。ビルド不要、このファイル1つで動く。
+  データ = DATA配列 / 移動時間 = DRIVE表 / 翻訳 = Tオブジェクト / プラン生成 = buildPlan関数(ルールベース)
+-->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body style="margin:0">
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+const C = {
+  sky:"#0BBEEB",skyDark:"#0898C0",skyLight:"#E0F6FD",skyPale:"#FBF7EF",
+  sun:"#FFD535",sunText:"#7A5500",
+  leaf:"#00A84F",leafLight:"#E3F6EC",leafDark:"#007A38",
+  white:"#FFFFFF",ink:"#0E2830",fade:"#4A7A88",line:"#BDE6F5",
+  warn:"#FFF8E1",warnB:"#FFD535",warnT:"#7A5500",
+};
+
+/* ---- 移動時間(車/分) ---- */
+const DRIVE = {
+  waikiki:{ waikiki:0, honolulu:20, east:45, north:60 },
+  honolulu:{ waikiki:20, honolulu:0, east:35, north:55 },
+  east:   { waikiki:45, honolulu:35, east:0,  north:90 },
+  north:  { waikiki:60, honolulu:55, east:90, north:0  },
+};
+
+function travelInfo(fromA, toA, transport) {
+  if (fromA === toA) return null;
+  const base = DRIVE[fromA]?.[toA] ?? 45;
+  let mins, icon, en, ja, warn = false;
+  if (transport === "car") {
+    mins = base; icon = "🚗";
+    en = `Drive  ~${mins} min`; ja = `車で 約${mins}分`;
+  } else if (transport === "transit") {
+    mins = Math.round(base * 1.5); icon = "🚌";
+    en = `TheBus / Uber  ~${mins} min`; ja = `バス・Uber  約${mins}分`;
+    if (base >= 50) warn = true;
+  } else {
+    mins = base <= 20 ? Math.round(base * 2.5) : Math.round(base * 1.5);
+    if (base <= 20) { icon = "🚲"; en = `Walk / bike  ~${mins} min`; ja = `徒歩・自転車  約${mins}分`; }
+    else { icon = "🚖"; en = `Uber / taxi  ~${mins} min  (walking not practical)`; ja = `Uber・タクシー  約${mins}分 (徒歩は困難)`; warn = true; }
+  }
+  return { mins, icon, en, ja, warn };
+}
+
+/* ---- data ---- */
+const DATA = [
+  {id:"v1",type:"volunteer",name:"Beach Cleanup — Sustainable Coastlines Hawaiʻi",org:"Sustainable Coastlines Hawaiʻi",area:"north",dur:3,fam:2,diff:"medium",tags:["ocean","nature"],booking:"check",url:"https://www.sustainablecoastlineshawaii.org/schedule",en:"Join a community beach cleanup on the North Shore. Gloves and bags provided — just show up. Check the schedule for the next date.",ja:"ノースショアのビーチクリーン。手袋・袋は用意あり。開催日はスケジュールページで確認を。"},
+  {id:"v2",type:"volunteer",name:"Community Cleanup — 808 Cleanups",org:"808 Cleanups",area:"honolulu",dur:2,fam:1,diff:"easy",tags:["ocean","nature"],booking:"rsvp",url:"https://808cleanups.org/",en:"Year-round cleanups of beaches, parks and trails. Pick a date and RSVP on the website.",ja:"オアフ各地で年間多数開催。カレンダーから日程を選んでRSVP。"},
+  {id:"v3",type:"volunteer",name:"Native Tree Planting Hike — travel2change",org:"travel2change",area:"north",dur:3,fam:1,diff:"hard",tags:["nature","culture"],booking:"rsvp",url:"https://travel2change.org/",en:"A guided hike where you plant native trees along the trail — fun and impact in one morning.",ja:"ハイキングしながら在来種の木を植える。楽しさと貢献が同時に。"},
+  {id:"v4",type:"volunteer",name:"Waikīkī Beach Cleanup — via Kanu Hawaii",org:"Kanu Hawaii portal",area:"waikiki",dur:1.5,fam:2,diff:"easy",tags:["ocean"],booking:"dropin",url:"https://www.kanuhawaii.org/",en:"A short drop-in cleanup near your hotel — no booking needed. Find events on the Kanu Hawaii portal.",ja:"ホテル近くで当日参加OK。Kanu Hawaiiポータルでイベントを検索。"},
+  {id:"v5",type:"volunteer",name:"Fishpond Restoration — via Kanu Hawaii",org:"Local fishpond nonprofits",area:"east",dur:3,fam:2,diff:"medium",tags:["culture","nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/",en:"Restore a traditional Hawaiian fishpond and learn how early Hawaiians farmed the sea.",ja:"伝統の養魚池の復元を手伝い、昔のハワイの海の営みを学ぶ。"},
+  {id:"f1",type:"food",name:"Malasadas at Leonard's Bakery",org:"",area:"honolulu",dur:0.5,fam:2,diff:"easy",tags:["food"],booking:"none",url:"",en:"Famous for malasadas — warm Portuguese-style doughnuts. A quick, sweet stop.",ja:"ハワイ名物マラサダで有名な老舗ベーカリー。"},
+  {id:"f2",type:"food",name:"Garlic Shrimp Plate — North Shore trucks",org:"",area:"north",dur:1,fam:2,diff:"easy",tags:["food"],booking:"none",url:"",en:"The North Shore classic: garlic shrimp from a roadside truck at a picnic table.",ja:"ノースショアの定番ガーリックシュリンプ。"},
+  {id:"f3",type:"food",name:"Poke Bowl by the beach",org:"",area:"waikiki",dur:0.5,fam:1,diff:"easy",tags:["food","ocean"],booking:"none",url:"",en:"Fresh poke bowl from a local market, eaten by the water.",ja:"地元マーケットで新鮮なポケボウルを買ってビーチで。"},
+  {id:"f4",type:"food",name:"Picnic at Kalapawai Market",org:"",area:"east",dur:1,fam:2,diff:"easy",tags:["food"],booking:"none",url:"",en:"A Kailua landmark since 1932 — sandwiches for a perfect beach picnic.",ja:"1932年から続くカイルアの名物。サンドイッチでビーチピクニック。"},
+  {id:"a1",type:"activity",name:"Surf Lesson in Waikīkī",org:"",area:"waikiki",dur:2,fam:1,diff:"medium",tags:["ocean"],booking:"rsvp",url:"",en:"Learn to stand up on a longboard on gentle Waikīkī waves — where modern surfing began.",ja:"ワイキキの穏やかな波でロングボードに挑戦。"},
+  {id:"a2",type:"activity",name:"Diamond Head Summit Hike",org:"",area:"waikiki",dur:2,fam:1,diff:"hard",tags:["nature"],booking:"rsvp",url:"",en:"A short but steep hike to the crater rim with a 180° view of Waikīkī. Reserve online.",ja:"急な登りがあるがワイキキを一望できる火口縁まで約2時間。要事前予約。"},
+  {id:"a3",type:"activity",name:"Bishop Museum",org:"",area:"honolulu",dur:2.5,fam:2,diff:"easy",tags:["culture"],booking:"none",url:"",en:"Hawaiʻi's natural and cultural history museum — understand the islands you helped protect.",ja:"ハワイの自然と文化の歴史博物館。今日守った島をもっと深く知る。"},
+  {id:"a4",type:"activity",name:"Snorkeling at Hanauma Bay",org:"",area:"east",dur:3,fam:2,diff:"medium",tags:["ocean","animals"],booking:"rsvp",url:"",en:"A protected marine preserve full of reef fish. Reserve online — entry is limited.",ja:"サンゴ礁の魚でいっぱいの海洋保護区。入場制限あり、要事前予約。"},
+  {id:"a5",type:"activity",name:"Lanikai Beach Afternoon",org:"",area:"east",dur:2,fam:2,diff:"easy",tags:["ocean"],booking:"none",url:"",en:"Soft white sand, calm turquoise water — one of Oʻahu's most loved beaches.",ja:"白砂とターコイズの海。オアフで最も愛されるビーチ。"},
+  {id:"a6",type:"activity",name:"Waimea Valley Walk",org:"",area:"north",dur:2.5,fam:2,diff:"medium",tags:["nature","culture"],booking:"none",url:"",en:"Botanical gardens and cultural sites, ending at a waterfall you can swim under.",ja:"植物園と遺跡をめぐり、最後は泳げる滝へ。"},
+  {id:"a7",type:"activity",name:"Honolulu Zoo",org:"",area:"waikiki",dur:2,fam:2,diff:"easy",tags:["animals"],booking:"none",url:"",en:"A relaxed zoo at Kapiʻolani Park — perfect for kids or a gentle afternoon.",ja:"カピオラニ公園の動物園。子連れや、ゆっくりしたい午後にぴったり。"},
+];
+
+/* ---- translations ---- */
+const T = {
+  en:{
+    tag:"PROTOTYPE · SAMPLE DATA",
+    h1:"Add",h1b:"a little",h1c:"to your vacation.",vnote:"The V stands for Volunteer.",
+    sub:"Tell us when you're free, and we'll weave one little V — just 1–2 hours of volunteering — into your window.",
+    start:"Plan my free time →",how:"No sign-up · No app · Works right now",
+    fTitle:"Your free window",
+    fTime:"Free from → until",fDate:"Date (optional)",
+    fArea:"Area",fParty:"Who's coming?",fInt:"Interests",
+    fPace:"Activity level",fTransport:"Getting around by",
+    avail:h=>`${h} hrs available`,tooShort:"Add at least 1.5 hrs to fit a volunteer activity.",
+    build:"Build my plan →",
+    areas:{waikiki:"Waikīkī",honolulu:"Honolulu",north:"North Shore",east:"Kailua & East"},
+    party:{family:"Family 👨‍👩‍👧",couple:"Couple 💑",friends:"Friends 🤙",solo:"Solo 🤿"},
+    ints:{ocean:"Ocean",nature:"Nature",culture:"Culture",animals:"Animals",food:"Food"},
+    pace:{easygoing:"Relaxed 🌴",moderate:"Moderate ☀️",active:"Active 🏄"},
+    paceHint:{easygoing:"Great for seniors, kids, or anyone who wants a gentle day",moderate:"A comfortable mix — most travelers",active:"Energetic group, happy to push"},
+    transport:{car:"Rental car 🚗",transit:"Bus & rideshare 🚌",walk:"Walk & bike 🚶"},
+    planTitle:"Your plan",planSub:(s,e,a)=>`${s}–${e} · ${a}`,
+    giveLabel:"YOUR LITTLE V",perk:"Tip: volunteering may earn hotel perks — ask your hotel about Mālama Hawaiʻi.",
+    travelHeading:"Getting there",
+    open:"Details ↓",close:"Close ↑",
+    joinTitle:"How to join",
+    bookLabel:{dropin:"Drop-in — just show up",rsvp:"Sign up online first",check:"Check schedule online",none:"No booking needed"},
+    siteBtn:"Open official site ↗",nolink:"Link coming after field research",
+    endLabel:"Free window ends 🏁",
+    noVol:"Your window is short, so we skipped the volunteer stop. Add 30 more minutes to include one!",
+    easyNote:"Relaxed pace · easy activities · rest breaks included",
+    carNote:"💡 North Shore is 1 hr+ from Waikīkī — a rental car is strongly recommended.",
+    shuffle:"Try different plan ↻",back:"← Change my window",
+    foot:"A Little V · Prototype v1 · Sample data · Rule-based · No login needed · Final data from Honolulu field research",
+  },
+  ja:{
+    tag:"プロトタイプ · サンプルデータ",
+    h1:"その旅に、",h1b:"ちいさな",h1c:"をひとつ。",vnote:"VはVolunteer(ボランティア)のV。",
+    sub:"空いてる時間を教えてください。1〜2時間のちいさなVを、あなたのプランに織り込みます。",
+    start:"空き時間でプランをつくる →",how:"登録不要 · アプリ不要 · 即日OK",
+    fTitle:"空いてる時間は?",
+    fTime:"開始 → 終了",fDate:"日付(任意)",
+    fArea:"エリア",fParty:"誰と?",fInt:"好きなものは?",
+    fPace:"体力・ペース",fTransport:"移動手段",
+    avail:h=>`${h}時間空いています`,tooShort:"1.5時間以上あるとボランティアを入れられます。",
+    build:"プランをつくる →",
+    areas:{waikiki:"ワイキキ",honolulu:"ホノルル",north:"ノースショア",east:"カイルア・東"},
+    party:{family:"家族 👨‍👩‍👧",couple:"カップル 💑",friends:"友人 🤙",solo:"ひとり 🤿"},
+    ints:{ocean:"海",nature:"自然",culture:"文化",animals:"動物",food:"食"},
+    pace:{easygoing:"ゆったり 🌴",moderate:"ふつう ☀️",active:"アクティブ 🏄"},
+    paceHint:{easygoing:"シニア・お子さん連れ・無理せず楽しみたい方に",moderate:"一般的な観光客向け、適度な活動量",active:"体力に自信あり、たくさん動きたい"},
+    transport:{car:"レンタカー 🚗",transit:"バス・配車 🚌",walk:"徒歩・自転車 🚶"},
+    planTitle:"あなたのプラン",planSub:(s,e,a)=>`${s}〜${e} · ${a}`,
+    giveLabel:"今日のちいさなV",perk:"ヒント: Mālama Hawaiʻiプログラムでホテル特典が受けられることも。",
+    travelHeading:"移動",
+    open:"くわしく ↓",close:"とじる ↑",
+    joinTitle:"参加のしかた",
+    bookLabel:{dropin:"当日参加OK",rsvp:"オンラインで事前申込",check:"開催日をサイトで確認",none:"予約不要"},
+    siteBtn:"公式サイトを開く ↗",nolink:"リンクは現地調査後に追加",
+    endLabel:"終了 🏁",
+    noVol:"この時間枠ではボランティアが入りませんでした。あと30分延ばすと入ります！",
+    easyNote:"ゆったりペース · 難易度低めの活動 · 休憩あり",
+    carNote:"💡 ノースショアはワイキキから車で1時間以上。レンタカーを強く推奨します。",
+    shuffle:"別のプランを見る ↻",back:"← 時間を変える",
+    foot:"A Little V · プロトタイプv1 · サンプルデータ · ルールベース · ログイン不要 · 本データは現地調査後に反映",
+  },
+};
+
+/* ---- utils ---- */
+const parseTime = s => { if(!s) return 0; const [h,m]=s.split(":").map(Number); return h*60+m; };
+const fmtTime = m => `${Math.floor(m/60)}:${String(m%60).padStart(2,"0")}`;
+
+function scoreItem(item, area, party, ints) {
+  let s = 0;
+  if (item.area === area) s += 4;
+  s += item.tags.filter(t => ints.includes(t)).length * 2;
+  if (party === "family") s += item.fam;
+  return s;
+}
+
+/* ペース設定 */
+const PACE_CFG = {
+  easygoing:{ diffs:["easy"],         buffer:20, maxAct:2, boost:d=>d.diff==="easy"?2:0 },
+  moderate: { diffs:["easy","medium"],buffer:10, maxAct:3, boost:()=>0                  },
+  active:   { diffs:["easy","medium","hard"], buffer:0, maxAct:4, boost:d=>d.diff==="hard"?1:0 },
+};
+
+function buildPlan(area, party, ints, startMins, endMins, offset, pace, transport) {
+  const pc = PACE_CFG[pace] || PACE_CFG.moderate;
+  const used = [], slots = [];
+  let cur = startMins, curArea = area, actCount = 0;
+
+  const remMins = () => endMins - cur;
+
+  function getTrav(toArea) {
+    return curArea === toArea ? null : travelInfo(curArea, toArea, transport);
+  }
+  function totalCost(item) {
+    const trav = getTrav(item.area);
+    return item.dur * 60 + (trav ? trav.mins : 0) + pc.buffer;
+  }
+
+  function pickBest(typeFilter) {
+    const candidates = DATA
+      .filter(d => {
+        if (typeFilter && d.type !== typeFilter) return false;
+        if (used.includes(d.id)) return false;
+        if (!pc.diffs.includes(d.diff)) return false;
+        return totalCost(d) <= remMins();
+      })
+      .map(d => ({ d, s: scoreItem(d, area, party, ints) + pc.boost(d) - (d.area !== curArea ? 1 : 0) }))
+      .sort((a, b) => b.s - a.s);
+    if (!candidates.length) return null;
+    return candidates[offset % candidates.length].d;
+  }
+
+  function addItem(item, give = false) {
+    const trav = getTrav(item.area);
+    if (trav) {
+      slots.push({ time: fmtTime(cur), travelCard: true, ...trav });
+      cur += trav.mins;
+      curArea = item.area;
+    }
+    if (pc.buffer > 0 && slots.length > 0) cur += pc.buffer;
+    slots.push({ time: fmtTime(cur), item, give });
+    used.push(item.id);
+    cur += item.dur * 60;
+    return item;
+  }
+
+  // 1. Volunteer first
+  if (remMins() >= 90) {
+    const v = pickBest("volunteer");
+    if (v) addItem(v, true);
+  }
+
+  // 2. Fill remaining
+  let guard = 0;
+  while (remMins() > 30 && guard++ < 10 && actCount <= pc.maxAct) {
+    const hasFood = slots.some(s => s.item?.type === "food");
+    if (!hasFood) {
+      const f = pickBest("food");
+      if (f) { addItem(f); continue; }
+    }
+    if (actCount < pc.maxAct) {
+      const a = pickBest("activity");
+      if (a) { addItem(a); actCount++; continue; }
+    }
+    break;
+  }
+  return slots;
+}
+
+/* ---- components ---- */
+function Chip({ label, active, onClick, small }) {
+  return (
+    <button onClick={onClick} style={{
+      padding: small ? "6px 12px" : "8px 15px",
+      borderRadius: 999, fontSize: small ? 12 : 13, fontWeight: 700, cursor: "pointer",
+      border: `2px solid ${active ? C.sky : C.line}`,
+      background: active ? C.sky : C.white, color: active ? C.white : C.ink,
+      transition: "all 0.15s", fontFamily: "Poppins,sans-serif", whiteSpace: "nowrap",
+    }}>{label}</button>
+  );
+}
+
+function TravelCard({ slot, lang }) {
+  return (
+    <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
+      <div style={{ width: 44, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <div style={{ fontSize: 10, fontWeight: 800, color: C.fade, paddingTop: 6, fontFamily: "Poppins,sans-serif" }}>{slot.time}</div>
+        <div style={{ flex: 1, width: 2, margin: "3px 0", background: `repeating-linear-gradient(${C.line} 0 5px,transparent 5px 9px)` }} />
+      </div>
+      <div style={{
+        flex: 1, background: C.white, borderRadius: 12,
+        border: `1.5px solid ${slot.warn ? C.warnB : C.line}`,
+        padding: "8px 14px", display: "flex", alignItems: "center", gap: 10,
+        background: slot.warn ? C.warn : C.white,
+        marginBottom: 0,
+      }}>
+        <span style={{ fontSize: 20 }}>{slot.icon}</span>
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: slot.warn ? C.warnT : C.ink, fontFamily: "Poppins,sans-serif" }}>
+            {lang === "ja" ? slot.ja : slot.en}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PlanCard({ slot, t, lang, openId, setOpenId }) {
+  const { item, give, time } = slot;
+  const isOpen = openId === item.id;
+  return (
+    <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 44, flexShrink: 0 }}>
+        <div style={{ fontSize: 11, fontWeight: 800, color: give ? C.leaf : C.sky, paddingTop: 14, fontFamily: "Poppins,sans-serif", whiteSpace: "nowrap" }}>{time}</div>
+        <div style={{ width: 2, flex: 1, marginTop: 4, borderRadius: 1, background: give ? `linear-gradient(${C.leaf},${C.skyLight})` : C.line }} />
+      </div>
+      <div style={{ flex: 1, borderRadius: 18, overflow: "hidden",
+        border: `1.5px solid ${give ? "#9ADBB6" : C.line}`,
+        boxShadow: give ? "0 4px 20px rgba(0,168,79,0.13)" : "0 2px 8px rgba(0,0,0,0.05)",
+      }}>
+        {give && (
+          <div style={{ background: `linear-gradient(110deg,${C.sky} 0%,#0DD8EE 60%,#00E5BE 100%)`, padding: "10px 16px", position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.22) 1.5px,transparent 1.5px)", backgroundSize: "13px 13px" }} />
+            <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ width: 22, height: 22, borderRadius: "50%", background: C.white, color: C.leaf, display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 13, flexShrink: 0 }}>V</span>
+              <span style={{ fontWeight: 800, fontSize: 11, letterSpacing: "0.14em", color: C.white, fontFamily: "Poppins,sans-serif" }}>{t.giveLabel}</span>
+            </div>
+          </div>
+        )}
+        <div style={{ background: give ? C.leafLight : C.white, padding: "12px 16px 0" }}>
+          <div style={{ fontWeight: 800, fontSize: 14, color: give ? C.leafDark : C.ink, lineHeight: 1.3, fontFamily: "Poppins,sans-serif" }}>{item.name}</div>
+          <div style={{ display: "flex", gap: 14, marginTop: 5, fontSize: 11, color: C.fade, fontFamily: "Poppins,sans-serif" }}>
+            <span>⏱ {item.dur}h</span>
+            <span>📍 {t.areas[item.area]}</span>
+            {item.diff === "hard" && <span>💪 {lang==="ja"?"体力必要":"Strenuous"}</span>}
+            {item.diff === "easy" && <span>🌴 {lang==="ja"?"楽々":"Easy"}</span>}
+          </div>
+          <button onClick={() => setOpenId(isOpen ? null : item.id)}
+            style={{ marginTop: 8, marginBottom: 12, fontSize: 12, fontWeight: 700, color: give ? C.leaf : C.sky, background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "Poppins,sans-serif" }}>
+            {isOpen ? t.close : t.open}
+          </button>
+          {isOpen && (
+            <div style={{ paddingBottom: 14, borderTop: `1px solid ${give ? "#9ADBB6" : C.line}`, paddingTop: 12 }}>
+              <p style={{ fontSize: 13, color: C.ink, lineHeight: 1.6, margin: 0, fontFamily: "Poppins,sans-serif" }}>{lang === "ja" ? item.ja : item.en}</p>
+              {item.org && <p style={{ fontSize: 11, color: C.fade, marginTop: 5, fontWeight: 600, fontFamily: "Poppins,sans-serif" }}>{item.org}</p>}
+              <div style={{ marginTop: 10, borderRadius: 12, padding: "10px 14px", background: give ? C.white : C.skyPale, border: `1px solid ${give ? "#9ADBB6" : C.line}` }}>
+                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.1em", color: give ? C.leaf : C.sky, marginBottom: 3, fontFamily: "Poppins,sans-serif" }}>{t.joinTitle}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: C.ink, fontFamily: "Poppins,sans-serif" }}>{t.bookLabel[item.booking]}</div>
+                {item.url ? (
+                  <a href={item.url} target="_blank" rel="noopener noreferrer"
+                    style={{ display: "inline-block", marginTop: 7, fontSize: 12, fontWeight: 700, color: give ? C.leaf : C.sky, textDecoration: "underline", fontFamily: "Poppins,sans-serif" }}>
+                    {t.siteBtn}
+                  </a>
+                ) : (
+                  <div style={{ marginTop: 5, fontSize: 11, color: C.fade, fontStyle: "italic", fontFamily: "Poppins,sans-serif" }}>{t.nolink}</div>
+                )}
+              </div>
+              {give && <p style={{ fontSize: 11, color: C.leaf, marginTop: 8, fontStyle: "italic", lineHeight: 1.5, fontFamily: "Poppins,sans-serif" }}>🌿 {t.perk}</p>}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---- main ---- */
+function App() {
+  const [lang, setLang] = useState("en");
+  const [screen, setScreen] = useState("home");
+  const [date, setDate] = useState("");
+  const [startTime, setStartTime] = useState("09:00");
+  const [endTime, setEndTime] = useState("12:00");
+  const [area, setArea] = useState("waikiki");
+  const [party, setParty] = useState("family");
+  const [ints, setInts] = useState(["ocean"]);
+  const [pace, setPace] = useState("moderate");
+  const [transport, setTransport] = useState("transit");
+  const [offset, setOffset] = useState(0);
+  const [openId, setOpenId] = useState(null);
+  const t = T[lang];
+
+  const startMins = parseTime(startTime), endMins = parseTime(endTime);
+  const availH = endMins > startMins ? (endMins - startMins) / 60 : 0;
+  const toggleInt = k => setInts(p => p.includes(k) ? p.filter(x => x !== k) : [...p, k]);
+
+  const plan = screen === "plan" ? buildPlan(area, party, ints, startMins, endMins, offset, pace, transport) : [];
+  const hasVol = plan.some(s => s.give);
+  const showNorthWarn = area === "north" && transport !== "car";
+
+  return (
+    <div style={{ minHeight: "100vh", background: C.skyPale, fontFamily: "Poppins,sans-serif" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap');*{box-sizing:border-box;margin:0;padding:0}input[type=time],input[type=date]{-webkit-appearance:none}`}</style>
+
+      <div style={{ maxWidth: 420, margin: "0 auto", paddingBottom: 48 }}>
+
+        {/* NAV */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
+          padding: "13px 20px", background: `linear-gradient(100deg,${C.sky},${C.skyDark})`,
+          position: "sticky", top: 0, zIndex: 10 }}>
+          <button onClick={() => { setScreen("home"); setOpenId(null); }}
+            style={{ fontWeight: 900, fontSize: 16, color: C.white, background: "none", border: "none", cursor: "pointer", letterSpacing: "-0.02em", fontFamily: "Poppins,sans-serif" }}>
+            <span style={{ fontWeight: 500, opacity: 0.92 }}>a little&nbsp;</span><span style={{ display: "inline-flex", width: 24, height: 24, borderRadius: "50%", background: C.white, color: C.leaf, alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 15, verticalAlign: "middle" }}>V</span>
+          </button>
+          <button onClick={() => setLang(lang === "en" ? "ja" : "en")}
+            style={{ fontSize: 11, fontWeight: 800, padding: "5px 12px", borderRadius: 999,
+              border: "2px solid rgba(255,255,255,0.65)", color: C.white, background: "rgba(255,255,255,0.18)",
+              cursor: "pointer", letterSpacing: "0.04em", fontFamily: "Poppins,sans-serif" }}>
+            {lang === "en" ? "日本語" : "English"}
+          </button>
+        </div>
+
+        {/* HOME */}
+        {screen === "home" && (
+          <div>
+            <div style={{ background: `linear-gradient(140deg,${C.sky} 0%,#0DCDE8 55%,#00DDBF 100%)`, padding: "36px 24px 44px", borderRadius: "0 0 28px 28px" }}>
+              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.18em", color: "rgba(255,255,255,0.75)", marginBottom: 14 }}>{t.tag}</div>
+              <h1 style={{ fontWeight: 900, fontSize: 37, lineHeight: 1.18, color: C.white, letterSpacing: "-0.03em" }}>
+                {t.h1} {t.h1b}{" "}
+                <span style={{ display: "inline-flex", width: 50, height: 50, borderRadius: "50%", background: C.white, color: C.leaf, alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 32, verticalAlign: "middle", boxShadow: "0 4px 14px rgba(0,0,0,0.18)" }}>V</span>
+                <br />{t.h1c}
+              </h1>
+              <p style={{ marginTop: 10, fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>{t.vnote}</p>
+              <div style={{ display: "flex", alignItems: "center", gap: 2, margin: "20px 0 18px" }}>
+                {["🏖","··","··","🌺","··","··","🍍","··","··","🌅"].map((s, i) => (
+                  <span key={i} style={{ fontSize: s.length > 2 ? 20 : 10, color: s === "🌺" ? C.sun : "rgba(255,255,255,0.55)", transform: s === "🌺" ? "scale(1.35)" : "none", display: "inline-block" }}>{s}</span>
+                ))}
+              </div>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.92)", lineHeight: 1.65, maxWidth: 320 }}>{t.sub}</p>
+            </div>
+            <div style={{ padding: "20px 20px 0" }}>
+              <button onClick={() => setScreen("form")}
+                style={{ width: "100%", padding: "18px", borderRadius: 18, background: C.sun, color: C.sunText,
+                  fontWeight: 900, fontSize: 16, border: "none", cursor: "pointer",
+                  boxShadow: "0 8px 24px rgba(255,213,53,0.4)", letterSpacing: "-0.01em", fontFamily: "Poppins,sans-serif" }}>
+                {t.start}
+              </button>
+              <p style={{ textAlign: "center", fontSize: 12, color: C.fade, marginTop: 8, fontWeight: 600 }}>{t.how}</p>
+            </div>
+            <div style={{ padding: "20px 20px 0", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              {[
+                { icon:"⏱", en:"Just 1–2 hrs",enb:"Any free window works.",ja:"たった1〜2時間",jab:"空き時間でOK。" },
+                { icon:"🗓", en:"No full-day plan",enb:"Your free slot only.",ja:"1日計画は不要",jab:"空いてる時間帯だけ入れる。" },
+                { icon:"🚗", en:"Travel included",enb:"Driving time in the plan.",ja:"移動も計算",jab:"移動時間込みでプランを作成。" },
+                { icon:"🌴", en:"Pace options",enb:"Relaxed to active.",ja:"ペース選択あり",jab:"ゆったり〜アクティブで調整。" },
+              ].map((c, i) => (
+                <div key={i} style={{ background: C.white, borderRadius: 16, padding: "14px", border: `1.5px solid ${C.line}` }}>
+                  <div style={{ fontSize: 22, marginBottom: 5 }}>{c.icon}</div>
+                  <div style={{ fontWeight: 800, fontSize: 12, color: C.ink, marginBottom: 2 }}>{lang === "en" ? c.en : c.ja}</div>
+                  <div style={{ fontSize: 11, color: C.fade, lineHeight: 1.4 }}>{lang === "en" ? c.enb : c.jab}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* FORM */}
+        {screen === "form" && (
+          <div style={{ padding: "20px 20px 0" }}>
+            <h2 style={{ fontWeight: 900, fontSize: 24, color: C.ink, letterSpacing: "-0.02em", marginBottom: 20 }}>{t.fTitle}</h2>
+
+            {/* time range */}
+            <div style={{ background: C.white, borderRadius: 20, padding: "16px", border: `1.5px solid ${C.line}`, marginBottom: 14 }}>
+              <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 12 }}>{t.fTime}</div>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)}
+                  style={{ flex: 1, padding: "10px 10px", borderRadius: 12, border: `1.5px solid ${C.line}`, fontSize: 17, fontWeight: 800, color: C.ink, background: C.skyPale, fontFamily: "Poppins,sans-serif", outline: "none" }} />
+                <span style={{ fontSize: 18, color: C.sky, fontWeight: 900 }}>→</span>
+                <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)}
+                  style={{ flex: 1, padding: "10px 10px", borderRadius: 12, border: `1.5px solid ${C.line}`, fontSize: 17, fontWeight: 800, color: C.ink, background: C.skyPale, fontFamily: "Poppins,sans-serif", outline: "none" }} />
+              </div>
+              {availH > 0 && (
+                <div style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 12px", borderRadius: 999,
+                  background: availH >= 1.5 ? C.skyLight : C.warn, border: `1.5px solid ${availH >= 1.5 ? C.sky : C.warnB}` }}>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: availH >= 1.5 ? C.skyDark : C.warnT, fontFamily: "Poppins,sans-serif" }}>
+                    {availH >= 1.5 ? "✓ " : "⚠ "}{t.avail(availH % 1 === 0 ? availH : availH.toFixed(1))}
+                  </span>
+                </div>
+              )}
+              {availH > 0 && availH < 1.5 && <p style={{ marginTop: 6, fontSize: 11, color: C.warnT, fontFamily: "Poppins,sans-serif" }}>{t.tooShort}</p>}
+            </div>
+
+            {/* date optional */}
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 8 }}>{t.fDate}</div>
+              <input type="date" value={date} onChange={e => setDate(e.target.value)}
+                style={{ width: "100%", padding: "10px 14px", borderRadius: 14, border: `1.5px solid ${C.line}`, fontSize: 14, color: C.ink, background: C.white, fontFamily: "Poppins,sans-serif", outline: "none" }} />
+            </div>
+
+            {/* area + party */}
+            {[
+              { label: t.fArea, opts: Object.entries(t.areas), val: area, set: setArea },
+              { label: t.fParty, opts: Object.entries(t.party), val: party, set: setParty },
+            ].map(({ label, opts, val, set }, i) => (
+              <div key={i} style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 8 }}>{label}</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+                  {opts.map(([k, v]) => <Chip key={k} label={v} active={val === k} onClick={() => set(k)} />)}
+                </div>
+              </div>
+            ))}
+
+            {/* interests */}
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 8 }}>{t.fInt}</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+                {Object.entries(t.ints).map(([k, v]) => <Chip key={k} label={v} active={ints.includes(k)} onClick={() => toggleInt(k)} />)}
+              </div>
+            </div>
+
+            {/* pace */}
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 8 }}>{t.fPace}</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+                {Object.entries(t.pace).map(([k, v]) => <Chip key={k} label={v} active={pace === k} onClick={() => setPace(k)} />)}
+              </div>
+              <p style={{ marginTop: 7, fontSize: 11, color: C.fade, fontFamily: "Poppins,sans-serif" }}>{t.paceHint[pace]}</p>
+            </div>
+
+            {/* transport */}
+            <div style={{ marginBottom: 22 }}>
+              <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 8 }}>{t.fTransport}</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+                {Object.entries(t.transport).map(([k, v]) => <Chip key={k} label={v} active={transport === k} onClick={() => setTransport(k)} />)}
+              </div>
+              {/* North Shore warning */}
+              {area === "north" && transport !== "car" && (
+                <div style={{ marginTop: 8, padding: "8px 12px", borderRadius: 10, background: C.warn, border: `1px solid ${C.warnB}`, fontSize: 11, color: C.warnT, fontFamily: "Poppins,sans-serif" }}>
+                  {t.carNote}
+                </div>
+              )}
+            </div>
+
+            <button onClick={() => { setScreen("plan"); setOffset(0); setOpenId(null); }}
+              disabled={availH <= 0}
+              style={{ width: "100%", padding: "17px", borderRadius: 18,
+                background: availH > 0 ? `linear-gradient(110deg,${C.sky},#00D8EE)` : "#ccc",
+                color: C.white, fontWeight: 900, fontSize: 16, border: "none",
+                cursor: availH > 0 ? "pointer" : "not-allowed",
+                boxShadow: availH > 0 ? `0 8px 24px rgba(11,190,235,0.32)` : "none",
+                letterSpacing: "-0.01em", fontFamily: "Poppins,sans-serif" }}>
+              {t.build}
+            </button>
+          </div>
+        )}
+
+        {/* PLAN */}
+        {screen === "plan" && (
+          <div style={{ padding: "20px 20px 0" }}>
+            <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 4 }}>{t.planTitle}</div>
+            <div style={{ fontWeight: 900, fontSize: 20, color: C.ink, letterSpacing: "-0.02em", marginBottom: date ? 4 : 14 }}>
+              {t.planSub(startTime, endTime, t.areas[area])}
+            </div>
+            {date && <p style={{ fontSize: 12, color: C.fade, marginBottom: 10, fontWeight: 600 }}>{date}</p>}
+
+            {/* pace note */}
+            {pace === "easygoing" && (
+              <div style={{ marginBottom: 10, padding: "7px 12px", borderRadius: 10, background: C.leafLight, border: `1px solid #9ADBB6`, fontSize: 11, color: C.leafDark, fontWeight: 600, fontFamily: "Poppins,sans-serif" }}>
+                🌴 {t.easyNote}
+              </div>
+            )}
+            {!hasVol && (
+              <div style={{ background: C.warn, border: `1.5px solid ${C.warnB}`, borderRadius: 14, padding: "10px 14px", marginBottom: 12, fontSize: 12, color: C.warnT, lineHeight: 1.5, fontFamily: "Poppins,sans-serif" }}>
+                ⚠️ {t.noVol}
+              </div>
+            )}
+
+            {plan.map((slot, i) => slot.travelCard
+              ? <TravelCard key={i} slot={slot} lang={lang} />
+              : <PlanCard key={i} slot={slot} t={t} lang={lang} openId={openId} setOpenId={setOpenId} />
+            )}
+
+            {/* end marker */}
+            {plan.length > 0 && (
+              <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
+                <div style={{ width: 44, fontSize: 11, fontWeight: 800, color: C.sky, fontFamily: "Poppins,sans-serif", paddingTop: 2, textAlign: "center" }}>{endTime}</div>
+                <div style={{ flex: 1, padding: "8px 14px", borderRadius: 12, background: C.skyLight, border: `1px solid ${C.line}`, fontSize: 12, fontWeight: 700, color: C.skyDark, fontFamily: "Poppins,sans-serif" }}>{t.endLabel}</div>
+              </div>
+            )}
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14 }}>
+              <button onClick={() => { setOffset(offset + 1); setOpenId(null); }}
+                style={{ padding: "14px", borderRadius: 16, fontWeight: 800, fontSize: 12, border: `2px solid ${C.sky}`, color: C.sky, background: C.white, cursor: "pointer", fontFamily: "Poppins,sans-serif" }}>
+                {t.shuffle}
+              </button>
+              <button onClick={() => setScreen("form")}
+                style={{ padding: "14px", borderRadius: 16, fontWeight: 800, fontSize: 12, background: `linear-gradient(110deg,${C.sky},#00D8EE)`, color: C.white, border: "none", cursor: "pointer", fontFamily: "Poppins,sans-serif" }}>
+                {t.back}
+              </button>
+            </div>
+          </div>
+        )}
+
+        <p style={{ textAlign: "center", fontSize: 10, color: C.line, marginTop: 28, padding: "0 20px", lineHeight: 1.6, fontWeight: 600 }}>{t.foot}</p>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
