@@ -80,7 +80,12 @@ const T = {
     tag:"PROTOTYPE · SAMPLE DATA",
     h1:"Add a little",h1c:"to your vacation.",bigWord:"Volunteer",
     sub:"Tell us when you're free, and we'll weave one little V — just 1–2 hours of volunteering — into your window.",
-    start:"Plan my free time →",how:"No sign-up · No app · Works right now",
+    start:"Get started →",how:"No sign-up · No app · Works right now",
+    modeTitle:"What are you looking for?",modeBack:"← Back",
+    modePlanTitle:"Plan my day",modePlanDesc:"A full day plan with food and activities, with one volunteer stop woven in.",
+    modeVolTitle:"Just find volunteering",modeVolDesc:"See a few volunteer activities that fit your free time — no full-day plan.",
+    volResultsTitle:"Volunteer options",
+    volNone:"No volunteer activities fit this window. Try a longer time or a different area.",
     fTitle:"Your free window",
     fTime:"Free from → until",fDate:"Date (optional)",
     fArea:"Area",fParty:"Who's coming?",fInt:"Interests",
@@ -115,7 +120,12 @@ const T = {
     tag:"プロトタイプ · サンプルデータ",
     h1:"その旅に、",h1c:"をひとつ。",bigWord:"Volunteer",
     sub:"空いてる時間を教えてください。1〜2時間のちいさなVを、あなたのプランに織り込みます。",
-    start:"空き時間でプランをつくる →",how:"登録不要 · アプリ不要 · 即日OK",
+    start:"はじめる →",how:"登録不要 · アプリ不要 · 即日OK",
+    modeTitle:"何をお探しですか?",modeBack:"← もどる",
+    modePlanTitle:"1日プランをつくる",modePlanDesc:"食事・観光込みで、ボランティアを1つ織り込んだ1日プラン。",
+    modeVolTitle:"ボランティアだけ探す",modeVolDesc:"空いてる時間に合うボランティアを数件表示。1日プランは作りません。",
+    volResultsTitle:"ボランティア候補",
+    volNone:"この時間枠に合う活動が見つかりませんでした。時間を長くするか、エリアを変えてみてください。",
     fTitle:"空いてる時間は?",
     fTime:"開始 → 終了",fDate:"日付(任意)",
     fArea:"エリア",fParty:"誰と?",fInt:"好きなものは?",
@@ -231,6 +241,18 @@ function buildPlan(area, party, ints, startMins, endMins, offset, pace, transpor
     break;
   }
   return slots;
+}
+
+function buildVolunteerList(area, party, ints, availH, pace, offset) {
+  const pc = PACE_CFG[pace] || PACE_CFG.moderate;
+  const ranked = DATA
+    .filter(d => d.type === "volunteer" && pc.diffs.includes(d.diff) && d.dur <= availH)
+    .map(d => ({ d, s: scoreItem(d, area, party, ints) + pc.boost(d) }))
+    .sort((a, b) => b.s - a.s)
+    .map(x => x.d);
+  if (!ranked.length) return [];
+  const n = ranked.length, start = offset % n;
+  return [...ranked.slice(start), ...ranked.slice(0, start)].slice(0, 3);
 }
 
 /* ---- components ---- */
@@ -372,10 +394,55 @@ function BudgetSummary({ plan, t }) {
   );
 }
 
+function VolunteerOptionCard({ item, t, lang, openId, setOpenId, fromArea, transport }) {
+  const isOpen = openId === item.id;
+  const trav = fromArea !== item.area ? travelInfo(fromArea, item.area, transport) : null;
+  return (
+    <div style={{ borderRadius: 18, overflow: "hidden", border: "1.5px solid #9ADBB6", boxShadow: "0 4px 20px rgba(0,168,79,0.13)", marginBottom: 14 }}>
+      <div style={{ background: `linear-gradient(110deg,${C.sky} 0%,#0DD8EE 60%,#00E5BE 100%)`, padding: "10px 16px", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.22) 1.5px,transparent 1.5px)", backgroundSize: "13px 13px" }} />
+        <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ fontWeight: 900, fontSize: 17, color: C.white, lineHeight: 1 }}>V</span>
+          <span style={{ fontWeight: 800, fontSize: 11, letterSpacing: "0.14em", color: C.white, fontFamily: "Poppins,sans-serif" }}>{t.giveLabel}</span>
+        </div>
+      </div>
+      <div style={{ background: C.leafLight, padding: "12px 16px 0" }}>
+        <div style={{ fontWeight: 800, fontSize: 15, color: C.leafDark, lineHeight: 1.3, fontFamily: "Poppins,sans-serif" }}>{item.name}</div>
+        <div style={{ display: "flex", gap: 14, marginTop: 5, fontSize: 11, color: C.fade, flexWrap: "wrap", fontFamily: "Poppins,sans-serif" }}>
+          <span>⏱ {item.dur}h</span>
+          <span>📍 {t.areas[item.area]}</span>
+          <span style={{ fontWeight: 800, color: C.leaf }}>💵 {t.free}</span>
+          {trav && <span>{trav.icon} ~{trav.mins}min</span>}
+        </div>
+        <button onClick={() => setOpenId(isOpen ? null : item.id)}
+          style={{ marginTop: 8, marginBottom: 12, fontSize: 12, fontWeight: 700, color: C.leaf, background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "Poppins,sans-serif" }}>
+          {isOpen ? t.close : t.open}
+        </button>
+        {isOpen && (
+          <div style={{ paddingBottom: 14, borderTop: "1px solid #9ADBB6", paddingTop: 12 }}>
+            <p style={{ fontSize: 13, color: C.ink, lineHeight: 1.6, margin: 0, fontFamily: "Poppins,sans-serif" }}>{lang === "ja" ? item.ja : item.en}</p>
+            {item.org && <p style={{ fontSize: 11, color: C.fade, marginTop: 5, fontWeight: 600, fontFamily: "Poppins,sans-serif" }}>{item.org}</p>}
+            <div style={{ marginTop: 10, borderRadius: 12, padding: "10px 14px", background: C.white, border: "1px solid #9ADBB6" }}>
+              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.1em", color: C.leaf, marginBottom: 3, fontFamily: "Poppins,sans-serif" }}>{t.joinTitle}</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: C.ink, fontFamily: "Poppins,sans-serif" }}>{t.bookLabel[item.booking]}</div>
+              {item.url ? (
+                <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", marginTop: 7, fontSize: 12, fontWeight: 700, color: C.leaf, textDecoration: "underline", fontFamily: "Poppins,sans-serif" }}>{t.siteBtn}</a>
+              ) : (
+                <div style={{ marginTop: 5, fontSize: 11, color: C.fade, fontStyle: "italic", fontFamily: "Poppins,sans-serif" }}>{t.nolink}</div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ---- main ---- */
 function App() {
   const [lang, setLang] = useState("en");
   const [screen, setScreen] = useState("home");
+  const [mode, setMode] = useState("plan");
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("12:00");
@@ -394,13 +461,23 @@ function App() {
   const availH = endMins > startMins ? (endMins - startMins) / 60 : 0;
   const toggleInt = k => setInts(p => p.includes(k) ? p.filter(x => x !== k) : [...p, k]);
 
-  const plan = screen === "plan" ? buildPlan(area, party, ints, startMins, endMins, offset, pace, transport) : [];
+  const plan = screen === "plan" && mode === "plan" ? buildPlan(area, party, ints, startMins, endMins, offset, pace, transport) : [];
+  const volList = screen === "plan" && mode === "volunteer" ? buildVolunteerList(area, party, ints, availH, pace, offset) : [];
   const hasVol = plan.some(s => s.give);
   const showNorthWarn = area === "north" && transport !== "car";
 
   return (
     <div style={{ minHeight: "100vh", background: C.skyPale, fontFamily: "Poppins,sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap');*{box-sizing:border-box;margin:0;padding:0}input[type=time],input[type=date]{font-family:inherit}`}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap');*{box-sizing:border-box;margin:0;padding:0}input[type=time],input[type=date]{font-family:inherit}
+.mode-card{background:${C.white};border:2px solid ${C.line};cursor:pointer;transition:background 0.18s ease,border-color 0.18s ease;}
+.mode-card-title,.mode-card-desc{transition:color 0.18s ease;}
+.mode-card-plan:hover,.mode-card-plan:focus-visible{background:linear-gradient(110deg,${C.sky},#00D8EE);border-color:${C.sky};}
+.mode-card-plan:hover .mode-card-title,.mode-card-plan:focus-visible .mode-card-title{color:${C.white};}
+.mode-card-plan:hover .mode-card-desc,.mode-card-plan:focus-visible .mode-card-desc{color:rgba(255,255,255,0.9);}
+.mode-card-vol:hover,.mode-card-vol:focus-visible{background:linear-gradient(110deg,${C.sky},#00D8EE);border-color:${C.sky};}
+.mode-card-vol:hover .mode-card-title,.mode-card-vol:focus-visible .mode-card-title{color:${C.white};}
+.mode-card-vol:hover .mode-card-desc,.mode-card-vol:focus-visible .mode-card-desc{color:rgba(255,255,255,0.9);}
+`}</style>
 
       <div style={{ maxWidth: 420, margin: "0 auto", paddingBottom: 48 }}>
 
@@ -433,7 +510,7 @@ function App() {
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.9)", lineHeight: 1.65, maxWidth: 320 }}>{t.sub}</p>
             </div>
             <div style={{ padding: "20px 20px 0" }}>
-              <button onClick={() => setScreen("form")}
+              <button onClick={() => setScreen("mode")}
                 style={{ width: "100%", padding: "18px", borderRadius: 18, background: C.sun, color: C.sunText,
                   fontWeight: 900, fontSize: 16, border: "none", cursor: "pointer",
                   boxShadow: "0 8px 24px rgba(255,213,53,0.4)", letterSpacing: "-0.01em", fontFamily: "Poppins,sans-serif" }}>
@@ -455,6 +532,31 @@ function App() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* MODE — 目的を選ぶ二択画面(ベースは統一・ホバーで色が変わる) */}
+        {screen === "mode" && (
+          <div style={{ padding: "24px 20px 0" }}>
+            <button onClick={() => setScreen("home")}
+              style={{ fontSize: 12, fontWeight: 700, color: C.fade, background: "none", border: "none", cursor: "pointer", padding: 0, marginBottom: 16, fontFamily: "Poppins,sans-serif" }}>
+              {t.modeBack}
+            </button>
+            <h2 style={{ fontWeight: 900, fontSize: 24, color: C.ink, letterSpacing: "-0.02em", marginBottom: 20 }}>{t.modeTitle}</h2>
+
+            <button className="mode-card mode-card-plan" onClick={() => { setMode("plan"); setScreen("form"); }}
+              style={{ width: "100%", textAlign: "left", padding: "18px", borderRadius: 20, marginBottom: 14 }}>
+              <div style={{ fontSize: 26, marginBottom: 8 }}>🗺️</div>
+              <div className="mode-card-title" style={{ fontWeight: 900, fontSize: 18, color: C.ink, marginBottom: 4, fontFamily: "Poppins,sans-serif" }}>{t.modePlanTitle}</div>
+              <div className="mode-card-desc" style={{ fontSize: 13, color: C.fade, lineHeight: 1.5, fontFamily: "Poppins,sans-serif" }}>{t.modePlanDesc}</div>
+            </button>
+
+            <button className="mode-card mode-card-vol" onClick={() => { setMode("volunteer"); setScreen("form"); }}
+              style={{ width: "100%", textAlign: "left", padding: "18px", borderRadius: 20 }}>
+              <div style={{ fontSize: 26, marginBottom: 8 }}>🙋</div>
+              <div className="mode-card-title" style={{ fontWeight: 900, fontSize: 18, color: C.ink, marginBottom: 4, fontFamily: "Poppins,sans-serif" }}>{t.modeVolTitle}</div>
+              <div className="mode-card-desc" style={{ fontSize: 13, color: C.fade, lineHeight: 1.5, fontFamily: "Poppins,sans-serif" }}>{t.modeVolDesc}</div>
+            </button>
           </div>
         )}
 
@@ -548,8 +650,8 @@ function App() {
           </div>
         )}
 
-        {/* PLAN */}
-        {screen === "plan" && (
+        {/* PLAN (mode: plan) */}
+        {screen === "plan" && mode === "plan" && (
           <div style={{ padding: "20px 20px 0" }}>
             <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 4 }}>{t.planTitle}</div>
             <div style={{ fontWeight: 900, fontSize: 20, color: C.ink, letterSpacing: "-0.02em", marginBottom: date ? 4 : 14 }}>
@@ -595,6 +697,44 @@ function App() {
                 <div style={{ flex: 1, padding: "8px 14px", borderRadius: 12, background: C.skyLight, border: `1px solid ${C.line}`, fontSize: 12, fontWeight: 700, color: C.skyDark, fontFamily: "Poppins,sans-serif" }}>{t.endLabel}</div>
               </div>
             )}
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14 }}>
+              <button onClick={() => { setOffset(offset + 1); setOpenId(null); }}
+                style={{ padding: "14px", borderRadius: 16, fontWeight: 800, fontSize: 12, border: `2px solid ${C.sky}`, color: C.sky, background: C.white, cursor: "pointer", fontFamily: "Poppins,sans-serif" }}>
+                {t.shuffle}
+              </button>
+              <button onClick={() => setScreen("form")}
+                style={{ padding: "14px", borderRadius: 16, fontWeight: 800, fontSize: 12, background: `linear-gradient(110deg,${C.sky},#00D8EE)`, color: C.white, border: "none", cursor: "pointer", fontFamily: "Poppins,sans-serif" }}>
+                {t.back}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* PLAN (mode: volunteer) — ボランティア候補リスト */}
+        {screen === "plan" && mode === "volunteer" && (
+          <div style={{ padding: "20px 20px 0" }}>
+            <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 4 }}>{t.volResultsTitle}</div>
+            <div style={{ fontWeight: 900, fontSize: 20, color: C.ink, letterSpacing: "-0.02em", marginBottom: date ? 4 : 14 }}>
+              {t.planSub(startTime, endTime, t.areas[area])}
+            </div>
+            {date && <p style={{ fontSize: 12, color: C.fade, marginBottom: 10, fontWeight: 600 }}>{date}</p>}
+
+            {pace === "easygoing" && (
+              <div style={{ marginBottom: 10, padding: "7px 12px", borderRadius: 10, background: C.leafLight, border: "1px solid #9ADBB6", fontSize: 11, color: C.leafDark, fontWeight: 600, fontFamily: "Poppins,sans-serif" }}>
+                🌴 {t.easyNote}
+              </div>
+            )}
+
+            {volList.length === 0 && (
+              <div style={{ background: C.warn, border: `1.5px solid ${C.warnB}`, borderRadius: 14, padding: "10px 14px", marginBottom: 12, fontSize: 12, color: C.warnT, lineHeight: 1.5, fontFamily: "Poppins,sans-serif" }}>
+                ⚠️ {t.volNone}
+              </div>
+            )}
+
+            {volList.map(item => (
+              <VolunteerOptionCard key={item.id} item={item} t={t} lang={lang} openId={openId} setOpenId={setOpenId} fromArea={area} transport={transport} />
+            ))}
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14 }}>
               <button onClick={() => { setOffset(offset + 1); setOpenId(null); }}
