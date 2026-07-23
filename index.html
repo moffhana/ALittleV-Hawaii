@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>A Little V — Add a little Volunteer to your vacation</title>
+<title>A Little V — Skip the search. Find your Volunteer.</title>
 <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.development.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.development.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.23.2/babel.min.js"></script>
@@ -11,7 +11,7 @@
 <body style="margin:0">
 <div id="root"></div>
 <script type="text/babel" data-presets="react">
-const { useState } = React;
+const { useState, useRef } = React;
 
 const C = {
   sky:"#0BBEEB",skyDark:"#0898C0",skyLight:"#E0F6FD",skyPale:"#FBF7EF",
@@ -28,6 +28,30 @@ const DRIVE = {
   east:   { waikiki:45, honolulu:35, east:0,  north:90 },
   north:  { waikiki:60, honolulu:55, east:90, north:0  },
 };
+
+/* ---- 出発地(GPS判定用の座標つき) ---- */
+const START_POINTS = [
+  { id:"waikiki",  en:"Waikīkī 🏖",      ja:"ワイキキ 🏖",           area:"waikiki",  lat:21.2793, lng:-157.8292 },
+  { id:"manoa",    en:"Mānoa 🌿",        ja:"マノア 🌿",             area:"honolulu", lat:21.3156, lng:-157.8078 },
+  { id:"downtown", en:"Downtown 🏙",     ja:"ダウンタウン 🏙",       area:"honolulu", lat:21.3099, lng:-157.8581 },
+  { id:"kailua",   en:"Kailua 🌺",       ja:"カイルア 🌺",           area:"east",     lat:21.4022, lng:-157.7394 },
+  { id:"north",    en:"North Shore 🌊",  ja:"ノースショア 🌊",       area:"north",    lat:21.5928, lng:-158.1033 },
+];
+
+/* 2点間の距離(km)。GPSで一番近い出発地を選ぶために使う */
+function distanceKm(lat1, lng1, lat2, lng2) {
+  const R = 6371, toRad = d => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat/2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng/2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+/* 同じエリア内でも最初の1歩には移動時間がかかる(ホテル→集合場所など) */
+function localTravel(transport) {
+  if (transport === "car")     return { mins:10, icon:"🚗", cost:0, en:"Drive from your starting point  ~10 min", ja:"出発地から車で 約10分", warn:false };
+  if (transport === "transit") return { mins:15, icon:"🚌", cost:3, en:"Bus / rideshare from your starting point  ~15 min · ~$3", ja:"出発地からバス・配車で 約15分 · 約$3", warn:false };
+  return { mins:15, icon:"🚶", cost:0, en:"Walk from your starting point  ~15 min · Free", ja:"出発地から徒歩で 約15分 · 無料", warn:false };
+}
 
 function travelInfo(fromA, toA, transport) {
   if (fromA === toA) return null;
@@ -51,15 +75,15 @@ function travelInfo(fromA, toA, transport) {
 /* ---- data ---- */
 const DATA = [
   // ---- volunteer (データ収集シートより。Limahuli Garden(カウアイ島)は別島のため除外) ----
-  {id:"v1",cost:0,type:"volunteer",name:"Beach Cleanup at Kahuku (James Campbell National Wildlife Refuge)",org:"Sustainable Coastlines Hawaiʻi",area:"north",dur:3,fam:2,diff:"medium",tags:["ocean"],booking:"check",url:"https://www.sustainablecoastlineshawaii.org/schedule",en:"Join a monthly beach cleanup at Kahuku, helping protect the James Campbell National Wildlife Refuge on the North Shore. Usually the second Thursday of the month — check the site for exact dates. Bring a hat, water, and sunscreen.",ja:"ノースショア・カフクで月1回開催されるビーチクリーン。ジェームズ・キャンベル野生生物保護区を守る活動。日程はサイトで要確認。帽子・水・日焼け止めを持参。"},
-  {id:"v2",cost:0,type:"volunteer",name:"Community Cleanups across Oʻahu",org:"808 Cleanups",area:"honolulu",dur:2,fam:1,diff:"easy",tags:["ocean"],booking:"rsvp",url:"https://808cleanups.org/",en:"Year-round cleanups of beaches, trails, and parks across Oʻahu. Sign up through the website calendar — wear clothes you don't mind getting dirty.",ja:"オアフ島各地で年間を通じて開催されるビーチ・トレイル・公園の清掃活動。サイトのカレンダーから申し込み。汚れてもいい服装で。"},
-  {id:"v3",cost:0,type:"volunteer",name:"Community Work Day",org:"Kanu Hawaii",area:"north",dur:3,fam:2,diff:"medium",tags:["ocean"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/join-us-for-community-work-day/",en:"A community work day on the North Shore, held the third Saturday of every month. Everyone is welcome — closed-toe shoes required.",ja:"ノースショアで毎月第3土曜に開催されるコミュニティ・ワークデー。誰でも参加歓迎。つま先の覆われた靴が必要。"},
-  {id:"v4",cost:0,type:"volunteer",name:"Third Saturday Service Day at Lyon Arboretum",org:"Kanu Hawaii",area:"honolulu",dur:6,fam:0,diff:"hard",tags:["nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/",en:"A half-day service day at Lyon Arboretum, clearing invasive weeds so native koa trees can thrive. Ages 18+ only — a full, physically active day.",ja:"ライオン樹木園での終日ボランティア。外来種の雑草を取り除き、在来種コアの木の成長を助ける。18歳以上限定、体力を使う活動。"},
-  {id:"v5",cost:0,type:"volunteer",name:"Mālama Pono",org:"Pacific Whale Foundation",area:"honolulu",dur:2.5,fam:1,diff:"medium",tags:["nature"],booking:"rsvp",url:"https://pacificwhale.org/malama-pono/",en:"Hands-on conservation activities such as beach cleanups and native tree planting, held at various locations — check the calendar for the nearest date and site.",ja:"ビーチクリーンや在来種の植樹など環境保護活動に参加できるプログラム。開催地は複数あるため、カレンダーで最寄りの日程・場所を確認。"},
-  {id:"v6",cost:0,type:"volunteer",name:"The Genki Ala Wai Project",org:"Genki Ala Wai",area:"waikiki",dur:2,fam:1,diff:"medium",tags:["ocean"],booking:"rsvp",url:"https://www.genkialawai.org",en:"A volunteer program improving water quality in the Ala Wai Canal in Waikīkī. Usually the first Saturday of the month — check the site for meeting details.",ja:"ワイキキのアラワイ運河の水質改善を目指すボランティアプログラム。毎月第1土曜が目安。集合場所などはサイトで要確認。"},
-  {id:"v7",cost:0,type:"volunteer",name:"Pia Power Hours — Weekly Restoration Workday",org:"Protect & Preserve Hawaiʻi",area:"honolulu",dur:4,fam:0,diff:"medium",tags:["nature"],booking:"rsvp",url:"https://www.protectpreservehi.org/event-details-registration/pia-power-hours-meet-in-the-cul-de-sac-at-the-top-of-anolani-st-8",en:"A weekly workday removing invasive plants and planting native species, every Monday morning. Wear clothes you don't mind getting dirty, closed-toe shoes, and bring water.",ja:"毎週月曜午前に開催される森林再生ボランティア。外来種の除去と在来種の植栽。汚れてもいい服・靴・水筒が必要。"},
-  {id:"v8",cost:0,type:"volunteer",name:"Habitat Restoration — Wetland & Endemic Forest Species",org:"Healthy Climate Communities",area:"east",dur:2,fam:2,diff:"medium",tags:["nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/habitat-restoration-and-stewardship-of-wetland-and-endemic-forest-species/",en:"Restore Hawaiʻi's wetlands and native forests by planting native species, every Monday evening in Kailua. Under 14 needs a guardian present; under 18 needs signed parental consent.",ja:"毎週月曜夕方にカイルアで開催される湿地・在来林の再生活動。14歳以下は保護者同伴、18歳未満は保護者の同意書が必要。"},
-  {id:"v9",cost:0,type:"volunteer",name:"Lēʻahi (Diamond Head) State Monument Cleanup",org:"DLNR Division of State Parks",area:"honolulu",dur:2,fam:2,diff:"medium",tags:["nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/le%CA%BBahi-park-cleanup-4/",en:"Help maintain Diamond Head State Monument through park cleanups, garden care, painting, and light repairs. About once a month — a digital waiver is required.",ja:"ダイヤモンドヘッド州立記念公園の清掃・庭園整備・ペンキ塗り・軽い補修。月1回程度。デジタル免責同意書への署名が必要。"},
+  {id:"v1",cost:0,recurring:"monthly",type:"volunteer",name:"Beach Cleanup at Kahuku (James Campbell National Wildlife Refuge)",org:"Sustainable Coastlines Hawaiʻi",area:"north",dur:3,fam:2,diff:"medium",tags:["ocean"],booking:"check",url:"https://www.sustainablecoastlineshawaii.org/schedule",en:"Join a monthly beach cleanup at Kahuku, helping protect the James Campbell National Wildlife Refuge on the North Shore. Usually the second Thursday of the month — check the site for exact dates. Bring a hat, water, and sunscreen.",ja:"ノースショア・カフクで月1回開催されるビーチクリーン。ジェームズ・キャンベル野生生物保護区を守る活動。日程はサイトで要確認。帽子・水・日焼け止めを持参。"},
+  {id:"v2",cost:0,recurring:"weekly",type:"volunteer",name:"Community Cleanups across Oʻahu",org:"808 Cleanups",area:"honolulu",dur:2,fam:1,diff:"easy",tags:["ocean"],booking:"rsvp",url:"https://808cleanups.org/",en:"Year-round cleanups of beaches, trails, and parks across Oʻahu. Sign up through the website calendar — wear clothes you don't mind getting dirty.",ja:"オアフ島各地で年間を通じて開催されるビーチ・トレイル・公園の清掃活動。サイトのカレンダーから申し込み。汚れてもいい服装で。"},
+  {id:"v3",cost:0,recurring:"monthly",type:"volunteer",name:"Community Work Day",org:"Kanu Hawaii",area:"north",dur:3,fam:2,diff:"medium",tags:["ocean"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/join-us-for-community-work-day/",en:"A community work day on the North Shore, held the third Saturday of every month. Everyone is welcome — closed-toe shoes required.",ja:"ノースショアで毎月第3土曜に開催されるコミュニティ・ワークデー。誰でも参加歓迎。つま先の覆われた靴が必要。"},
+  {id:"v4",cost:0,recurring:"monthly",type:"volunteer",name:"Third Saturday Service Day at Lyon Arboretum",org:"Kanu Hawaii",area:"honolulu",dur:6,fam:0,diff:"hard",tags:["nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/",en:"A half-day service day at Lyon Arboretum, clearing invasive weeds so native koa trees can thrive. Ages 18+ only — a full, physically active day.",ja:"ライオン樹木園での終日ボランティア。外来種の雑草を取り除き、在来種コアの木の成長を助ける。18歳以上限定、体力を使う活動。"},
+  {id:"v5",cost:0,recurring:"varies",type:"volunteer",name:"Mālama Pono",org:"Pacific Whale Foundation",area:"honolulu",dur:2.5,fam:1,diff:"medium",tags:["nature"],booking:"rsvp",url:"https://pacificwhale.org/malama-pono/",en:"Hands-on conservation activities such as beach cleanups and native tree planting, held at various locations — check the calendar for the nearest date and site.",ja:"ビーチクリーンや在来種の植樹など環境保護活動に参加できるプログラム。開催地は複数あるため、カレンダーで最寄りの日程・場所を確認。"},
+  {id:"v6",cost:0,recurring:"monthly",type:"volunteer",name:"The Genki Ala Wai Project",org:"Genki Ala Wai",area:"waikiki",dur:2,fam:1,diff:"medium",tags:["ocean"],booking:"rsvp",url:"https://www.genkialawai.org",en:"A volunteer program improving water quality in the Ala Wai Canal in Waikīkī. Usually the first Saturday of the month — check the site for meeting details.",ja:"ワイキキのアラワイ運河の水質改善を目指すボランティアプログラム。毎月第1土曜が目安。集合場所などはサイトで要確認。"},
+  {id:"v7",cost:0,recurring:"weekly",type:"volunteer",name:"Pia Power Hours — Weekly Restoration Workday",org:"Protect & Preserve Hawaiʻi",area:"honolulu",dur:4,fam:0,diff:"medium",tags:["nature"],booking:"rsvp",url:"https://www.protectpreservehi.org/event-details-registration/pia-power-hours-meet-in-the-cul-de-sac-at-the-top-of-anolani-st-8",en:"A weekly workday removing invasive plants and planting native species, every Monday morning. Wear clothes you don't mind getting dirty, closed-toe shoes, and bring water.",ja:"毎週月曜午前に開催される森林再生ボランティア。外来種の除去と在来種の植栽。汚れてもいい服・靴・水筒が必要。"},
+  {id:"v8",cost:0,recurring:"weekly",type:"volunteer",name:"Habitat Restoration — Wetland & Endemic Forest Species",org:"Healthy Climate Communities",area:"east",dur:2,fam:2,diff:"medium",tags:["nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/habitat-restoration-and-stewardship-of-wetland-and-endemic-forest-species/",en:"Restore Hawaiʻi's wetlands and native forests by planting native species, every Monday evening in Kailua. Under 14 needs a guardian present; under 18 needs signed parental consent.",ja:"毎週月曜夕方にカイルアで開催される湿地・在来林の再生活動。14歳以下は保護者同伴、18歳未満は保護者の同意書が必要。"},
+  {id:"v9",cost:0,recurring:"monthly",type:"volunteer",name:"Lēʻahi (Diamond Head) State Monument Cleanup",org:"DLNR Division of State Parks",area:"honolulu",dur:2,fam:2,diff:"medium",tags:["nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/le%CA%BBahi-park-cleanup-4/",en:"Help maintain Diamond Head State Monument through park cleanups, garden care, painting, and light repairs. About once a month — a digital waiver is required.",ja:"ダイヤモンドヘッド州立記念公園の清掃・庭園整備・ペンキ塗り・軽い補修。月1回程度。デジタル免責同意書への署名が必要。"},
   // ---- food ----
   {id:"f1",cost:10,type:"food",name:"Leonard's Bakery",org:"",area:"honolulu",dur:0.5,fam:2,diff:"easy",tags:["food"],booking:"none",url:"https://leonardshawaii.com",en:"A beloved local bakery famous for malasadas — warm Portuguese-style doughnuts. A quick, sweet stop loved by families.",ja:"マラサダ(ポルトガル風ドーナツ)で有名な老舗ベーカリー。家族連れに人気の、手軽で甘い一休み。"},
   {id:"f2",cost:20,type:"food",name:"Duke's Waikiki",org:"",area:"waikiki",dur:1,fam:1,diff:"easy",tags:["food"],booking:"none",url:"https://www.dukeswaikiki.com/menus/",en:"Right on the beach with ocean views and highly-rated food — a Waikīkī classic for a relaxed meal.",ja:"ビーチのすぐそばで海を眺めながら食事ができる、評価の高いワイキキの定番レストラン。"},
@@ -68,17 +92,17 @@ const DATA = [
   {id:"f5",cost:25,type:"food",name:"Helena's Hawaiian Food",org:"",area:"honolulu",dur:1,fam:2,diff:"easy",tags:["food"],booking:"none",url:"https://www.helenashawaiianfood.com/",en:"A family-run restaurant serving authentic Hawaiian dishes since 1946 — a warm, historic taste of local food culture.",ja:"1946年創業、本格的なハワイ料理が味わえる老舗の家族経営レストラン。"},
   {id:"f6",cost:30,type:"food",name:"Moku Kitchen",org:"",area:"honolulu",dur:1,fam:2,diff:"easy",tags:["food"],booking:"none",url:"https://www.mokukitchen.com/",en:"Dishes made with fresh local ingredients, served alongside live music.",ja:"新鮮な地元食材を使った料理をライブ音楽と一緒に楽しめるレストラン。"},
   // ---- activity ----
-  {id:"a1",cost:20,type:"activity",name:"Waikīkī Beach Walk",org:"",area:"waikiki",dur:2,fam:2,diff:"easy",tags:["culture"],booking:"none",url:"https://jp.waikikibeachwalk.com",en:"An open-air shopping and dining promenade with live entertainment — a relaxed way to enjoy shopping, local food, and Hawaiian culture.",ja:"ショップ・レストラン・ライブが揃う開放的な散策エリア。買い物や地元グルメ、ハワイ文化をのんびり楽しめる。"},
-  {id:"a2",cost:0,type:"activity",name:"Kapiʻolani Regional Park",org:"",area:"waikiki",dur:1,fam:2,diff:"easy",tags:["culture"],booking:"none",url:"https://www.honolulu.gov/dpr/kapiolani-regional-park/",en:"Wide green lawns with a beautiful view of Diamond Head — perfect for a relaxed walk or picnic.",ja:"ダイヤモンドヘッドを望む広い芝生の公園。のんびり散歩やピクニックにぴったり。"},
-  {id:"a3",cost:20,type:"activity",name:"Royal Hawaiian Center",org:"",area:"waikiki",dur:1.5,fam:2,diff:"easy",tags:["culture"],booking:"none",url:"https://jp.royalhawaiiancenter.com/",en:"A shopping center with Hawaiian cultural events alongside the stores — a relaxed spot for families and friends to shop and eat together.",ja:"ショップに加えハワイ文化イベントも楽しめるショッピングセンター。"},
-  {id:"a4",cost:30,type:"activity",name:"ʻIolani Palace",org:"",area:"honolulu",dur:2,fam:2,diff:"easy",tags:["culture"],booking:"rsvp",url:"https://www.iolanipalace.org",en:"Learn about Hawaiian history at the only royal palace in the United States — a beautiful and historic site. Advance tickets recommended.",ja:"アメリカ唯一の王宮でハワイの歴史を学べる、美しく歴史的な場所。事前チケット推奨。"},
+  {id:"a1",cost:20,style:"explore",type:"activity",name:"Waikīkī Beach Walk",org:"",area:"waikiki",dur:2,fam:2,diff:"easy",tags:["culture"],booking:"none",url:"https://jp.waikikibeachwalk.com",en:"An open-air shopping and dining promenade with live entertainment — a relaxed way to enjoy shopping, local food, and Hawaiian culture.",ja:"ショップ・レストラン・ライブが揃う開放的な散策エリア。買い物や地元グルメ、ハワイ文化をのんびり楽しめる。"},
+  {id:"a2",cost:0,style:"active",type:"activity",name:"Kapiʻolani Regional Park",org:"",area:"waikiki",dur:1,fam:2,diff:"easy",tags:["culture"],booking:"none",url:"https://www.honolulu.gov/dpr/kapiolani-regional-park/",en:"Wide green lawns with a beautiful view of Diamond Head — perfect for a relaxed walk or picnic.",ja:"ダイヤモンドヘッドを望む広い芝生の公園。のんびり散歩やピクニックにぴったり。"},
+  {id:"a3",cost:20,style:"explore",type:"activity",name:"Royal Hawaiian Center",org:"",area:"waikiki",dur:1.5,fam:2,diff:"easy",tags:["culture"],booking:"none",url:"https://jp.royalhawaiiancenter.com/",en:"A shopping center with Hawaiian cultural events alongside the stores — a relaxed spot for families and friends to shop and eat together.",ja:"ショップに加えハワイ文化イベントも楽しめるショッピングセンター。"},
+  {id:"a4",cost:30,style:"explore",type:"activity",name:"ʻIolani Palace",org:"",area:"honolulu",dur:2,fam:2,diff:"easy",tags:["culture"],booking:"rsvp",url:"https://www.iolanipalace.org",en:"Learn about Hawaiian history at the only royal palace in the United States — a beautiful and historic site. Advance tickets recommended.",ja:"アメリカ唯一の王宮でハワイの歴史を学べる、美しく歴史的な場所。事前チケット推奨。"},
 ];
 
 /* ---- translations ---- */
 const T = {
   en:{
     tag:"PROTOTYPE · SAMPLE DATA",
-    h1:"Add a little",h1c:"to your vacation.",bigWord:"Volunteer",
+    h1:"SKIP THE SEARCH.",h1c:"Find the one that fits you — fast.",bigWord:"Volunteer",
     sub:"Tell us when you're free, and we'll weave one little V — just 1–2 hours of volunteering — into your window.",
     start:"Get started →",how:"No sign-up · No app · Works right now",
     modeTitle:"What are you looking for?",modeBack:"← Back",
@@ -86,9 +110,25 @@ const T = {
     modeVolTitle:"Just find volunteering",modeVolDesc:"See a few volunteer activities that fit your free time — no full-day plan.",
     volResultsTitle:"Volunteer options",
     volNone:"No volunteer activities fit this window. Try a longer time or a different area.",
+    fPurpose:"Why are you volunteering?",
+    purpose:{personal:"Personal interest 🌱",career:"School / career 🎓"},
+    purposeHint:{personal:"Just because you want to help out.",career:"For school credit, a resume, or an application — we'll prioritize regular, ongoing programs where hours add up."},
+    careerNote:"🎓 Ask the organizer whether they can document your hours or provide a certificate — we're collecting this info from our field research.",
+    fPlanStyle:"Besides volunteering, what do you want to do?",
+    planStyleOpts:{food:"Just food 🍽",explore:"Explore & shop 🛍",active:"Active & outdoors 🥾"},
+    planStyleHint:{food:"Volunteer plus a good meal nearby. Nothing else.",explore:"Sightseeing, culture and shopping around your volunteer stop.",active:"Parks, hikes and the outdoors near where you volunteer."},
+    activeThin:"We're still collecting outdoor options — more coming after our field research.",
+    onlyVolNote:"Your window fits the volunteer activity, but not much else. Add about an hour to fit a meal or something to do nearby.",
+    onlyVolNoteFood:"Your window fits the volunteer activity and travel time, but there wasn't room for a meal. Try adding 30–60 minutes.",
     fTitle:"Your free window",
     fTime:"Free from → until",fDate:"Date (optional)",
-    fArea:"Area",fParty:"Who's coming?",fInt:"Interests",
+    fArea:"Starting from",fParty:"Who's coming?",fInt:"Interests",
+    gpsBtn:"📍 Use my location",gpsSearching:"Finding you…",
+    gpsFar:"You seem to be far from Oʻahu — pick a starting point below.",
+    gpsFail:"Couldn't get your location. Pick a starting point below.",
+    gpsOk:"Found you — starting from",
+    fTarget:"Where do you want to volunteer?",anywhere:"Anywhere 🌏",
+    travelNote:"Travel times are rough estimates, not live map data — check a map app before you go.",
     fPace:"Activity level",fTransport:"Getting around by",
     avail:h=>`${h} hrs available`,tooShort:"Add at least 1.5 hrs to fit a volunteer activity.",
     build:"Build my plan →",
@@ -118,7 +158,7 @@ const T = {
   },
   ja:{
     tag:"プロトタイプ · サンプルデータ",
-    h1:"その旅に、",h1c:"をひとつ。",bigWord:"Volunteer",
+    h1:"もう、探さなくていい。",h1c:"あなたに合う活動が、すぐ見つかる。",bigWord:"Volunteer",
     sub:"空いてる時間を教えてください。1〜2時間のちいさなVを、あなたのプランに織り込みます。",
     start:"はじめる →",how:"登録不要 · アプリ不要 · 即日OK",
     modeTitle:"何をお探しですか?",modeBack:"← もどる",
@@ -126,9 +166,25 @@ const T = {
     modeVolTitle:"ボランティアだけ探す",modeVolDesc:"空いてる時間に合うボランティアを数件表示。1日プランは作りません。",
     volResultsTitle:"ボランティア候補",
     volNone:"この時間枠に合う活動が見つかりませんでした。時間を長くするか、エリアを変えてみてください。",
+    fPurpose:"ボランティアの目的は?",
+    purpose:{personal:"興味・関心 🌱",career:"進学・キャリア 🎓"},
+    purposeHint:{personal:"やってみたいから参加する。",career:"単位・レジュメ・出願のため。時間を積み上げやすい継続開催の活動を優先します。"},
+    careerNote:"🎓 参加時間の証明書が出るかは主催団体に直接確認してください(現地調査で情報を収集中です)。",
+    fPlanStyle:"ボランティア以外に何をしたい?",
+    planStyleOpts:{food:"ごはんだけ 🍽",explore:"観光・買い物 🛍",active:"アクティブに遊ぶ 🥾"},
+    planStyleHint:{food:"ボランティアと、近くでの食事だけ。",explore:"ボランティアの周辺で観光や買い物。",active:"公園やハイキングなど、体を動かす遊び。"},
+    activeThin:"アウトドア系の情報はまだ収集中です。現地調査後に追加されます。",
+    onlyVolNote:"この時間枠にはボランティアがぴったり入りましたが、他の予定を入れる余裕はありませんでした。1時間ほど延ばすと、食事や周辺の予定も入ります。",
+    onlyVolNoteFood:"ボランティアと移動でちょうど埋まり、食事を入れる余裕がありませんでした。30〜60分ほど延ばしてみてください。",
     fTitle:"空いてる時間は?",
     fTime:"開始 → 終了",fDate:"日付(任意)",
-    fArea:"エリア",fParty:"誰と?",fInt:"好きなものは?",
+    fArea:"どこから出発?",fParty:"誰と?",fInt:"好きなものは?",
+    gpsBtn:"📍 現在地を使う",gpsSearching:"現在地を確認中…",
+    gpsFar:"オアフ島から離れているようです。下から出発地を選んでください。",
+    gpsFail:"現在地を取得できませんでした。下から出発地を選んでください。",
+    gpsOk:"現在地に一番近いのは",
+    fTarget:"どこで活動したい?",anywhere:"どこでも 🌏",
+    travelNote:"移動時間はおおよその目安です(地図データとの連携はしていません)。出発前に地図アプリで確認してください。",
     fPace:"体力・ペース",fTransport:"移動手段",
     avail:h=>`${h}時間空いています`,tooShort:"1.5時間以上あるとボランティアを入れられます。",
     build:"プランをつくる →",
@@ -162,11 +218,16 @@ const T = {
 const parseTime = s => { if(!s) return 0; const [h,m]=s.split(":").map(Number); return h*60+m; };
 const fmtTime = m => `${Math.floor(m/60)}:${String(m%60).padStart(2,"0")}`;
 
-function scoreItem(item, area, party, ints) {
+function scoreItem(item, area, party, ints, purpose) {
   let s = 0;
   if (item.area === area) s += 4;
   s += item.tags.filter(t => ints.includes(t)).length * 2;
   if (party === "family") s += item.fam;
+  // キャリア目的: 継続的に開催される活動ほど時間を積み上げやすいので優先
+  if (purpose === "career" && item.type === "volunteer") {
+    if (item.recurring === "weekly") s += 3;
+    else if (item.recurring === "monthly") s += 1;
+  }
   return s;
 }
 
@@ -177,7 +238,7 @@ const PACE_CFG = {
   active:   { diffs:["easy","medium","hard"], buffer:0, maxAct:4, boost:d=>d.diff==="hard"?1:0 },
 };
 
-function buildPlan(area, party, ints, startMins, endMins, offset, pace, transport) {
+function buildPlan(area, party, ints, startMins, endMins, offset, pace, transport, purpose, planStyle, targetAreas) {
   const pc = PACE_CFG[pace] || PACE_CFG.moderate;
   const used = [], slots = [];
   let cur = startMins, curArea = area, actCount = 0;
@@ -189,7 +250,8 @@ function buildPlan(area, party, ints, startMins, endMins, offset, pace, transpor
   }
   function totalCost(item) {
     const trav = getTrav(item.area);
-    return item.dur * 60 + (trav ? trav.mins : 0) + pc.buffer;
+    const firstLeg = (!trav && slots.length === 0) ? localTravel(transport).mins : 0;
+    return item.dur * 60 + (trav ? trav.mins : 0) + firstLeg + pc.buffer;
   }
 
   function pickBest(typeFilter) {
@@ -198,9 +260,13 @@ function buildPlan(area, party, ints, startMins, endMins, offset, pace, transpor
         if (typeFilter && d.type !== typeFilter) return false;
         if (used.includes(d.id)) return false;
         if (!pc.diffs.includes(d.diff)) return false;
+        // 「どこで活動したい?」で絞り込み(空配列=どこでも)
+        if (targetAreas.length > 0 && !targetAreas.includes(d.area)) return false;
+        // 「ほかに何をしたい?」で選ばれたスタイルに合うアクティビティだけ
+        if (d.type === "activity" && d.style !== planStyle) return false;
         return totalCost(d) <= remMins();
       })
-      .map(d => ({ d, s: scoreItem(d, area, party, ints) + pc.boost(d) - (d.area !== curArea ? 1 : 0) }))
+      .map(d => ({ d, s: scoreItem(d, area, party, ints, purpose) + pc.boost(d) - (d.area !== curArea ? 1 : 0) }))
       .sort((a, b) => b.s - a.s);
     if (!candidates.length) return null;
     return candidates[offset % candidates.length].d;
@@ -212,6 +278,11 @@ function buildPlan(area, party, ints, startMins, endMins, offset, pace, transpor
       slots.push({ time: fmtTime(cur), travelCard: true, ...trav });
       cur += trav.mins;
       curArea = item.area;
+    } else if (slots.length === 0) {
+      // 出発地から最初の予定へ。同じエリアでも移動時間はかかる
+      const lt = localTravel(transport);
+      slots.push({ time: fmtTime(cur), travelCard: true, ...lt });
+      cur += lt.mins;
     }
     if (pc.buffer > 0 && slots.length > 0) cur += pc.buffer;
     slots.push({ time: fmtTime(cur), item, give });
@@ -234,7 +305,7 @@ function buildPlan(area, party, ints, startMins, endMins, offset, pace, transpor
       const f = pickBest("food");
       if (f) { addItem(f); continue; }
     }
-    if (actCount < pc.maxAct) {
+    if (planStyle !== "food" && actCount < pc.maxAct) {
       const a = pickBest("activity");
       if (a) { addItem(a); actCount++; continue; }
     }
@@ -243,11 +314,12 @@ function buildPlan(area, party, ints, startMins, endMins, offset, pace, transpor
   return slots;
 }
 
-function buildVolunteerList(area, party, ints, availH, pace, offset) {
+function buildVolunteerList(area, party, ints, availH, pace, offset, purpose, targetAreas) {
   const pc = PACE_CFG[pace] || PACE_CFG.moderate;
   const ranked = DATA
-    .filter(d => d.type === "volunteer" && pc.diffs.includes(d.diff) && d.dur <= availH)
-    .map(d => ({ d, s: scoreItem(d, area, party, ints) + pc.boost(d) }))
+    .filter(d => d.type === "volunteer" && pc.diffs.includes(d.diff) && d.dur <= availH
+      && (targetAreas.length === 0 || targetAreas.includes(d.area)))
+    .map(d => ({ d, s: scoreItem(d, area, party, ints, purpose) + pc.boost(d) }))
     .sort((a, b) => b.s - a.s)
     .map(x => x.d);
   if (!ranked.length) return [];
@@ -451,24 +523,72 @@ function App() {
   const [ints, setInts] = useState(["ocean"]);
   const [pace, setPace] = useState("moderate");
   const [transport, setTransport] = useState("transit");
+  const [purpose, setPurpose] = useState("personal");
+  const [startPoint, setStartPoint] = useState("waikiki");
+  const [targetAreas, setTargetAreas] = useState([]);
+  const [gpsMsg, setGpsMsg] = useState("");
+  const [gpsBusy, setGpsBusy] = useState(false);
+  const [planStyle, setPlanStyle] = useState("explore");
   const [offset, setOffset] = useState(0);
   const [openId, setOpenId] = useState(null);
   const [showBudget, setShowBudget] = useState(false);
-  const tryPicker = e => { try { e.target.showPicker && e.target.showPicker(); } catch (err) {} };
+  const startRef = useRef(null), endRef = useRef(null), dateRef = useRef(null);
+  /* 枠のどこを押してもピッカーを開く。showPicker非対応の環境ではフォーカスだけして
+     ブラウザ標準の動作(スマホのタップなど)に任せるので、失敗しても壊れない */
+  const openPicker = ref => {
+    const el = ref.current;
+    if (!el) return;
+    el.focus();
+    try { el.showPicker && el.showPicker(); } catch (err) {}
+  };
   const t = T[lang];
 
   const startMins = parseTime(startTime), endMins = parseTime(endTime);
   const availH = endMins > startMins ? (endMins - startMins) / 60 : 0;
   const toggleInt = k => setInts(p => p.includes(k) ? p.filter(x => x !== k) : [...p, k]);
 
-  const plan = screen === "plan" && mode === "plan" ? buildPlan(area, party, ints, startMins, endMins, offset, pace, transport) : [];
-  const volList = screen === "plan" && mode === "volunteer" ? buildVolunteerList(area, party, ints, availH, pace, offset) : [];
+  /* GPSで一番近い出発地を選ぶ。失敗しても手動選択に戻るだけで何も壊れない */
+  const useMyLocation = () => {
+    if (!navigator.geolocation) { setGpsMsg(t.gpsFail); return; }
+    setGpsBusy(true); setGpsMsg("");
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const { latitude, longitude } = pos.coords;
+        let best = START_POINTS[0], bestD = Infinity;
+        START_POINTS.forEach(sp => {
+          const d = distanceKm(latitude, longitude, sp.lat, sp.lng);
+          if (d < bestD) { bestD = d; best = sp; }
+        });
+        if (bestD > 100) {
+          // オアフ島から離れている(日本でのテストなど) → 手動選択を促す
+          setGpsMsg(t.gpsFar);
+        } else {
+          setStartPoint(best.id);
+          setArea(best.area);
+          setGpsMsg(`${t.gpsOk} ${lang === "ja" ? best.ja : best.en}`);
+        }
+        setGpsBusy(false);
+      },
+      () => { setGpsMsg(t.gpsFail); setGpsBusy(false); },
+      { timeout: 8000 }
+    );
+  };
+
+  const plan = screen === "plan" && mode === "plan" ? buildPlan(area, party, ints, startMins, endMins, offset, pace, transport, purpose, planStyle, targetAreas) : [];
+  const volList = screen === "plan" && mode === "volunteer" ? buildVolunteerList(area, party, ints, availH, pace, offset, purpose, targetAreas) : [];
   const hasVol = plan.some(s => s.give);
+  const planItems = plan.filter(s => s.item);
+  const hasFoodInPlan = planItems.some(s => s.item.type === "food");
+  // 「1日プラン」なのにボランティアしか入らなかった場合の判定
+  const onlyVolunteer = hasVol && planItems.length === 1;
+  const noFoodButHasMore = hasVol && !hasFoodInPlan && planItems.length > 1;
   const showNorthWarn = area === "north" && transport !== "car";
 
   return (
     <div style={{ minHeight: "100vh", background: C.skyPale, fontFamily: "Poppins,sans-serif" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap');*{box-sizing:border-box;margin:0;padding:0}input[type=time],input[type=date]{font-family:inherit}
+.app-shell{max-width:420px;margin:0 auto;padding-bottom:48px;}
+@media (min-width:700px){ .app-shell{max-width:560px;} }
 .mode-card{background:${C.white};border:2px solid ${C.line};cursor:pointer;transition:background 0.18s ease,border-color 0.18s ease;}
 .mode-card-title,.mode-card-desc{transition:color 0.18s ease;}
 .mode-card-plan:hover,.mode-card-plan:focus-visible{background:linear-gradient(110deg,${C.sky},#00D8EE);border-color:${C.sky};}
@@ -479,7 +599,7 @@ function App() {
 .mode-card-vol:hover .mode-card-desc,.mode-card-vol:focus-visible .mode-card-desc{color:rgba(255,255,255,0.9);}
 `}</style>
 
-      <div style={{ maxWidth: 420, margin: "0 auto", paddingBottom: 48 }}>
+      <div className="app-shell">
 
         {/* NAV */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
@@ -505,7 +625,7 @@ function App() {
               <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.18em", color: "rgba(255,255,255,0.65)", marginBottom: 18 }}>{t.tag}</div>
               <div style={{ fontWeight: 300, fontSize: 16, letterSpacing: "0.08em", color: "rgba(255,255,255,0.82)", textTransform: "uppercase" }}>{t.h1}</div>
               <div style={{ fontWeight: 800, fontSize: 52, lineHeight: 1.15, color: C.sun, letterSpacing: "0.01em", margin: "8px 0 10px 0" }}>{t.bigWord}</div>
-              <div style={{ fontWeight: 800, fontSize: 21, color: C.white, letterSpacing: "-0.02em", lineHeight: 1.2, marginBottom: 6 }}>{t.h1c}</div>
+              <div style={{ fontWeight: 800, fontSize: 19, color: C.white, letterSpacing: "-0.01em", lineHeight: 1.3, marginBottom: 8 }}>{t.h1c}</div>
               
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.9)", lineHeight: 1.65, maxWidth: 320 }}>{t.sub}</p>
             </div>
@@ -544,18 +664,18 @@ function App() {
             </button>
             <h2 style={{ fontWeight: 900, fontSize: 24, color: C.ink, letterSpacing: "-0.02em", marginBottom: 20 }}>{t.modeTitle}</h2>
 
-            <button className="mode-card mode-card-plan" onClick={() => { setMode("plan"); setScreen("form"); }}
-              style={{ width: "100%", textAlign: "left", padding: "18px", borderRadius: 20, marginBottom: 14 }}>
-              <div style={{ fontSize: 26, marginBottom: 8 }}>🗺️</div>
-              <div className="mode-card-title" style={{ fontWeight: 900, fontSize: 18, color: C.ink, marginBottom: 4, fontFamily: "Poppins,sans-serif" }}>{t.modePlanTitle}</div>
-              <div className="mode-card-desc" style={{ fontSize: 13, color: C.fade, lineHeight: 1.5, fontFamily: "Poppins,sans-serif" }}>{t.modePlanDesc}</div>
-            </button>
-
             <button className="mode-card mode-card-vol" onClick={() => { setMode("volunteer"); setScreen("form"); }}
-              style={{ width: "100%", textAlign: "left", padding: "18px", borderRadius: 20 }}>
+              style={{ width: "100%", textAlign: "left", padding: "18px", borderRadius: 20, marginBottom: 14 }}>
               <div style={{ fontSize: 26, marginBottom: 8 }}>🙋</div>
               <div className="mode-card-title" style={{ fontWeight: 900, fontSize: 18, color: C.ink, marginBottom: 4, fontFamily: "Poppins,sans-serif" }}>{t.modeVolTitle}</div>
               <div className="mode-card-desc" style={{ fontSize: 13, color: C.fade, lineHeight: 1.5, fontFamily: "Poppins,sans-serif" }}>{t.modeVolDesc}</div>
+            </button>
+
+            <button className="mode-card mode-card-plan" onClick={() => { setMode("plan"); setScreen("form"); }}
+              style={{ width: "100%", textAlign: "left", padding: "18px", borderRadius: 20 }}>
+              <div style={{ fontSize: 26, marginBottom: 8 }}>🗺️</div>
+              <div className="mode-card-title" style={{ fontWeight: 900, fontSize: 18, color: C.ink, marginBottom: 4, fontFamily: "Poppins,sans-serif" }}>{t.modePlanTitle}</div>
+              <div className="mode-card-desc" style={{ fontSize: 13, color: C.fade, lineHeight: 1.5, fontFamily: "Poppins,sans-serif" }}>{t.modePlanDesc}</div>
             </button>
           </div>
         )}
@@ -569,11 +689,17 @@ function App() {
             <div style={{ background: C.white, borderRadius: 20, padding: "16px", border: `1.5px solid ${C.line}`, marginBottom: 14 }}>
               <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 12 }}>{t.fTime}</div>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} onClick={tryPicker}
-                  style={{ flex: 1, minWidth: 0, minHeight: 48, padding: "10px 10px", borderRadius: 12, border: `1.5px solid ${C.line}`, fontSize: 17, fontWeight: 800, color: C.ink, background: C.skyPale, fontFamily: "Poppins,sans-serif", outline: "none", cursor: "pointer" }} />
+                <div onClick={() => openPicker(startRef)}
+                  style={{ flex: 1, minWidth: 0, minHeight: 48, display: "flex", alignItems: "center", padding: "0 10px", borderRadius: 12, border: `1.5px solid ${C.line}`, background: C.skyPale, cursor: "pointer" }}>
+                  <input ref={startRef} type="time" value={startTime} onChange={e => setStartTime(e.target.value)}
+                    style={{ width: "100%", minWidth: 0, minHeight: 46, border: "none", background: "transparent", fontSize: 17, fontWeight: 800, color: C.ink, fontFamily: "Poppins,sans-serif", outline: "none", cursor: "pointer" }} />
+                </div>
                 <span style={{ fontSize: 18, color: C.sky, fontWeight: 900 }}>→</span>
-                <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} onClick={tryPicker}
-                  style={{ flex: 1, minWidth: 0, minHeight: 48, padding: "10px 10px", borderRadius: 12, border: `1.5px solid ${C.line}`, fontSize: 17, fontWeight: 800, color: C.ink, background: C.skyPale, fontFamily: "Poppins,sans-serif", outline: "none", cursor: "pointer" }} />
+                <div onClick={() => openPicker(endRef)}
+                  style={{ flex: 1, minWidth: 0, minHeight: 48, display: "flex", alignItems: "center", padding: "0 10px", borderRadius: 12, border: `1.5px solid ${C.line}`, background: C.skyPale, cursor: "pointer" }}>
+                  <input ref={endRef} type="time" value={endTime} onChange={e => setEndTime(e.target.value)}
+                    style={{ width: "100%", minWidth: 0, minHeight: 46, border: "none", background: "transparent", fontSize: 17, fontWeight: 800, color: C.ink, fontFamily: "Poppins,sans-serif", outline: "none", cursor: "pointer" }} />
+                </div>
               </div>
               {availH > 0 && (
                 <div style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 12px", borderRadius: 999,
@@ -589,22 +715,52 @@ function App() {
             {/* date optional */}
             <div style={{ marginBottom: 14 }}>
               <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 8 }}>{t.fDate}</div>
-              <input type="date" value={date} onChange={e => setDate(e.target.value)} onClick={tryPicker}
-                style={{ width: "100%", minHeight: 48, padding: "10px 14px", borderRadius: 14, border: `1.5px solid ${C.line}`, fontSize: 16, color: C.ink, background: C.white, fontFamily: "Poppins,sans-serif", outline: "none", cursor: "pointer" }} />
+              <div onClick={() => openPicker(dateRef)}
+                style={{ width: "100%", minHeight: 48, display: "flex", alignItems: "center", padding: "0 14px", borderRadius: 14, border: `1.5px solid ${C.line}`, background: C.white, cursor: "pointer" }}>
+                <input ref={dateRef} type="date" value={date} onChange={e => setDate(e.target.value)}
+                  style={{ width: "100%", minHeight: 46, border: "none", background: "transparent", fontSize: 16, color: C.ink, fontFamily: "Poppins,sans-serif", outline: "none", cursor: "pointer" }} />
+              </div>
             </div>
 
-            {/* area + party */}
-            {[
-              { label: t.fArea, opts: Object.entries(t.areas), val: area, set: setArea },
-              { label: t.fParty, opts: Object.entries(t.party), val: party, set: setParty },
-            ].map(({ label, opts, val, set }, i) => (
-              <div key={i} style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 8 }}>{label}</div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-                  {opts.map(([k, v]) => <Chip key={k} label={v} active={val === k} onClick={() => set(k)} />)}
-                </div>
+            {/* starting point + GPS */}
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 8 }}>{t.fArea}</div>
+              <button onClick={useMyLocation} disabled={gpsBusy}
+                style={{ marginBottom: 9, padding: "7px 14px", borderRadius: 999, fontSize: 12, fontWeight: 800,
+                  border: `2px solid ${C.sky}`, background: C.white, color: C.sky,
+                  cursor: gpsBusy ? "wait" : "pointer", fontFamily: "Poppins,sans-serif" }}>
+                {gpsBusy ? t.gpsSearching : t.gpsBtn}
+              </button>
+              {gpsMsg && (
+                <p style={{ marginBottom: 8, fontSize: 11, color: C.fade, lineHeight: 1.5, fontFamily: "Poppins,sans-serif" }}>{gpsMsg}</p>
+              )}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+                {START_POINTS.map(sp => (
+                  <Chip key={sp.id} label={lang === "ja" ? sp.ja : sp.en} active={startPoint === sp.id}
+                    onClick={() => { setStartPoint(sp.id); setArea(sp.area); setGpsMsg(""); }} />
+                ))}
               </div>
-            ))}
+            </div>
+
+            {/* where to volunteer — 複数選択・空=どこでも */}
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 8 }}>{t.fTarget}</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+                <Chip label={t.anywhere} active={targetAreas.length === 0} onClick={() => setTargetAreas([])} />
+                {Object.entries(t.areas).map(([k, v]) => (
+                  <Chip key={k} label={v} active={targetAreas.includes(k)}
+                    onClick={() => setTargetAreas(p => p.includes(k) ? p.filter(x => x !== k) : [...p, k])} />
+                ))}
+              </div>
+            </div>
+
+            {/* party */}
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 8 }}>{t.fParty}</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+                {Object.entries(t.party).map(([k, v]) => <Chip key={k} label={v} active={party === k} onClick={() => setParty(k)} />)}
+              </div>
+            </div>
 
             {/* interests */}
             <div style={{ marginBottom: 14 }}>
@@ -613,6 +769,29 @@ function App() {
                 {Object.entries(t.ints).map(([k, v]) => <Chip key={k} label={v} active={ints.includes(k)} onClick={() => toggleInt(k)} />)}
               </div>
             </div>
+
+            {/* purpose — キャリア目的なら継続開催の活動を優先 */}
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 8 }}>{t.fPurpose}</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+                {Object.entries(t.purpose).map(([k, v]) => <Chip key={k} label={v} active={purpose === k} onClick={() => setPurpose(k)} />)}
+              </div>
+              <p style={{ marginTop: 7, fontSize: 11, color: C.fade, fontFamily: "Poppins,sans-serif" }}>{t.purposeHint[purpose]}</p>
+            </div>
+
+            {/* plan style — 1日プランモードのときだけ表示 */}
+            {mode === "plan" && (
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 8 }}>{t.fPlanStyle}</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+                  {Object.entries(t.planStyleOpts).map(([k, v]) => <Chip key={k} label={v} active={planStyle === k} onClick={() => setPlanStyle(k)} />)}
+                </div>
+                <p style={{ marginTop: 7, fontSize: 11, color: C.fade, fontFamily: "Poppins,sans-serif" }}>{t.planStyleHint[planStyle]}</p>
+                {planStyle === "active" && (
+                  <p style={{ marginTop: 5, fontSize: 11, color: C.warnT, fontStyle: "italic", fontFamily: "Poppins,sans-serif" }}>{t.activeThin}</p>
+                )}
+              </div>
+            )}
 
             {/* pace */}
             <div style={{ marginBottom: 14 }}>
@@ -679,9 +858,24 @@ function App() {
                 🌴 {t.easyNote}
               </div>
             )}
+            {purpose === "career" && (
+              <div style={{ marginBottom: 10, padding: "9px 12px", borderRadius: 10, background: C.skyLight, border: `1px solid ${C.sky}`, fontSize: 11, color: C.skyDark, fontWeight: 600, lineHeight: 1.5, fontFamily: "Poppins,sans-serif" }}>
+                {t.careerNote}
+              </div>
+            )}
             {!hasVol && (
               <div style={{ background: C.warn, border: `1.5px solid ${C.warnB}`, borderRadius: 14, padding: "10px 14px", marginBottom: 12, fontSize: 12, color: C.warnT, lineHeight: 1.5, fontFamily: "Poppins,sans-serif" }}>
                 ⚠️ {t.noVol}
+              </div>
+            )}
+            {onlyVolunteer && (
+              <div style={{ background: C.skyLight, border: `1.5px solid ${C.sky}`, borderRadius: 14, padding: "10px 14px", marginBottom: 12, fontSize: 12, color: C.skyDark, lineHeight: 1.5, fontWeight: 600, fontFamily: "Poppins,sans-serif" }}>
+                ⏳ {t.onlyVolNote}
+              </div>
+            )}
+            {noFoodButHasMore && planStyle !== "food" && (
+              <div style={{ background: C.skyLight, border: `1.5px solid ${C.sky}`, borderRadius: 14, padding: "10px 14px", marginBottom: 12, fontSize: 12, color: C.skyDark, lineHeight: 1.5, fontWeight: 600, fontFamily: "Poppins,sans-serif" }}>
+                ⏳ {t.onlyVolNoteFood}
               </div>
             )}
 
@@ -696,6 +890,12 @@ function App() {
                 <div style={{ width: 44, fontSize: 11, fontWeight: 800, color: C.sky, fontFamily: "Poppins,sans-serif", paddingTop: 2, textAlign: "center" }}>{endTime}</div>
                 <div style={{ flex: 1, padding: "8px 14px", borderRadius: 12, background: C.skyLight, border: `1px solid ${C.line}`, fontSize: 12, fontWeight: 700, color: C.skyDark, fontFamily: "Poppins,sans-serif" }}>{t.endLabel}</div>
               </div>
+            )}
+
+            {plan.length > 0 && (
+              <p style={{ fontSize: 10, color: C.fade, lineHeight: 1.5, marginTop: 10, marginBottom: 2, fontFamily: "Poppins,sans-serif" }}>
+                🗺️ {t.travelNote}
+              </p>
             )}
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14 }}>
@@ -720,6 +920,11 @@ function App() {
             </div>
             {date && <p style={{ fontSize: 12, color: C.fade, marginBottom: 10, fontWeight: 600 }}>{date}</p>}
 
+            {purpose === "career" && (
+              <div style={{ marginBottom: 10, padding: "9px 12px", borderRadius: 10, background: C.skyLight, border: `1px solid ${C.sky}`, fontSize: 11, color: C.skyDark, fontWeight: 600, lineHeight: 1.5, fontFamily: "Poppins,sans-serif" }}>
+                {t.careerNote}
+              </div>
+            )}
             {pace === "easygoing" && (
               <div style={{ marginBottom: 10, padding: "7px 12px", borderRadius: 10, background: C.leafLight, border: "1px solid #9ADBB6", fontSize: 11, color: C.leafDark, fontWeight: 600, fontFamily: "Poppins,sans-serif" }}>
                 🌴 {t.easyNote}
@@ -735,6 +940,12 @@ function App() {
             {volList.map(item => (
               <VolunteerOptionCard key={item.id} item={item} t={t} lang={lang} openId={openId} setOpenId={setOpenId} fromArea={area} transport={transport} />
             ))}
+
+            {volList.length > 0 && (
+              <p style={{ fontSize: 10, color: C.fade, lineHeight: 1.5, marginTop: 4, marginBottom: 2, fontFamily: "Poppins,sans-serif" }}>
+                🗺️ {t.travelNote}
+              </p>
+            )}
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14 }}>
               <button onClick={() => { setOffset(offset + 1); setOpenId(null); }}
