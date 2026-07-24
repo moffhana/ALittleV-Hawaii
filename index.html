@@ -121,7 +121,7 @@ const T = {
     onlyVolNote:"Your window fits the volunteer activity, but not much else. Add about an hour to fit a meal or something to do nearby.",
     onlyVolNoteFood:"Your window fits the volunteer activity and travel time, but there wasn't room for a meal. Try adding 30–60 minutes.",
     fTitle:"Your free window",
-    fTime:"Free from → until",fDate:"Date (optional)",
+    fTime:"Free from → until",fDate:"Date (optional)",datePlaceholder:"Tap to pick a date",
     fArea:"Starting from",fParty:"Who's coming?",fInt:"Interests",
     gpsBtn:"📍 Use my location",gpsSearching:"Finding you…",
     gpsFar:"You seem to be far from Oʻahu — pick a starting point below.",
@@ -177,7 +177,7 @@ const T = {
     onlyVolNote:"この時間枠にはボランティアがぴったり入りましたが、他の予定を入れる余裕はありませんでした。1時間ほど延ばすと、食事や周辺の予定も入ります。",
     onlyVolNoteFood:"ボランティアと移動でちょうど埋まり、食事を入れる余裕がありませんでした。30〜60分ほど延ばしてみてください。",
     fTitle:"空いてる時間は?",
-    fTime:"開始 → 終了",fDate:"日付(任意)",
+    fTime:"開始 → 終了",fDate:"日付(任意)",datePlaceholder:"タップして日付を選ぶ",
     fArea:"どこから出発?",fParty:"誰と?",fInt:"好きなものは?",
     gpsBtn:"📍 現在地を使う",gpsSearching:"現在地を確認中…",
     gpsFar:"オアフ島から離れているようです。下から出発地を選んでください。",
@@ -217,6 +217,16 @@ const T = {
 /* ---- utils ---- */
 const parseTime = s => { if(!s) return 0; const [h,m]=s.split(":").map(Number); return h*60+m; };
 const fmtTime = m => `${Math.floor(m/60)}:${String(m%60).padStart(2,"0")}`;
+
+/* 日付の表示形式はブラウザの言語設定に左右されるため、自前で整形して
+   サイトの言語切替に確実に連動させる */
+const MONTHS_EN = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function formatDate(iso, lang) {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-").map(Number);
+  if (!y || !m || !d) return iso;
+  return lang === "ja" ? `${y}年${m}月${d}日` : `${MONTHS_EN[m - 1]} ${d}, ${y}`;
+}
 
 function scoreItem(item, area, party, ints, purpose) {
   let s = 0;
@@ -716,9 +726,14 @@ function App() {
             <div style={{ marginBottom: 14 }}>
               <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 8 }}>{t.fDate}</div>
               <div onClick={() => openPicker(dateRef)}
-                style={{ width: "100%", minHeight: 48, display: "flex", alignItems: "center", padding: "0 14px", borderRadius: 14, border: `1.5px solid ${C.line}`, background: C.white, cursor: "pointer" }}>
+                style={{ position: "relative", width: "100%", minHeight: 48, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 14px", borderRadius: 14, border: `1.5px solid ${C.line}`, background: C.white, cursor: "pointer", overflow: "hidden" }}>
+                <span style={{ fontSize: 15, fontWeight: date ? 700 : 500, color: date ? C.ink : C.fade, fontFamily: "Poppins,sans-serif" }}>
+                  {date ? formatDate(date, lang) : t.datePlaceholder}
+                </span>
+                <span style={{ fontSize: 16, color: C.sky }}>📅</span>
+                {/* ネイティブの入力欄。表示は上のspanが担当し、これは操作用に透明で重ねる */}
                 <input ref={dateRef} type="date" value={date} onChange={e => setDate(e.target.value)}
-                  style={{ width: "100%", minHeight: 46, border: "none", background: "transparent", fontSize: 16, color: C.ink, fontFamily: "Poppins,sans-serif", outline: "none", cursor: "pointer" }} />
+                  style={{ position: "absolute", left: 0, top: 0, width: "100%", height: "100%", opacity: 0, border: "none", cursor: "pointer" }} />
               </div>
             </div>
 
@@ -836,7 +851,7 @@ function App() {
             <div style={{ fontWeight: 900, fontSize: 20, color: C.ink, letterSpacing: "-0.02em", marginBottom: date ? 4 : 14 }}>
               {t.planSub(startTime, endTime, t.areas[area])}
             </div>
-            {date && <p style={{ fontSize: 12, color: C.fade, marginBottom: 10, fontWeight: 600 }}>{date}</p>}
+            {date && <p style={{ fontSize: 12, color: C.fade, marginBottom: 10, fontWeight: 600 }}>{formatDate(date, lang)}</p>}
 
             {plan.length > 0 && (
               <div style={{ marginBottom: 14 }}>
@@ -918,7 +933,7 @@ function App() {
             <div style={{ fontWeight: 900, fontSize: 20, color: C.ink, letterSpacing: "-0.02em", marginBottom: date ? 4 : 14 }}>
               {t.planSub(startTime, endTime, t.areas[area])}
             </div>
-            {date && <p style={{ fontSize: 12, color: C.fade, marginBottom: 10, fontWeight: 600 }}>{date}</p>}
+            {date && <p style={{ fontSize: 12, color: C.fade, marginBottom: 10, fontWeight: 600 }}>{formatDate(date, lang)}</p>}
 
             {purpose === "career" && (
               <div style={{ marginBottom: 10, padding: "9px 12px", borderRadius: 10, background: C.skyLight, border: `1px solid ${C.sky}`, fontSize: 11, color: C.skyDark, fontWeight: 600, lineHeight: 1.5, fontFamily: "Poppins,sans-serif" }}>
