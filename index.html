@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>A Little V — Skip the search. Find your Volunteer.</title>
+<title>A Little V — Volunteer app (prototype)</title>
 <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.development.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.development.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.23.2/babel.min.js"></script>
@@ -11,971 +11,1133 @@
 <body style="margin:0">
 <div id="root"></div>
 <script type="text/babel" data-presets="react">
-const { useState, useRef } = React;
+const { useState } = React;
+
+/* =========================================================
+   A Little V — アプリ版 v1(パブリックページのみ)
+   今回のスコープ: ボランティア検索ページ + ボランティアページ + ブックマーク選択
+   次回以降: アカウント作成 / 個人・友達カレンダー / 参加有無 / 記念投稿・メモ
+   ブックマークの状態は保存して見せるところまで(カレンダー反映は次回)
+   ========================================================= */
 
 const C = {
-  sky:"#0BBEEB",skyDark:"#0898C0",skyLight:"#E0F6FD",skyPale:"#FBF7EF",
-  sun:"#FFD535",sunText:"#7A5500",
-  leaf:"#00A84F",leafLight:"#E3F6EC",leafDark:"#007A38",
-  white:"#FFFFFF",ink:"#0E2830",fade:"#4A7A88",line:"#BDE6F5",
-  warn:"#FFF8E1",warnB:"#FFD535",warnT:"#7A5500",
+  sky:"#0BBEEB", skyDark:"#0898C0", skyLight:"#E0F6FD", skyPale:"#FBF7EF",
+  sun:"#FFD535", sunText:"#7A5500",
+  leaf:"#00A84F", leafLight:"#E3F6EC", leafDark:"#007A38",
+  white:"#FFFFFF", ink:"#0E2830", fade:"#4A7A88", line:"#BDE6F5",
+  warn:"#FFF8E1", warnB:"#FFD535", warnT:"#7A5500",
 };
 
-/* ---- 移動時間(車/分) ---- */
-const DRIVE = {
-  waikiki:{ waikiki:0, honolulu:20, east:45, north:60 },
-  honolulu:{ waikiki:20, honolulu:0, east:35, north:55 },
-  east:   { waikiki:45, honolulu:35, east:0,  north:90 },
-  north:  { waikiki:60, honolulu:55, east:90, north:0  },
-};
-
-/* ---- 出発地(GPS判定用の座標つき) ---- */
-const START_POINTS = [
-  { id:"waikiki",  en:"Waikīkī 🏖",      ja:"ワイキキ 🏖",           area:"waikiki",  lat:21.2793, lng:-157.8292 },
-  { id:"manoa",    en:"Mānoa 🌿",        ja:"マノア 🌿",             area:"honolulu", lat:21.3156, lng:-157.8078 },
-  { id:"downtown", en:"Downtown 🏙",     ja:"ダウンタウン 🏙",       area:"honolulu", lat:21.3099, lng:-157.8581 },
-  { id:"kailua",   en:"Kailua 🌺",       ja:"カイルア 🌺",           area:"east",     lat:21.4022, lng:-157.7394 },
-  { id:"north",    en:"North Shore 🌊",  ja:"ノースショア 🌊",       area:"north",    lat:21.5928, lng:-158.1033 },
-];
-
-/* 2点間の距離(km)。GPSで一番近い出発地を選ぶために使う */
-function distanceKm(lat1, lng1, lat2, lng2) {
-  const R = 6371, toRad = d => d * Math.PI / 180;
-  const dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
-  const a = Math.sin(dLat/2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng/2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-/* 同じエリア内でも最初の1歩には移動時間がかかる(ホテル→集合場所など) */
-function localTravel(transport) {
-  if (transport === "car")     return { mins:10, icon:"🚗", cost:0, en:"Drive from your starting point  ~10 min", ja:"出発地から車で 約10分", warn:false };
-  if (transport === "transit") return { mins:15, icon:"🚌", cost:3, en:"Bus / rideshare from your starting point  ~15 min · ~$3", ja:"出発地からバス・配車で 約15分 · 約$3", warn:false };
-  return { mins:15, icon:"🚶", cost:0, en:"Walk from your starting point  ~15 min · Free", ja:"出発地から徒歩で 約15分 · 無料", warn:false };
-}
-
-function travelInfo(fromA, toA, transport) {
-  if (fromA === toA) return null;
-  const base = DRIVE[fromA]?.[toA] ?? 45;
-  let mins, icon, en, ja, warn = false, cost = 0;
-  if (transport === "car") {
-    mins = base; icon = "🚗"; cost = 0;
-    en = `Drive  ~${mins} min  (rental already covers this)`; ja = `車で 約${mins}分(レンタカー代に含む)`;
-  } else if (transport === "transit") {
-    mins = Math.round(base * 1.5); icon = "🚌"; cost = 3;
-    en = `TheBus / Uber  ~${mins} min  · ~$3`; ja = `バス・Uber  約${mins}分 · 約$3`;
-    if (base >= 50) warn = true;
-  } else {
-    mins = base <= 20 ? Math.round(base * 2.5) : Math.round(base * 1.5);
-    if (base <= 20) { icon = "🚲"; cost = 0; en = `Walk / bike  ~${mins} min  · Free`; ja = `徒歩・自転車  約${mins}分 · 無料`; }
-    else { icon = "🚖"; cost = Math.round(mins * 1.8); en = `Uber / taxi  ~${mins} min  · ~$${Math.round(mins*1.8)}  (walking not practical)`; ja = `Uber・タクシー  約${mins}分 · 約$${Math.round(mins*1.8)}(徒歩は困難)`; warn = true; }
-  }
-  return { mins, icon, en, ja, warn, cost };
-}
-
-/* ---- data ---- */
+/* ---- ボランティアデータ(データ収集シート由来) ---- */
 const DATA = [
-  // ---- volunteer (データ収集シートより。Limahuli Garden(カウアイ島)は別島のため除外) ----
-  {id:"v1",cost:0,recurring:"monthly",type:"volunteer",name:"Beach Cleanup at Kahuku (James Campbell National Wildlife Refuge)",org:"Sustainable Coastlines Hawaiʻi",area:"north",dur:3,fam:2,diff:"medium",tags:["ocean"],booking:"check",url:"https://www.sustainablecoastlineshawaii.org/schedule",en:"Join a monthly beach cleanup at Kahuku, helping protect the James Campbell National Wildlife Refuge on the North Shore. Usually the second Thursday of the month — check the site for exact dates. Bring a hat, water, and sunscreen.",ja:"ノースショア・カフクで月1回開催されるビーチクリーン。ジェームズ・キャンベル野生生物保護区を守る活動。日程はサイトで要確認。帽子・水・日焼け止めを持参。"},
-  {id:"v2",cost:0,recurring:"weekly",type:"volunteer",name:"Community Cleanups across Oʻahu",org:"808 Cleanups",area:"honolulu",dur:2,fam:1,diff:"easy",tags:["ocean"],booking:"rsvp",url:"https://808cleanups.org/",en:"Year-round cleanups of beaches, trails, and parks across Oʻahu. Sign up through the website calendar — wear clothes you don't mind getting dirty.",ja:"オアフ島各地で年間を通じて開催されるビーチ・トレイル・公園の清掃活動。サイトのカレンダーから申し込み。汚れてもいい服装で。"},
-  {id:"v3",cost:0,recurring:"monthly",type:"volunteer",name:"Community Work Day",org:"Kanu Hawaii",area:"north",dur:3,fam:2,diff:"medium",tags:["ocean"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/join-us-for-community-work-day/",en:"A community work day on the North Shore, held the third Saturday of every month. Everyone is welcome — closed-toe shoes required.",ja:"ノースショアで毎月第3土曜に開催されるコミュニティ・ワークデー。誰でも参加歓迎。つま先の覆われた靴が必要。"},
-  {id:"v4",cost:0,recurring:"monthly",type:"volunteer",name:"Third Saturday Service Day at Lyon Arboretum",org:"Kanu Hawaii",area:"honolulu",dur:6,fam:0,diff:"hard",tags:["nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/",en:"A half-day service day at Lyon Arboretum, clearing invasive weeds so native koa trees can thrive. Ages 18+ only — a full, physically active day.",ja:"ライオン樹木園での終日ボランティア。外来種の雑草を取り除き、在来種コアの木の成長を助ける。18歳以上限定、体力を使う活動。"},
-  {id:"v5",cost:0,recurring:"varies",type:"volunteer",name:"Mālama Pono",org:"Pacific Whale Foundation",area:"honolulu",dur:2.5,fam:1,diff:"medium",tags:["nature"],booking:"rsvp",url:"https://pacificwhale.org/malama-pono/",en:"Hands-on conservation activities such as beach cleanups and native tree planting, held at various locations — check the calendar for the nearest date and site.",ja:"ビーチクリーンや在来種の植樹など環境保護活動に参加できるプログラム。開催地は複数あるため、カレンダーで最寄りの日程・場所を確認。"},
-  {id:"v6",cost:0,recurring:"monthly",type:"volunteer",name:"The Genki Ala Wai Project",org:"Genki Ala Wai",area:"waikiki",dur:2,fam:1,diff:"medium",tags:["ocean"],booking:"rsvp",url:"https://www.genkialawai.org",en:"A volunteer program improving water quality in the Ala Wai Canal in Waikīkī. Usually the first Saturday of the month — check the site for meeting details.",ja:"ワイキキのアラワイ運河の水質改善を目指すボランティアプログラム。毎月第1土曜が目安。集合場所などはサイトで要確認。"},
-  {id:"v7",cost:0,recurring:"weekly",type:"volunteer",name:"Pia Power Hours — Weekly Restoration Workday",org:"Protect & Preserve Hawaiʻi",area:"honolulu",dur:4,fam:0,diff:"medium",tags:["nature"],booking:"rsvp",url:"https://www.protectpreservehi.org/event-details-registration/pia-power-hours-meet-in-the-cul-de-sac-at-the-top-of-anolani-st-8",en:"A weekly workday removing invasive plants and planting native species, every Monday morning. Wear clothes you don't mind getting dirty, closed-toe shoes, and bring water.",ja:"毎週月曜午前に開催される森林再生ボランティア。外来種の除去と在来種の植栽。汚れてもいい服・靴・水筒が必要。"},
-  {id:"v8",cost:0,recurring:"weekly",type:"volunteer",name:"Habitat Restoration — Wetland & Endemic Forest Species",org:"Healthy Climate Communities",area:"east",dur:2,fam:2,diff:"medium",tags:["nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/habitat-restoration-and-stewardship-of-wetland-and-endemic-forest-species/",en:"Restore Hawaiʻi's wetlands and native forests by planting native species, every Monday evening in Kailua. Under 14 needs a guardian present; under 18 needs signed parental consent.",ja:"毎週月曜夕方にカイルアで開催される湿地・在来林の再生活動。14歳以下は保護者同伴、18歳未満は保護者の同意書が必要。"},
-  {id:"v9",cost:0,recurring:"monthly",type:"volunteer",name:"Lēʻahi (Diamond Head) State Monument Cleanup",org:"DLNR Division of State Parks",area:"honolulu",dur:2,fam:2,diff:"medium",tags:["nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/le%CA%BBahi-park-cleanup-4/",en:"Help maintain Diamond Head State Monument through park cleanups, garden care, painting, and light repairs. About once a month — a digital waiver is required.",ja:"ダイヤモンドヘッド州立記念公園の清掃・庭園整備・ペンキ塗り・軽い補修。月1回程度。デジタル免責同意書への署名が必要。"},
-  // ---- food ----
-  {id:"f1",cost:10,type:"food",name:"Leonard's Bakery",org:"",area:"honolulu",dur:0.5,fam:2,diff:"easy",tags:["food"],booking:"none",url:"https://leonardshawaii.com",en:"A beloved local bakery famous for malasadas — warm Portuguese-style doughnuts. A quick, sweet stop loved by families.",ja:"マラサダ(ポルトガル風ドーナツ)で有名な老舗ベーカリー。家族連れに人気の、手軽で甘い一休み。"},
-  {id:"f2",cost:20,type:"food",name:"Duke's Waikiki",org:"",area:"waikiki",dur:1,fam:1,diff:"easy",tags:["food"],booking:"none",url:"https://www.dukeswaikiki.com/menus/",en:"Right on the beach with ocean views and highly-rated food — a Waikīkī classic for a relaxed meal.",ja:"ビーチのすぐそばで海を眺めながら食事ができる、評価の高いワイキキの定番レストラン。"},
-  {id:"f3",cost:20,type:"food",name:"Kai Poke — Waikiki",org:"",area:"waikiki",dur:0.75,fam:2,diff:"easy",tags:["food"],booking:"none",url:"https://www.kaipoke.it/Home-eng/",en:"Fresh, authentic Hawaiian poke bowls in a casual, relaxed spot at reasonable prices.",ja:"本格的なハワイ風ポケボウルが楽しめるカジュアルな店。価格も手頃。"},
-  {id:"f4",cost:15,type:"food",name:"Barefoot Beach Cafe",org:"",area:"honolulu",dur:1,fam:2,diff:"easy",tags:["food"],booking:"none",url:"https://www.barefootbeachcafe.com/",en:"Ocean views and a relaxed beach vibe, with live Hawaiian music and local food.",ja:"海を眺めながらハワイアンライブと地元料理が楽しめる、リラックスしたビーチカフェ。"},
-  {id:"f5",cost:25,type:"food",name:"Helena's Hawaiian Food",org:"",area:"honolulu",dur:1,fam:2,diff:"easy",tags:["food"],booking:"none",url:"https://www.helenashawaiianfood.com/",en:"A family-run restaurant serving authentic Hawaiian dishes since 1946 — a warm, historic taste of local food culture.",ja:"1946年創業、本格的なハワイ料理が味わえる老舗の家族経営レストラン。"},
-  {id:"f6",cost:30,type:"food",name:"Moku Kitchen",org:"",area:"honolulu",dur:1,fam:2,diff:"easy",tags:["food"],booking:"none",url:"https://www.mokukitchen.com/",en:"Dishes made with fresh local ingredients, served alongside live music.",ja:"新鮮な地元食材を使った料理をライブ音楽と一緒に楽しめるレストラン。"},
-  // ---- activity ----
-  {id:"a1",cost:20,style:"explore",type:"activity",name:"Waikīkī Beach Walk",org:"",area:"waikiki",dur:2,fam:2,diff:"easy",tags:["culture"],booking:"none",url:"https://jp.waikikibeachwalk.com",en:"An open-air shopping and dining promenade with live entertainment — a relaxed way to enjoy shopping, local food, and Hawaiian culture.",ja:"ショップ・レストラン・ライブが揃う開放的な散策エリア。買い物や地元グルメ、ハワイ文化をのんびり楽しめる。"},
-  {id:"a2",cost:0,style:"active",type:"activity",name:"Kapiʻolani Regional Park",org:"",area:"waikiki",dur:1,fam:2,diff:"easy",tags:["culture"],booking:"none",url:"https://www.honolulu.gov/dpr/kapiolani-regional-park/",en:"Wide green lawns with a beautiful view of Diamond Head — perfect for a relaxed walk or picnic.",ja:"ダイヤモンドヘッドを望む広い芝生の公園。のんびり散歩やピクニックにぴったり。"},
-  {id:"a3",cost:20,style:"explore",type:"activity",name:"Royal Hawaiian Center",org:"",area:"waikiki",dur:1.5,fam:2,diff:"easy",tags:["culture"],booking:"none",url:"https://jp.royalhawaiiancenter.com/",en:"A shopping center with Hawaiian cultural events alongside the stores — a relaxed spot for families and friends to shop and eat together.",ja:"ショップに加えハワイ文化イベントも楽しめるショッピングセンター。"},
-  {id:"a4",cost:30,style:"explore",type:"activity",name:"ʻIolani Palace",org:"",area:"honolulu",dur:2,fam:2,diff:"easy",tags:["culture"],booking:"rsvp",url:"https://www.iolanipalace.org",en:"Learn about Hawaiian history at the only royal palace in the United States — a beautiful and historic site. Advance tickets recommended.",ja:"アメリカ唯一の王宮でハワイの歴史を学べる、美しく歴史的な場所。事前チケット推奨。"},
+  {id:"v3",cost:0,recurring:"monthly",type:"volunteer",name:"JOIN US FOR COMMUNITY WORK DAY!",org:"Kanu Hawaii",area:"north",dur:3,fam:2,diff:"medium",tags:["ocean"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/join-us-for-community-work-day/",en:"Join every third Saturday of the month, everyone is welcome at our Lā Hana!",ja:"Join every third Saturday of the month, everyone is welcome at our Lā Hana!"},
+  {id:"v4",cost:0,recurring:"monthly",type:"volunteer",name:"Third Saturday Service Days at Lyon Arboretum",org:"Kanu Hawaii",area:"honolulu",dur:6,fam:0,diff:"hard",tags:["nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/third-saturday-service-days-at-lyon-arboretum/",en:"Every third Saturday of the month, the Arboretum Grounds Department invites the public to participate in a service day. Help is needed to clear the area and pull weeds to allow the endemic koa trees to continue to grow and spread.",ja:"Every third Saturday of the month, the Arboretum Grounds Department invites the public to participate in a service day. Help is needed to clear the area and pull weeds to allow the endemic koa trees to continue to grow and spread."},
+  {id:"v5",cost:0,recurring:"varies",type:"volunteer",name:"MĀLAMA PONO",org:"PACIFIC WHALE FOUNDATION",area:"other",dur:3,fam:1,diff:"medium",tags:["nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/organization/pacific-whale-foundation/",en:"Participants help protect nature by taking part in activities such as beach cleanup, planting native trees, and so on.",ja:"Participants help protect nature by taking part in activities such as beach cleanup, planting native trees, and so on.",donation:true},
+  {id:"v8",cost:0,recurring:"weekly",type:"volunteer",name:"Forest Restoration – Limahuli Garden & Preserve",org:"Kanu Hawaii",area:"other",dur:5,fam:1,diff:"hard",tags:["nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/forest-restoration-volunteer/",en:"A volunteer program that restores Hawaii’s native forests by removing invasive plants, caring for native species, and helping protect the natural environment.",ja:"A volunteer program that restores Hawaii’s native forests by removing invasive plants, caring for native species, and helping protect the natural environment."},
+  {id:"v9",cost:0,recurring:"monthly",type:"volunteer",name:"Lēʻahi Park Cleanup",org:"DLNR Division of State Parks",area:"honolulu",dur:2,fam:2,diff:"easy",tags:["nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/leʻahi-park-cleanup-4/",en:"A volunteer program that helps maintain Diamond Head State Monument through park cleanups, garden maintenance, painting, and repair work.",ja:"A volunteer program that helps maintain Diamond Head State Monument through park cleanups, garden maintenance, painting, and repair work."},
+  {id:"v10",cost:0,recurring:"varies",type:"volunteer",name:"Volunteer Now!",org:"Hawaiʻi Children’s Action Network",area:"honolulu",dur:3,fam:2,diff:"easy",tags:["culture"],booking:"check",url:"https://www.kanuhawaii.org/need/volunteer-now/",en:"We have various opportunities such as helping in the office, social media support, tabling at a community event, helping with a fundraiser, advocating for a policy or bill, and more!",ja:"We have various opportunities such as helping in the office, social media support, tabling at a community event, helping with a fundraiser, advocating for a policy or bill, and more!"},
+  {id:"v11",cost:0,recurring:"varies",type:"volunteer",name:"Community Living Center",org:"VA Pacific Islands Healthcare System",area:"honolulu",dur:3,fam:0,diff:"easy",tags:["culture"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/community-living-center/",en:"Volunteers at the Community Living Center support military veterans at a Honolulu medical facility by assisting with daily activities and site operations.",ja:"Volunteers at the Community Living Center support military veterans at a Honolulu medical facility by assisting with daily activities and site operations."},
+  {id:"v12",cost:0,recurring:"monthly",type:"volunteer",name:"Devil Weed Volunteer Surveys at Pūpūkea-Paumalū State Park Reserve",org:"Oʻahu Invasive Species Committee",area:"north",dur:4,fam:1,diff:"medium",tags:["nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/devil-weed-volunteer-surveys-at-pupukea-paumalu-state-park-reserve/",en:"Volunteers hike trails at Pūpūkea-Paumalū to identify and pull out the highly invasive \"Devil Weed\" to protect Oahu's native ecosystem",ja:"Volunteers hike trails at Pūpūkea-Paumalū to identify and pull out the highly invasive \"Devil Weed\" to protect Oahu's native ecosystem"},
+  {id:"v13",cost:0,recurring:"weekly",type:"volunteer",name:"WATERMANS ACADEMY GROUP LEADER",org:"Ikaika Hawaii",area:"honolulu",dur:6,fam:0,diff:"hard",tags:["ocean"],booking:"check",url:"https://www.kanuhawaii.org/need/watermans-academy-group-leader/",en:"Lead a group of 8–12 children in weekly water sports and ocean safety activities, teaching surfing, kayaking, SUP, and other skills while ensuring a safe, fun, and supportive environment. Team Leaders volunteer from 8:00 a.m. to 2:00 p.m. and receive lunch each day.",ja:"Lead a group of 8–12 children in weekly water sports and ocean safety activities, teaching surfing, kayaking, SUP, and other skills while ensuring a safe, fun, and supportive environment. Team Leaders volunteer from 8:00 a.m. to 2:00 p.m. and receive lunch each day."},
+  {id:"v14",cost:0,recurring:"varies",type:"volunteer",name:"Habitat Restoration and Stewardship of Wetland and Endemic Forest Species",org:"Healthy Climate Communities",area:"east",dur:2,fam:2,diff:"easy",tags:["nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/habitat-restoration-and-stewardship-of-wetland-and-endemic-forest-species/",en:"Volunteers help restore native forests and wetland habitats in Kailua by planting indigenous trees and clearing invasive species to protect local wildlife and ecosystems.",ja:"Volunteers help restore native forests and wetland habitats in Kailua by planting indigenous trees and clearing invasive species to protect local wildlife and ecosystems."},
+  {id:"v15",cost:1,recurring:"varies",type:"volunteer",name:"Kona Low Storm Recovery — Honolulu Habitat for Humanity Home Repair",org:"Honolulu Habitat for Humanity",area:"honolulu",dur:5,fam:0,diff:"hard",tags:["nature"],booking:"check",url:"https://www.kanuhawaii.org/need/kona-low-storm-response-honolulu-habitat-for-humanity-home-repair/",en:"Help repair and rebuild flood-damaged homes for North Shore families through construction, cleanup, and home repair projects. Skilled trades are needed, but no experience is required for general volunteer tasks such as site preparation and finishing work.",ja:"Help repair and rebuild flood-damaged homes for North Shore families through construction, cleanup, and home repair projects. Skilled trades are needed, but no experience is required for general volunteer tasks such as site preparation and finishing work.",paid:true},
+  {id:"v16",cost:0,recurring:"varies",type:"volunteer",name:"Inspire Change & Mentor Our Tomorrow! Honolulu",org:"Big Brothers Big Sisters Hawaii",area:"honolulu",dur:2,fam:0,diff:"easy",tags:["culture"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/inspire-change-mentor-our-tomorrow-honolulu/",en:"Volunteers build meaningful one-on-one friendships with local youth as mentors, guiding and supporting them through fun activities and regular meetups over the course of a year.",ja:"Volunteers build meaningful one-on-one friendships with local youth as mentors, guiding and supporting them through fun activities and regular meetups over the course of a year."},
+  {id:"v17",cost:1,recurring:"varies",type:"volunteer",name:"SCH Corporate & Group Beach Cleanups",org:"Sustainable Coastlines Hawaiʻi",area:"waikiki",dur:4,fam:1,diff:"medium",tags:["ocean"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/sch-corporate-group-beach-cleanups",en:"Join a customized beach cleanup that combines removing marine debris with team building and environmental education for corporate and community groups.",ja:"Join a customized beach cleanup that combines removing marine debris with team building and environmental education for corporate and community groups.",paid:true},
+  {id:"v19",cost:0,recurring:"weekly",type:"volunteer",name:"Thrift Shop Volunteer",org:"Hickam Thrift Shop (Hickam Officers' Spouses' Club)",area:"west",dur:4,fam:2,diff:"medium",tags:["culture"],booking:"dropin",url:"https://www.kanuhawaii.org/need/thrift-shop-volunteer",en:"Sort donations, organize merchandise, and assist customers at a community thrift shop supporting local grants and scholarships.",ja:"Sort donations, organize merchandise, and assist customers at a community thrift shop supporting local grants and scholarships."},
+  {id:"v20",cost:0,recurring:"weekly",type:"volunteer",name:"To Support Our FoodBasket Program During Days Of Operation And Home Deliveries",org:"Gregory House Programs",area:"honolulu",dur:6,fam:1,diff:"hard",tags:["culture"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/houseless-service-care/",en:"Volunteers support individuals and families affected by HIV/AIDS in Honolulu by preparing and serving hot lunches, packing grocery bags, and delivering meals to homebound clients.",ja:"Volunteers support individuals and families affected by HIV/AIDS in Honolulu by preparing and serving hot lunches, packing grocery bags, and delivering meals to homebound clients."},
+  {id:"v21",cost:0,recurring:"monthly",type:"volunteer",name:"RMH Hospitality Cart Volunteers",org:"Ronald McDonald House Charities Hawaiʻi",area:"honolulu",dur:3,fam:1,diff:"medium",tags:["animals"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/rmh-hospitality-cart-volunteers/",en:"Support NICU families by greeting visitors, serving refreshments, and providing activities through the Ronald McDonald House Hospitality Cart at local hospitals.",ja:"Support NICU families by greeting visitors, serving refreshments, and providing activities through the Ronald McDonald House Hospitality Cart at local hospitals."},
+  {id:"v22",cost:0,recurring:"varies",type:"volunteer",name:"NOAA Inouye Regional Center School Group Volunteer & Community Outreach",org:"National Oceanic and Atmospheric Administration Inouye Regional Center",area:"honolulu",dur:3,fam:1,diff:"medium",tags:["ocean"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/noaa-inouye-regional-center-school-group-volunteer-community-outreach/",en:"Support NOAA educational tours by guiding students, leading tour activities, and creating content about climate, weather, oceans, coasts, and marine life. Volunteers can also join weekend community outreach events.",ja:"Support NOAA educational tours by guiding students, leading tour activities, and creating content about climate, weather, oceans, coasts, and marine life. Volunteers can also join weekend community outreach events."},
+  {id:"v23",cost:0,recurring:"weekly",type:"volunteer",name:"Ola Nā Kini Laulima Saturdays",org:"Mālama Learning Center",area:"other",dur:3,fam:2,diff:"medium",tags:["food"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/ola-na-kini-laulima-saturdays/",en:"Volunteer with us as we strive to heal the land, ​sea, and multitude of life through education and restoration.",ja:"Volunteer with us as we strive to heal the land, ​sea, and multitude of life through education and restoration."},
+  {id:"v24",cost:0,recurring:"monthly",type:"volunteer",name:"Mālama The Native Forest At Hāmākua Marsh",org:"Healthy Climate Communities",area:"east",dur:2,fam:2,diff:"easy",tags:["nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/malama-the-native-forest-at-hamakua-marsh/",en:"Join us to restore the native forest, plant trees, and remove invasive species while learning about Hawaii's endangered wetland birds in the beautiful Hāmākua Marsh.",ja:"Join us to restore the native forest, plant trees, and remove invasive species while learning about Hawaii's endangered wetland birds in the beautiful Hāmākua Marsh."},
+  {id:"v25",cost:0,recurring:"weekly",type:"volunteer",name:"Free Store",org:"Susannah Wesley Community Center",area:"other",dur:3,fam:2,diff:"medium",tags:["food"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/27804-2/",en:"Help care for a tropical farm sanctuary through gardening, fruit picking, animal care, and farm maintenance.",ja:"Help care for a tropical farm sanctuary through gardening, fruit picking, animal care, and farm maintenance."},
 ];
 
-/* ---- translations ---- */
+/* ---- 仮の友達グループ(次回、作成機能を実装するまでのダミー) ---- */
+const GROUPS = [
+  { id:"g1", en:"Ocean-lover friends", ja:"海好きの友達" },
+  { id:"g2", en:"Classmates",          ja:"クラスのみんな" },
+  { id:"g3", en:"Dorm crew",           ja:"寮のなかま" },
+];
+
+/* ---- ダミーの友達(次回のアカウント機能までの見せ玉) ----
+   emoji はアイコン代わり。後で写真( avatar:"photos/xxx.jpg" )に差し替え可能。
+   groups=所属グループ / applied=申請済みの活動id */
+const FRIENDS = [
+  { id:"f1", name:"Yuki",  emoji:"🐢", groups:["g1","g3"], applied:["v3","v17"] },
+  { id:"f2", name:"Sara",  emoji:"🌺", groups:["g1","g2"], applied:["v3","v9"]  },
+  { id:"f3", name:"Ken",   emoji:"🏄", groups:["g1"],      applied:["v13","v17"]},
+  { id:"f4", name:"Mia",   emoji:"🌱", groups:["g2","g3"], applied:["v4","v9"]  },
+  { id:"f5", name:"Leo",   emoji:"⛰️", groups:["g3"],      applied:["v12","v24"]},
+  { id:"f6", name:"Hana",  emoji:"🌊", groups:["g2"],      applied:["v22"]      },
+];
+
+/* ---- 日付ユーティリティ ---- */
+const iso = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const parseIso = (s) => { const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d); };
+const sameYM = (a, b) => a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth();
+
+/* ブックマーク/申請したとき、開催頻度から「次のそれっぽい日」を割り当てる。
+   実データの日付がないので、デモとして現実的な近い将来の日付を生成する。
+   weekly=次の土曜, monthly=来月の第3土曜あたり, varies=10日後 */
+function nextDateFor(recurring) {
+  const now = new Date();
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (recurring === "weekly") {
+    const day = d.getDay();
+    const add = ((6 - day) + 7) % 7 || 7;   // 次の土曜(今日が土曜なら来週)
+    d.setDate(d.getDate() + add);
+  } else if (recurring === "monthly") {
+    d.setDate(d.getDate() + 18);            // だいたい2〜3週間後
+  } else {
+    d.setDate(d.getDate() + 10);            // varies: 10日後
+  }
+  return iso(d);
+}
+
+
 const T = {
   en:{
-    tag:"PROTOTYPE · SAMPLE DATA",
-    h1:"SKIP THE SEARCH.",h1c:"Find the one that fits you — fast.",bigWord:"Volunteer",
-    sub:"Tell us when you're free, and we'll weave one little V — just 1–2 hours of volunteering — into your window.",
-    start:"Get started →",how:"No sign-up · No app · Works right now",
-    modeTitle:"What are you looking for?",modeBack:"← Back",
-    modePlanTitle:"Plan my day",modePlanDesc:"A full day plan with food and activities, with one volunteer stop woven in.",
-    modeVolTitle:"Just find volunteering",modeVolDesc:"See a few volunteer activities that fit your free time — no full-day plan.",
-    volResultsTitle:"Volunteer options",
-    volNone:"No volunteer activities fit this window. Try a longer time or a different area.",
-    fPurpose:"Why are you volunteering?",
-    purpose:{personal:"Personal interest 🌱",career:"School / career 🎓"},
-    purposeHint:{personal:"Just because you want to help out.",career:"For school credit, a resume, or an application — we'll prioritize regular, ongoing programs where hours add up."},
-    careerNote:"🎓 Ask the organizer whether they can document your hours or provide a certificate — we're collecting this info from our field research.",
-    fPlanStyle:"Besides volunteering, what do you want to do?",
-    planStyleOpts:{food:"Just food 🍽",explore:"Explore & shop 🛍",active:"Active & outdoors 🥾"},
-    planStyleHint:{food:"Volunteer plus a good meal nearby. Nothing else.",explore:"Sightseeing, culture and shopping around your volunteer stop.",active:"Parks, hikes and the outdoors near where you volunteer."},
-    activeThin:"We're still collecting outdoor options — more coming after our field research.",
-    onlyVolNote:"Your window fits the volunteer activity, but not much else. Add about an hour to fit a meal or something to do nearby.",
-    onlyVolNoteFood:"Your window fits the volunteer activity and travel time, but there wasn't room for a meal. Try adding 30–60 minutes.",
-    fTitle:"Your free window",
-    fTime:"Free from → until",fDate:"Date (optional)",datePlaceholder:"Tap to pick a date",
-    fArea:"Starting from",fParty:"Who's coming?",fInt:"Interests",
-    gpsBtn:"📍 Use my location",gpsSearching:"Finding you…",
-    gpsFar:"You seem to be far from Oʻahu — pick a starting point below.",
-    gpsFail:"Couldn't get your location. Pick a starting point below.",
-    gpsOk:"Found you — starting from",
-    fTarget:"Where do you want to volunteer?",anywhere:"Anywhere 🌏",
-    travelNote:"Travel times are rough estimates, not live map data — check a map app before you go.",
-    fPace:"Activity level",fTransport:"Getting around by",
-    avail:h=>`${h} hrs available`,tooShort:"Add at least 1.5 hrs to fit a volunteer activity.",
-    build:"Build my plan →",
-    areas:{waikiki:"Waikīkī",honolulu:"Honolulu",north:"North Shore",east:"Kailua & East"},
-    party:{family:"Family 👨‍👩‍👧",couple:"Couple 💑",friends:"Friends 🤙",solo:"Solo 🤿"},
-    ints:{ocean:"Ocean",nature:"Nature",culture:"Culture",animals:"Animals",food:"Food"},
-    pace:{easygoing:"Relaxed 🌴",moderate:"Moderate ☀️",active:"Active 🏄"},
-    paceHint:{easygoing:"Great for seniors, kids, or anyone who wants a gentle day",moderate:"A comfortable mix — most travelers",active:"Energetic group, happy to push"},
-    transport:{car:"Rental car 🚗",transit:"Bus & rideshare 🚌",walk:"Walk & bike 🚶"},
-    planTitle:"Your plan",planSub:(s,e,a)=>`${s}–${e} · ${a}`,
-    giveLabel:"YOUR LITTLE V",perk:"Tip: volunteering may earn hotel perks — ask your hotel about Mālama Hawaiʻi.",
-    travelHeading:"Getting there",
-    open:"Details ↓",close:"Close ↑",
+    appName:"a little",
+    tabPublic:"Explore", tabPersonal:"My page", tabFriends:"Friends",
+    soon:"Coming soon",
+    soonPersonalT:"Your page", soonPersonalD:"Your volunteer calendar, hours, and notes will live here.",
+    calTitle:"My calendar",
+    weekdays:["Su","Mo","Tu","We","Th","Fr","Sa"],
+    months:["January","February","March","April","May","June","July","August","September","October","November","December"],
+    legendApplied:"Applied (confirmed)", legendBookmark:"Bookmarked (tentative)", legendOwn:"My own plan",
+    dayEmpty:"Nothing planned for this day.",
+    addOwn:"+ Add my own plan", addOwnTitle:"Add a plan", addOwnPlaceholder:"e.g. Study group, work shift…",
+    addOwnDate:"Date", addOwnSave:"Add", addOwnCancel:"Cancel",
+    tentative:"Tentative", confirmed:"Confirmed",
+    viewDetail:"See details →",
+    removeOwn:"Remove",
+    hoursDoneT:"Hours done", hoursDoneD:"Completed & confirmed", hoursPlanT:"Total incl. planned", hoursPlanD:"All confirmed activities", hoursUnit:"h",
+    noteLabel:"My note", notePlaceholder:"What did you do? What did you learn? (for applications later)",
+    noteSave:"Save note", noteSaved:"Note saved",
+    soonFriendsT:"Friends", soonFriendsD:"Shared calendars with your groups will live here.",
+    roomsTitle:"Your rooms",
+    roomsHint:"Shared calendars with your friend groups. Anyone can join later — no size limit.",
+    membersN:(n)=>`${n} ${n===1?"member":"members"}`,
+    roomBack:"← All rooms",
+    goingN:(n)=>`${n} going`,
+    whoGoing:"Who's going",
+    you:"You",
+    tentativeMember:"tentative",
+    demoNote:"Demo: these friends are sample data until accounts are added.",
+    searchPlaceholder:"Search activities…",
+    filters:"Filters", clear:"Clear",
+    fArea:"Area", fContent:"Content", fEffort:"Effort", fTime:"Time",
+    areas:{ waikiki:"Waikīkī", honolulu:"Honolulu", north:"North Shore", east:"Kailua & East", west:"West Side", other:"Other / Varies" },
+    contents:{ ocean:"Ocean", nature:"Nature", culture:"Culture", animals:"Animals", food:"Farm & Food" },
+    efforts:{ easy:"Light", medium:"Medium", hard:"Hard" },
+    times:{ short:"≤2h", half:"≤4h", full:"Any" },
+    resultsN:(n)=>`${n} ${n===1?"activity":"activities"}`,
+    noResults:"No activities match. Try clearing some filters.",
+    hours:"h", free:"Free",
+    every:{ weekly:"Every week", monthly:"Once a month", varies:"Dates vary" },
+    bookLabel:{ dropin:"Just show up", rsvp:"Sign up online", check:"Check the schedule", none:"No booking needed" },
+    detailBack:"← Back to list",
+    aboutTitle:"About this activity",
     joinTitle:"How to join",
-    bookLabel:{dropin:"Drop-in — just show up",rsvp:"Sign up online first",check:"Check schedule online",none:"No booking needed"},
-    siteBtn:"Open official site ↗",nolink:"Link coming after field research",
-    endLabel:"Free window ends 🏁",
-    noVol:"Your window is short, so we skipped the volunteer stop. Add 30 more minutes to include one!",
-    easyNote:"Relaxed pace · easy activities · rest breaks included",
-    carNote:"💡 North Shore is 1 hr+ from Waikīkī — a rental car is strongly recommended.",
-    shuffle:"Try different plan ↻",back:"← Change my window",
-    budgetTitle:"ESTIMATED COST",perPerson:"per person",free:"Free",
-    budgetToggleShow:"💵 See estimated cost",budgetToggleHide:"Hide cost ↑",
-    budgetCat:{volunteer:"Volunteering",food:"Food",activity:"Activities",transport:"Getting around"},
-    budgetNote:"Volunteering is usually free — most of your budget goes to food and activities you'd pay for anyway.",
-    foot:"A Little V · Prototype v1 · Sample data · Rule-based · No login needed · Final data from Honolulu field research",
+    applyBtn:"Apply on Kanu Hawaii ↗",
+    bookmarkBtn:"Bookmark", bookmarkedBtn:"Bookmarked ✓",
+    applyConfirmT:"Did you finish applying?",
+    applyConfirmD:"You were sent to Kanu Hawaii to sign up. Once your application is done, we'll add it to your calendar as confirmed.",
+    applyDone:"Yes, I applied", applyCancel:"Not yet",
+    applied:"Applied ✓",
+    bmSheetT:"Save to…", bmSheetD:"Choose where this shows up. 'Just me' can't be combined with groups.",
+    bmMe:"Just me", bmSave:"Save", bmRemove:"Remove bookmark",
+    savedToMe:"Saved to your page",
+    savedToGroups:(n)=>`Saved to ${n} ${n===1?"group":"groups"} + your page`,
+    whoTitle:"Who's applied",
+    whoSoon:"Applicant list appears once accounts are added — coming next.",
+    foot:"A Little V · App prototype · Public page only · Sample data from Kanu Hawaii & partners",
   },
   ja:{
-    tag:"プロトタイプ · サンプルデータ",
-    h1:"もう、探さなくていい。",h1c:"あなたに合う活動が、すぐ見つかる。",bigWord:"Volunteer",
-    sub:"空いてる時間を教えてください。1〜2時間のちいさなVを、あなたのプランに織り込みます。",
-    start:"はじめる →",how:"登録不要 · アプリ不要 · 即日OK",
-    modeTitle:"何をお探しですか?",modeBack:"← もどる",
-    modePlanTitle:"1日プランをつくる",modePlanDesc:"食事・観光込みで、ボランティアを1つ織り込んだ1日プラン。",
-    modeVolTitle:"ボランティアだけ探す",modeVolDesc:"空いてる時間に合うボランティアを数件表示。1日プランは作りません。",
-    volResultsTitle:"ボランティア候補",
-    volNone:"この時間枠に合う活動が見つかりませんでした。時間を長くするか、エリアを変えてみてください。",
-    fPurpose:"ボランティアの目的は?",
-    purpose:{personal:"興味・関心 🌱",career:"進学・キャリア 🎓"},
-    purposeHint:{personal:"やってみたいから参加する。",career:"単位・レジュメ・出願のため。時間を積み上げやすい継続開催の活動を優先します。"},
-    careerNote:"🎓 参加時間の証明書が出るかは主催団体に直接確認してください(現地調査で情報を収集中です)。",
-    fPlanStyle:"ボランティア以外に何をしたい?",
-    planStyleOpts:{food:"ごはんだけ 🍽",explore:"観光・買い物 🛍",active:"アクティブに遊ぶ 🥾"},
-    planStyleHint:{food:"ボランティアと、近くでの食事だけ。",explore:"ボランティアの周辺で観光や買い物。",active:"公園やハイキングなど、体を動かす遊び。"},
-    activeThin:"アウトドア系の情報はまだ収集中です。現地調査後に追加されます。",
-    onlyVolNote:"この時間枠にはボランティアがぴったり入りましたが、他の予定を入れる余裕はありませんでした。1時間ほど延ばすと、食事や周辺の予定も入ります。",
-    onlyVolNoteFood:"ボランティアと移動でちょうど埋まり、食事を入れる余裕がありませんでした。30〜60分ほど延ばしてみてください。",
-    fTitle:"空いてる時間は?",
-    fTime:"開始 → 終了",fDate:"日付(任意)",datePlaceholder:"タップして日付を選ぶ",
-    fArea:"どこから出発?",fParty:"誰と?",fInt:"好きなものは?",
-    gpsBtn:"📍 現在地を使う",gpsSearching:"現在地を確認中…",
-    gpsFar:"オアフ島から離れているようです。下から出発地を選んでください。",
-    gpsFail:"現在地を取得できませんでした。下から出発地を選んでください。",
-    gpsOk:"現在地に一番近いのは",
-    fTarget:"どこで活動したい?",anywhere:"どこでも 🌏",
-    travelNote:"移動時間はおおよその目安です(地図データとの連携はしていません)。出発前に地図アプリで確認してください。",
-    fPace:"体力・ペース",fTransport:"移動手段",
-    avail:h=>`${h}時間空いています`,tooShort:"1.5時間以上あるとボランティアを入れられます。",
-    build:"プランをつくる →",
-    areas:{waikiki:"ワイキキ",honolulu:"ホノルル",north:"ノースショア",east:"カイルア・東"},
-    party:{family:"家族 👨‍👩‍👧",couple:"カップル 💑",friends:"友人 🤙",solo:"ひとり 🤿"},
-    ints:{ocean:"海",nature:"自然",culture:"文化",animals:"動物",food:"食"},
-    pace:{easygoing:"ゆったり 🌴",moderate:"ふつう ☀️",active:"アクティブ 🏄"},
-    paceHint:{easygoing:"シニア・お子さん連れ・無理せず楽しみたい方に",moderate:"一般的な観光客向け、適度な活動量",active:"体力に自信あり、たくさん動きたい"},
-    transport:{car:"レンタカー 🚗",transit:"バス・配車 🚌",walk:"徒歩・自転車 🚶"},
-    planTitle:"あなたのプラン",planSub:(s,e,a)=>`${s}〜${e} · ${a}`,
-    giveLabel:"今日のちいさなV",perk:"ヒント: Mālama Hawaiʻiプログラムでホテル特典が受けられることも。",
-    travelHeading:"移動",
-    open:"くわしく ↓",close:"とじる ↑",
+    appName:"a little",
+    tabPublic:"さがす", tabPersonal:"マイページ", tabFriends:"ともだち",
+    soon:"近日公開",
+    soonPersonalT:"マイページ", soonPersonalD:"あなたのボランティア予定・活動時間・メモがここに入ります。",
+    calTitle:"マイカレンダー",
+    weekdays:["日","月","火","水","木","金","土"],
+    months:["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"],
+    legendApplied:"申請済み(確定)", legendBookmark:"ブックマーク(仮)", legendOwn:"自分の予定",
+    dayEmpty:"この日の予定はありません。",
+    addOwn:"+ 自分の予定を追加", addOwnTitle:"予定を追加", addOwnPlaceholder:"例:勉強会、バイトのシフト…",
+    addOwnDate:"日付", addOwnSave:"追加", addOwnCancel:"キャンセル",
+    tentative:"仮", confirmed:"確定",
+    viewDetail:"詳細を見る →",
+    removeOwn:"削除",
+    hoursDoneT:"活動した時間", hoursDoneD:"開催日を過ぎた確定分", hoursPlanT:"予定込みの総合", hoursPlanD:"申請済みすべて", hoursUnit:"時間",
+    noteLabel:"メモ", notePlaceholder:"何をした?何を学んだ?(あとで出願に使えます)",
+    noteSave:"メモを保存", noteSaved:"メモを保存しました",
+    soonFriendsT:"ともだち", soonFriendsD:"グループと共有するカレンダーがここに入ります。",
+    roomsTitle:"あなたの部屋",
+    roomsHint:"友達グループと共有するカレンダー。あとから誰でも参加できます(人数制限なし)。",
+    membersN:(n)=>`${n}人`,
+    roomBack:"← 部屋一覧",
+    goingN:(n)=>`${n}人が参加`,
+    whoGoing:"参加するメンバー",
+    you:"あなた",
+    tentativeMember:"仮",
+    demoNote:"デモ:これらの友達はアカウント機能追加までのサンプルです。",
+    searchPlaceholder:"活動を検索…",
+    filters:"絞り込み", clear:"クリア",
+    fArea:"エリア", fContent:"内容", fEffort:"体力", fTime:"時間",
+    areas:{ waikiki:"ワイキキ", honolulu:"ホノルル", north:"ノースショア", east:"カイルア・東側", west:"西側", other:"その他・各地" },
+    contents:{ ocean:"海", nature:"自然", culture:"文化", animals:"動物", food:"農業・食" },
+    efforts:{ easy:"軽め", medium:"ふつう", hard:"がっつり" },
+    times:{ short:"2時間以内", half:"4時間以内", full:"すべて" },
+    resultsN:(n)=>`${n}件`,
+    noResults:"条件に合う活動がありません。絞り込みを減らしてみてください。",
+    hours:"時間", free:"無料",
+    every:{ weekly:"毎週ひらかれる", monthly:"月に1回", varies:"日程はさまざま" },
+    bookLabel:{ dropin:"当日参加OK", rsvp:"オンラインで申込", check:"開催日を確認", none:"予約不要" },
+    detailBack:"← 一覧にもどる",
+    aboutTitle:"活動について",
     joinTitle:"参加のしかた",
-    bookLabel:{dropin:"当日参加OK",rsvp:"オンラインで事前申込",check:"開催日をサイトで確認",none:"予約不要"},
-    siteBtn:"公式サイトを開く ↗",nolink:"リンクは現地調査後に追加",
-    endLabel:"終了 🏁",
-    noVol:"この時間枠ではボランティアが入りませんでした。あと30分延ばすと入ります！",
-    easyNote:"ゆったりペース · 難易度低めの活動 · 休憩あり",
-    carNote:"💡 ノースショアはワイキキから車で1時間以上。レンタカーを強く推奨します。",
-    shuffle:"別のプランを見る ↻",back:"← 時間を変える",
-    budgetTitle:"予想費用",perPerson:"1人あたり",free:"無料",
-    budgetToggleShow:"💵 予想費用を見る",budgetToggleHide:"費用をとじる ↑",
-    budgetCat:{volunteer:"ボランティア",food:"食事",activity:"アクティビティ",transport:"移動"},
-    budgetNote:"ボランティアはほぼ無料。費用の大部分は、どのみちかかる食事やアクティビティ代です。",
-    foot:"A Little V · プロトタイプv1 · サンプルデータ · ルールベース · ログイン不要 · 本データは現地調査後に反映",
+    applyBtn:"Kanu Hawaiiで申請する ↗",
+    bookmarkBtn:"ブックマーク", bookmarkedBtn:"ブックマーク済み ✓",
+    applyConfirmT:"申請は完了しましたか?",
+    applyConfirmD:"Kanu Hawaiiの申請ページを開きました。申請が完了したら、確定の予定としてカレンダーに追加します。",
+    applyDone:"はい、申請しました", applyCancel:"まだです",
+    applied:"申請済み ✓",
+    bmSheetT:"どこに保存する?", bmSheetD:"表示先を選んでください。「自分のみ」はグループと同時に選べません。",
+    bmMe:"自分のみ", bmSave:"保存する", bmRemove:"ブックマークを外す",
+    savedToMe:"マイページに保存しました",
+    savedToGroups:(n)=>`${n}つのグループとマイページに保存しました`,
+    whoTitle:"申請したメンバー",
+    whoSoon:"申請者リストはアカウント機能の追加後に表示されます(次回)。",
+    foot:"A Little V · アプリ試作 · パブリックページのみ · サンプルデータは Kanu Hawaii と各団体より",
   },
 };
 
-/* ---- utils ---- */
-const parseTime = s => { if(!s) return 0; const [h,m]=s.split(":").map(Number); return h*60+m; };
-const fmtTime = m => `${Math.floor(m/60)}:${String(m%60).padStart(2,"0")}`;
-
-/* 日付の表示形式はブラウザの言語設定に左右されるため、自前で整形して
-   サイトの言語切替に確実に連動させる */
-const MONTHS_EN = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-function formatDate(iso, lang) {
-  if (!iso) return "";
-  const [y, m, d] = iso.split("-").map(Number);
-  if (!y || !m || !d) return iso;
-  return lang === "ja" ? `${y}年${m}月${d}日` : `${MONTHS_EN[m - 1]} ${d}, ${y}`;
-}
-
-function scoreItem(item, area, party, ints, purpose) {
-  let s = 0;
-  if (item.area === area) s += 4;
-  s += item.tags.filter(t => ints.includes(t)).length * 2;
-  if (party === "family") s += item.fam;
-  // キャリア目的: 継続的に開催される活動ほど時間を積み上げやすいので優先
-  if (purpose === "career" && item.type === "volunteer") {
-    if (item.recurring === "weekly") s += 3;
-    else if (item.recurring === "monthly") s += 1;
-  }
-  return s;
-}
-
-/* ペース設定 */
-const PACE_CFG = {
-  easygoing:{ diffs:["easy"],         buffer:20, maxAct:2, boost:d=>d.diff==="easy"?2:0 },
-  moderate: { diffs:["easy","medium"],buffer:10, maxAct:3, boost:()=>0                  },
-  active:   { diffs:["easy","medium","hard"], buffer:0, maxAct:4, boost:d=>d.diff==="hard"?1:0 },
-};
-
-function buildPlan(area, party, ints, startMins, endMins, offset, pace, transport, purpose, planStyle, targetAreas) {
-  const pc = PACE_CFG[pace] || PACE_CFG.moderate;
-  const used = [], slots = [];
-  let cur = startMins, curArea = area, actCount = 0;
-
-  const remMins = () => endMins - cur;
-
-  function getTrav(toArea) {
-    return curArea === toArea ? null : travelInfo(curArea, toArea, transport);
-  }
-  function totalCost(item) {
-    const trav = getTrav(item.area);
-    const firstLeg = (!trav && slots.length === 0) ? localTravel(transport).mins : 0;
-    return item.dur * 60 + (trav ? trav.mins : 0) + firstLeg + pc.buffer;
-  }
-
-  function pickBest(typeFilter) {
-    const candidates = DATA
-      .filter(d => {
-        if (typeFilter && d.type !== typeFilter) return false;
-        if (used.includes(d.id)) return false;
-        if (!pc.diffs.includes(d.diff)) return false;
-        // 「どこで活動したい?」で絞り込み(空配列=どこでも)
-        if (targetAreas.length > 0 && !targetAreas.includes(d.area)) return false;
-        // 「ほかに何をしたい?」で選ばれたスタイルに合うアクティビティだけ
-        if (d.type === "activity" && d.style !== planStyle) return false;
-        return totalCost(d) <= remMins();
-      })
-      .map(d => ({ d, s: scoreItem(d, area, party, ints, purpose) + pc.boost(d) - (d.area !== curArea ? 1 : 0) }))
-      .sort((a, b) => b.s - a.s);
-    if (!candidates.length) return null;
-    return candidates[offset % candidates.length].d;
-  }
-
-  function addItem(item, give = false) {
-    const trav = getTrav(item.area);
-    if (trav) {
-      slots.push({ time: fmtTime(cur), travelCard: true, ...trav });
-      cur += trav.mins;
-      curArea = item.area;
-    } else if (slots.length === 0) {
-      // 出発地から最初の予定へ。同じエリアでも移動時間はかかる
-      const lt = localTravel(transport);
-      slots.push({ time: fmtTime(cur), travelCard: true, ...lt });
-      cur += lt.mins;
-    }
-    if (pc.buffer > 0 && slots.length > 0) cur += pc.buffer;
-    slots.push({ time: fmtTime(cur), item, give });
-    used.push(item.id);
-    cur += item.dur * 60;
-    return item;
-  }
-
-  // 1. Volunteer first
-  if (remMins() >= 90) {
-    const v = pickBest("volunteer");
-    if (v) addItem(v, true);
-  }
-
-  // 2. Fill remaining
-  let guard = 0;
-  while (remMins() > 30 && guard++ < 10 && actCount <= pc.maxAct) {
-    const hasFood = slots.some(s => s.item?.type === "food");
-    if (!hasFood) {
-      const f = pickBest("food");
-      if (f) { addItem(f); continue; }
-    }
-    if (planStyle !== "food" && actCount < pc.maxAct) {
-      const a = pickBest("activity");
-      if (a) { addItem(a); actCount++; continue; }
-    }
-    break;
-  }
-  return slots;
-}
-
-function buildVolunteerList(area, party, ints, availH, pace, offset, purpose, targetAreas) {
-  const pc = PACE_CFG[pace] || PACE_CFG.moderate;
-  const ranked = DATA
-    .filter(d => d.type === "volunteer" && pc.diffs.includes(d.diff) && d.dur <= availH
-      && (targetAreas.length === 0 || targetAreas.includes(d.area)))
-    .map(d => ({ d, s: scoreItem(d, area, party, ints, purpose) + pc.boost(d) }))
-    .sort((a, b) => b.s - a.s)
-    .map(x => x.d);
-  if (!ranked.length) return [];
-  const n = ranked.length, start = offset % n;
-  return [...ranked.slice(start), ...ranked.slice(0, start)].slice(0, 3);
-}
-
-/* ---- components ---- */
-function Chip({ label, active, onClick, small }) {
+/* ---- 部品 ---- */
+function Chip({ label, active, onClick }) {
   return (
     <button onClick={onClick} style={{
-      padding: small ? "6px 12px" : "8px 15px",
-      borderRadius: 999, fontSize: small ? 12 : 13, fontWeight: 700, cursor: "pointer",
-      border: `2px solid ${active ? C.sky : C.line}`,
+      padding:"7px 14px", borderRadius:999, fontSize:12.5, fontWeight:700, cursor:"pointer",
+      border:`2px solid ${active ? C.sky : C.line}`,
       background: active ? C.sky : C.white, color: active ? C.white : C.ink,
-      transition: "all 0.15s", fontFamily: "Poppins,sans-serif", whiteSpace: "nowrap",
+      transition:"all 0.15s", fontFamily:"Poppins,sans-serif", whiteSpace:"nowrap",
     }}>{label}</button>
   );
 }
 
-function TravelCard({ slot, lang }) {
+function ListCard({ item, t, lang, onOpen, bookmarked, applied }) {
   return (
-    <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
-      <div style={{ width: 44, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <div style={{ fontSize: 10, fontWeight: 800, color: C.fade, paddingTop: 6, fontFamily: "Poppins,sans-serif" }}>{slot.time}</div>
-        <div style={{ flex: 1, width: 2, margin: "3px 0", background: `repeating-linear-gradient(${C.line} 0 5px,transparent 5px 9px)` }} />
-      </div>
-      <div style={{
-        flex: 1, background: C.white, borderRadius: 12,
-        border: `1.5px solid ${slot.warn ? C.warnB : C.line}`,
-        padding: "8px 14px", display: "flex", alignItems: "center", gap: 10,
-        background: slot.warn ? C.warn : C.white,
-        marginBottom: 0,
-      }}>
-        <span style={{ fontSize: 20 }}>{slot.icon}</span>
-        <div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: slot.warn ? C.warnT : C.ink, fontFamily: "Poppins,sans-serif" }}>
-            {lang === "ja" ? slot.ja : slot.en}
+    <button onClick={onOpen}
+      style={{ width:"100%", textAlign:"left", background:C.white, borderRadius:18,
+        border:`1.5px solid ${C.line}`, padding:0, marginBottom:12, cursor:"pointer",
+        overflow:"hidden", display:"block" }}>
+      <div style={{ padding:"13px 16px" }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:8 }}>
+          <div style={{ fontWeight:800, fontSize:14.5, color:C.ink, lineHeight:1.35, fontFamily:"Poppins,sans-serif" }}>
+            {item.name}
+          </div>
+          <div style={{ display:"flex", gap:4, flexShrink:0 }}>
+            {applied && <span style={{ fontSize:11, fontWeight:800, color:C.leaf }}>✓</span>}
+            {bookmarked && <span style={{ fontSize:14 }}>🔖</span>}
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function PlanCard({ slot, t, lang, openId, setOpenId }) {
-  const { item, give, time } = slot;
-  const isOpen = openId === item.id;
-  return (
-    <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 44, flexShrink: 0 }}>
-        <div style={{ fontSize: 11, fontWeight: 800, color: give ? C.leaf : C.sky, paddingTop: 14, fontFamily: "Poppins,sans-serif", whiteSpace: "nowrap" }}>{time}</div>
-        <div style={{ width: 2, flex: 1, marginTop: 4, borderRadius: 1, background: give ? `linear-gradient(${C.leaf},${C.skyLight})` : C.line }} />
-      </div>
-      <div style={{ flex: 1, borderRadius: 18, overflow: "hidden",
-        border: `1.5px solid ${give ? "#9ADBB6" : C.line}`,
-        boxShadow: give ? "0 4px 20px rgba(0,168,79,0.13)" : "0 2px 8px rgba(0,0,0,0.05)",
-      }}>
-        {give && (
-          <div style={{ background: `linear-gradient(110deg,${C.sky} 0%,#0DD8EE 60%,#00E5BE 100%)`, padding: "10px 16px", position: "relative", overflow: "hidden" }}>
-            <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.22) 1.5px,transparent 1.5px)", backgroundSize: "13px 13px" }} />
-            <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ fontWeight: 900, fontSize: 18, color: C.white, lineHeight: 1 }}>V</span>
-              <span style={{ fontWeight: 800, fontSize: 11, letterSpacing: "0.14em", color: C.white, fontFamily: "Poppins,sans-serif" }}>{t.giveLabel}</span>
-            </div>
-          </div>
-        )}
-        <div style={{ background: give ? C.leafLight : C.white, padding: "12px 16px 0" }}>
-          <div style={{ fontWeight: 800, fontSize: 14, color: give ? C.leafDark : C.ink, lineHeight: 1.3, fontFamily: "Poppins,sans-serif" }}>{item.name}</div>
-          <div style={{ display: "flex", gap: 14, marginTop: 5, fontSize: 11, color: C.fade, fontFamily: "Poppins,sans-serif" }}>
-            <span>⏱ {item.dur}h</span>
-            <span>📍 {t.areas[item.area]}</span>
-            <span style={{ fontWeight: 800, color: item.cost === 0 ? C.leaf : C.ink }}>💵 {item.cost === 0 ? t.free : `$${item.cost}`}</span>
-            {item.diff === "hard" && <span>💪 {lang==="ja"?"体力必要":"Strenuous"}</span>}
-            {item.diff === "easy" && <span>🌴 {lang==="ja"?"楽々":"Easy"}</span>}
-          </div>
-          <button onClick={() => setOpenId(isOpen ? null : item.id)}
-            style={{ marginTop: 8, marginBottom: 12, fontSize: 12, fontWeight: 700, color: give ? C.leaf : C.sky, background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "Poppins,sans-serif" }}>
-            {isOpen ? t.close : t.open}
-          </button>
-          {isOpen && (
-            <div style={{ paddingBottom: 14, borderTop: `1px solid ${give ? "#9ADBB6" : C.line}`, paddingTop: 12 }}>
-              <p style={{ fontSize: 13, color: C.ink, lineHeight: 1.6, margin: 0, fontFamily: "Poppins,sans-serif" }}>{lang === "ja" ? item.ja : item.en}</p>
-              {item.org && <p style={{ fontSize: 11, color: C.fade, marginTop: 5, fontWeight: 600, fontFamily: "Poppins,sans-serif" }}>{item.org}</p>}
-              <div style={{ marginTop: 10, borderRadius: 12, padding: "10px 14px", background: give ? C.white : C.skyPale, border: `1px solid ${give ? "#9ADBB6" : C.line}` }}>
-                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.1em", color: give ? C.leaf : C.sky, marginBottom: 3, fontFamily: "Poppins,sans-serif" }}>{t.joinTitle}</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: C.ink, fontFamily: "Poppins,sans-serif" }}>{t.bookLabel[item.booking]}</div>
-                {item.url ? (
-                  <a href={item.url} target="_blank" rel="noopener noreferrer"
-                    style={{ display: "inline-block", marginTop: 7, fontSize: 12, fontWeight: 700, color: give ? C.leaf : C.sky, textDecoration: "underline", fontFamily: "Poppins,sans-serif" }}>
-                    {t.siteBtn}
-                  </a>
-                ) : (
-                  <div style={{ marginTop: 5, fontSize: 11, color: C.fade, fontStyle: "italic", fontFamily: "Poppins,sans-serif" }}>{t.nolink}</div>
-                )}
-              </div>
-              {give && <p style={{ fontSize: 11, color: C.leaf, marginTop: 8, fontStyle: "italic", lineHeight: 1.5, fontFamily: "Poppins,sans-serif" }}>🌿 {t.perk}</p>}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function BudgetSummary({ plan, t }) {
-  const budget = plan.reduce((acc, s) => {
-    if (s.travelCard) acc.transport += s.cost || 0;
-    else if (s.item) {
-      const key = s.item.type === "volunteer" ? "volunteer" : s.item.type === "food" ? "food" : "activity";
-      acc[key] += s.item.cost || 0;
-    }
-    return acc;
-  }, { volunteer: 0, food: 0, activity: 0, transport: 0 });
-  const total = budget.volunteer + budget.food + budget.activity + budget.transport;
-  const rows = [
-    { key: "volunteer", color: C.leaf },
-    { key: "food", color: C.sun },
-    { key: "activity", color: C.sky },
-    { key: "transport", color: C.fade },
-  ].map(r => ({ ...r, label: t.budgetCat[r.key], val: budget[r.key] }));
-  const max = Math.max(1, ...rows.map(r => r.val));
-
-  return (
-    <div style={{ background: C.white, borderRadius: 18, border: `1.5px solid ${C.line}`, padding: "16px 18px", marginBottom: 14 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", fontFamily: "Poppins,sans-serif" }}>{t.budgetTitle}</div>
-        <div style={{ fontSize: 10, color: C.fade, fontWeight: 700, fontFamily: "Poppins,sans-serif" }}>{t.perPerson}</div>
-      </div>
-      <div style={{ fontSize: 34, fontWeight: 900, color: C.ink, marginTop: 2, marginBottom: 12, fontFamily: "Poppins,sans-serif" }}>${total}</div>
-      {rows.map(r => (
-        <div key={r.key} style={{ marginBottom: 8 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 3, fontFamily: "Poppins,sans-serif" }}>
-            <span>{r.label}</span>
-            <span>{r.val === 0 ? t.free : `$${r.val}`}</span>
-          </div>
-          <div style={{ height: 6, borderRadius: 999, background: C.skyPale, overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${Math.max(4, (r.val / max) * 100)}%`, background: r.color, borderRadius: 999 }} />
-          </div>
-        </div>
-      ))}
-      <p style={{ fontSize: 10, color: C.fade, marginTop: 10, lineHeight: 1.5, fontFamily: "Poppins,sans-serif" }}>{t.budgetNote}</p>
-    </div>
-  );
-}
-
-function VolunteerOptionCard({ item, t, lang, openId, setOpenId, fromArea, transport }) {
-  const isOpen = openId === item.id;
-  const trav = fromArea !== item.area ? travelInfo(fromArea, item.area, transport) : null;
-  return (
-    <div style={{ borderRadius: 18, overflow: "hidden", border: "1.5px solid #9ADBB6", boxShadow: "0 4px 20px rgba(0,168,79,0.13)", marginBottom: 14 }}>
-      <div style={{ background: `linear-gradient(110deg,${C.sky} 0%,#0DD8EE 60%,#00E5BE 100%)`, padding: "10px 16px", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.22) 1.5px,transparent 1.5px)", backgroundSize: "13px 13px" }} />
-        <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ fontWeight: 900, fontSize: 17, color: C.white, lineHeight: 1 }}>V</span>
-          <span style={{ fontWeight: 800, fontSize: 11, letterSpacing: "0.14em", color: C.white, fontFamily: "Poppins,sans-serif" }}>{t.giveLabel}</span>
-        </div>
-      </div>
-      <div style={{ background: C.leafLight, padding: "12px 16px 0" }}>
-        <div style={{ fontWeight: 800, fontSize: 15, color: C.leafDark, lineHeight: 1.3, fontFamily: "Poppins,sans-serif" }}>{item.name}</div>
-        <div style={{ display: "flex", gap: 14, marginTop: 5, fontSize: 11, color: C.fade, flexWrap: "wrap", fontFamily: "Poppins,sans-serif" }}>
-          <span>⏱ {item.dur}h</span>
+        {item.org && <div style={{ fontSize:11, color:C.fade, marginTop:3, fontWeight:600, fontFamily:"Poppins,sans-serif" }}>{item.org}</div>}
+        <div style={{ display:"flex", gap:12, marginTop:8, fontSize:11, color:C.fade, flexWrap:"wrap", fontFamily:"Poppins,sans-serif" }}>
+          <span>⏱ {item.dur}{t.hours}</span>
           <span>📍 {t.areas[item.area]}</span>
-          <span style={{ fontWeight: 800, color: C.leaf }}>💵 {t.free}</span>
-          {trav && <span>{trav.icon} ~{trav.mins}min</span>}
+          <span style={{ fontWeight:800, color:C.leaf }}>💵 {t.free}</span>
+          {item.recurring && <span>🔁 {t.every[item.recurring]}</span>}
         </div>
-        <button onClick={() => setOpenId(isOpen ? null : item.id)}
-          style={{ marginTop: 8, marginBottom: 12, fontSize: 12, fontWeight: 700, color: C.leaf, background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "Poppins,sans-serif" }}>
-          {isOpen ? t.close : t.open}
-        </button>
-        {isOpen && (
-          <div style={{ paddingBottom: 14, borderTop: "1px solid #9ADBB6", paddingTop: 12 }}>
-            <p style={{ fontSize: 13, color: C.ink, lineHeight: 1.6, margin: 0, fontFamily: "Poppins,sans-serif" }}>{lang === "ja" ? item.ja : item.en}</p>
-            {item.org && <p style={{ fontSize: 11, color: C.fade, marginTop: 5, fontWeight: 600, fontFamily: "Poppins,sans-serif" }}>{item.org}</p>}
-            <div style={{ marginTop: 10, borderRadius: 12, padding: "10px 14px", background: C.white, border: "1px solid #9ADBB6" }}>
-              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.1em", color: C.leaf, marginBottom: 3, fontFamily: "Poppins,sans-serif" }}>{t.joinTitle}</div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: C.ink, fontFamily: "Poppins,sans-serif" }}>{t.bookLabel[item.booking]}</div>
-              {item.url ? (
-                <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", marginTop: 7, fontSize: 12, fontWeight: 700, color: C.leaf, textDecoration: "underline", fontFamily: "Poppins,sans-serif" }}>{t.siteBtn}</a>
-              ) : (
-                <div style={{ marginTop: 5, fontSize: 11, color: C.fade, fontStyle: "italic", fontFamily: "Poppins,sans-serif" }}>{t.nolink}</div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
-    </div>
+    </button>
   );
 }
 
-/* ---- main ---- */
+/* ---- 本体 ---- */
 function App() {
   const [lang, setLang] = useState("en");
-  const [screen, setScreen] = useState("home");
-  const [mode, setMode] = useState("plan");
-  const [date, setDate] = useState("");
-  const [startTime, setStartTime] = useState("09:00");
-  const [endTime, setEndTime] = useState("12:00");
-  const [area, setArea] = useState("waikiki");
-  const [party, setParty] = useState("family");
-  const [ints, setInts] = useState(["ocean"]);
-  const [pace, setPace] = useState("moderate");
-  const [transport, setTransport] = useState("transit");
-  const [purpose, setPurpose] = useState("personal");
-  const [startPoint, setStartPoint] = useState("waikiki");
-  const [targetAreas, setTargetAreas] = useState([]);
-  const [gpsMsg, setGpsMsg] = useState("");
-  const [gpsBusy, setGpsBusy] = useState(false);
-  const [planStyle, setPlanStyle] = useState("explore");
-  const [offset, setOffset] = useState(0);
-  const [openId, setOpenId] = useState(null);
-  const [showBudget, setShowBudget] = useState(false);
-  const startRef = useRef(null), endRef = useRef(null), dateRef = useRef(null);
-  /* 枠のどこを押してもピッカーを開く。showPicker非対応の環境ではフォーカスだけして
-     ブラウザ標準の動作(スマホのタップなど)に任せるので、失敗しても壊れない */
-  const openPicker = ref => {
-    const el = ref.current;
-    if (!el) return;
-    el.focus();
-    try { el.showPicker && el.showPicker(); } catch (err) {}
-  };
+  const [tab, setTab] = useState("public");
+  const [openId, setOpenId] = useState(null);      // ボランティアページで開いている活動
+  const [query, setQuery] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+  const [fArea, setFArea] = useState([]);
+  const [fContent, setFContent] = useState([]);
+  const [fEffort, setFEffort] = useState([]);
+  const [fTime, setFTime] = useState("full");
+
+  // ブックマーク: { [itemId]: ["me"] または ["g1","g2"] }
+  const [bookmarks, setBookmarks] = useState({});
+  // 申請済み: Set的に { [itemId]: true }
+  const [applied, setApplied] = useState({});
+  // モーダル
+  const [bmSheetFor, setBmSheetFor] = useState(null);   // ブックマーク選択中の活動id
+  const [bmDraft, setBmDraft] = useState([]);           // 選択途中の状態
+  const [applyConfirmFor, setApplyConfirmFor] = useState(null); // 申請確認中の活動id
+  const [toast, setToast] = useState("");
+
+  // カレンダー: 活動id → 割り当て日(ISO)。ブックマーク/申請時に埋まる。
+  // 友達(ダミー)が申請済みの活動には、最初から日付を割り当てておく(共有カレンダーに乗るように)
+  const [itemDates, setItemDates] = useState(() => {
+    const init = {};
+    FRIENDS.forEach(f => f.applied.forEach(id => {
+      if (init[id]) return;
+      const item = DATA.find(d => d.id === id);
+      if (item) init[id] = nextDateFor(item.recurring);
+    }));
+    return init;
+  });
+  // 自分の予定: [{id, date, text}]
+  const [ownPlans, setOwnPlans] = useState([]);
+  // 活動ごとのメモ: { [itemId]: "テキスト" }
+  const [notes, setNotes] = useState({});
+  // カレンダーで表示中の月・選択中の日
+  const [calMonth, setCalMonth] = useState(() => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), 1); });
+  const [selDay, setSelDay] = useState(() => iso(new Date()));
+  // 自分の予定の追加モーダル
+  const [showAddOwn, setShowAddOwn] = useState(false);
+  const [ownText, setOwnText] = useState("");
+  const [ownDate, setOwnDate] = useState(() => iso(new Date()));
+  // 友達ページ: 開いている部屋(グループid)と、部屋カレンダーの選択日・表示月
+  const [openRoom, setOpenRoom] = useState(null);
+  const [roomSelDay, setRoomSelDay] = useState(() => iso(new Date()));
+  const [roomMonth, setRoomMonth] = useState(() => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), 1); });
+
   const t = T[lang];
 
-  const startMins = parseTime(startTime), endMins = parseTime(endTime);
-  const availH = endMins > startMins ? (endMins - startMins) / 60 : 0;
-  const toggleInt = k => setInts(p => p.includes(k) ? p.filter(x => x !== k) : [...p, k]);
+  const toggle = (arr, set, k) => set(arr.includes(k) ? arr.filter(x => x !== k) : [...arr, k]);
+  const clearFilters = () => { setFArea([]); setFContent([]); setFEffort([]); setFTime("full"); setQuery(""); };
 
-  /* GPSで一番近い出発地を選ぶ。失敗しても手動選択に戻るだけで何も壊れない */
-  const useMyLocation = () => {
-    if (!navigator.geolocation) { setGpsMsg(t.gpsFail); return; }
-    setGpsBusy(true); setGpsMsg("");
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        const { latitude, longitude } = pos.coords;
-        let best = START_POINTS[0], bestD = Infinity;
-        START_POINTS.forEach(sp => {
-          const d = distanceKm(latitude, longitude, sp.lat, sp.lng);
-          if (d < bestD) { bestD = d; best = sp; }
-        });
-        if (bestD > 100) {
-          // オアフ島から離れている(日本でのテストなど) → 手動選択を促す
-          setGpsMsg(t.gpsFar);
-        } else {
-          setStartPoint(best.id);
-          setArea(best.area);
-          setGpsMsg(`${t.gpsOk} ${lang === "ja" ? best.ja : best.en}`);
-        }
-        setGpsBusy(false);
-      },
-      () => { setGpsMsg(t.gpsFail); setGpsBusy(false); },
-      { timeout: 8000 }
-    );
+  const flash = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2200); };
+
+  /* フィルタ + 検索 */
+  const results = DATA.filter(d => {
+    if (d.type !== "volunteer") return false;
+    if (fArea.length && !fArea.includes(d.area)) return false;
+    if (fContent.length && !d.tags.some(tg => fContent.includes(tg))) return false;
+    if (fEffort.length && !fEffort.includes(d.diff)) return false;
+    if (fTime === "short" && d.dur > 2) return false;
+    if (fTime === "half" && d.dur > 4) return false;
+    if (query.trim()) {
+      const q = query.toLowerCase();
+      const hay = (d.name + " " + (d.org||"") + " " + d.en + " " + d.ja).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  const activeFilterCount = fArea.length + fContent.length + fEffort.length + (fTime !== "full" ? 1 : 0);
+  const openItem = openId ? DATA.find(d => d.id === openId) : null;
+
+  /* ブックマーク選択を開く */
+  const openBmSheet = (id) => {
+    setBmDraft(bookmarks[id] ? [...bookmarks[id]] : []);
+    setBmSheetFor(id);
+  };
+  /* ブックマークシート内の選択トグル */
+  const toggleBmMe = () => setBmDraft(bmDraft.includes("me") ? [] : ["me"]);
+  const toggleBmGroup = (gid) => {
+    const withoutMe = bmDraft.filter(x => x !== "me");
+    setBmDraft(withoutMe.includes(gid) ? withoutMe.filter(x => x !== gid) : [...withoutMe, gid]);
+  };
+  const saveBm = () => {
+    const id = bmSheetFor;
+    if (bmDraft.length === 0) {
+      const next = { ...bookmarks }; delete next[id]; setBookmarks(next);
+    } else {
+      setBookmarks({ ...bookmarks, [id]: bmDraft });
+      // まだ日付が割り当てられていなければ、開催頻度から仮の日付を付ける
+      if (!itemDates[id]) {
+        const item = DATA.find(d => d.id === id);
+        setItemDates({ ...itemDates, [id]: nextDateFor(item.recurring) });
+      }
+      const groups = bmDraft.filter(x => x !== "me");
+      flash(groups.length ? t.savedToGroups(groups.length) : t.savedToMe);
+    }
+    setBmSheetFor(null);
   };
 
-  const plan = screen === "plan" && mode === "plan" ? buildPlan(area, party, ints, startMins, endMins, offset, pace, transport, purpose, planStyle, targetAreas) : [];
-  const volList = screen === "plan" && mode === "volunteer" ? buildVolunteerList(area, party, ints, availH, pace, offset, purpose, targetAreas) : [];
-  const hasVol = plan.some(s => s.give);
-  const planItems = plan.filter(s => s.item);
-  const hasFoodInPlan = planItems.some(s => s.item.type === "food");
-  // 「1日プラン」なのにボランティアしか入らなかった場合の判定
-  const onlyVolunteer = hasVol && planItems.length === 1;
-  const noFoodButHasMore = hasVol && !hasFoodInPlan && planItems.length > 1;
-  const showNorthWarn = area === "north" && transport !== "car";
+  /* 申請ボタン: Kanu Hawaiiを開いて、確認ウィンドウを予約 */
+  const doApply = (item) => {
+    if (item.url) window.open(item.url, "_blank", "noopener");
+    setApplyConfirmFor(item.id);
+  };
+
+  /* ある日付にひもづく予定を集める(申請済み/ブックマーク/自分の予定) */
+  const eventsOn = (dayIso) => {
+    const evs = [];
+    Object.entries(itemDates).forEach(([id, dt]) => {
+      if (dt !== dayIso) return;
+      const item = DATA.find(d => d.id === id);
+      if (!item) return;
+      if (applied[id]) evs.push({ kind:"applied", item });
+      else if (bookmarks[id]) evs.push({ kind:"bookmark", item });
+    });
+    ownPlans.filter(p => p.date === dayIso).forEach(p => evs.push({ kind:"own", plan:p }));
+    return evs;
+  };
+
+  /* その月のうち、予定がある日を種類つきで把握(ドット表示用) */
+  const monthDots = {};
+  Object.entries(itemDates).forEach(([id, dt]) => {
+    const d = parseIso(dt);
+    if (!sameYM(d, calMonth)) return;
+    if (!monthDots[dt]) monthDots[dt] = {};
+    if (applied[id]) monthDots[dt].applied = true;
+    else if (bookmarks[id]) monthDots[dt].bookmark = true;
+  });
+  ownPlans.forEach(p => {
+    const d = parseIso(p.date);
+    if (!sameYM(d, calMonth)) return;
+    if (!monthDots[p.date]) monthDots[p.date] = {};
+    monthDots[p.date].own = true;
+  });
+
+  /* 確定(申請済み)の時間を2種類で集計:
+     done = 開催日が今日以前に過ぎた実績分 / planned = 予定も含めた総合分 */
+  const todayIso = iso(new Date());
+  const appliedIds = Object.keys(applied).filter(id => applied[id]);
+  const doneHours = appliedIds.reduce((sum, id) => {
+    const it = DATA.find(d => d.id === id);
+    const dt = itemDates[id];
+    if (!it || !dt) return sum;
+    return dt <= todayIso ? sum + it.dur : sum;   // 開催日が今日以前=済んだ活動
+  }, 0);
+  const plannedHours = appliedIds.reduce((sum, id) => {
+    const it = DATA.find(d => d.id === id);
+    return it ? sum + it.dur : sum;               // 申請済みすべて(予定含む)
+  }, 0);
+
+  /* カレンダーのマス目(前月の余白含む) */
+  const calCells = (() => {
+    const first = new Date(calMonth.getFullYear(), calMonth.getMonth(), 1);
+    const startPad = first.getDay();
+    const daysInMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()+1, 0).getDate();
+    const cells = [];
+    for (let i = 0; i < startPad; i++) cells.push(null);
+    for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(calMonth.getFullYear(), calMonth.getMonth(), d));
+    return cells;
+  })();
+
+  const addOwnPlan = () => {
+    if (!ownText.trim()) return;
+    setOwnPlans([...ownPlans, { id:"own"+Date.now(), date:ownDate, text:ownText.trim() }]);
+    setOwnText(""); setShowAddOwn(false); setSelDay(ownDate);
+    if (!sameYM(parseIso(ownDate), calMonth)) setCalMonth(new Date(parseIso(ownDate).getFullYear(), parseIso(ownDate).getMonth(), 1));
+  };
+  const removeOwnPlan = (pid) => setOwnPlans(ownPlans.filter(p => p.id !== pid));
+
+  /* ---- 友達ページ ---- */
+  const roomMembers = (gid) => FRIENDS.filter(f => f.groups.includes(gid));
+
+  /* 部屋のカレンダーに乗る予定を日付ごとに集める。
+     自分がそのグループにブックマーク/申請した活動 + 友達がその活動に申請している状況 */
+  const roomEventsOn = (gid, dayIso) => {
+    const evs = [];
+    // 自分がこのグループに保存した活動
+    Object.entries(bookmarks).forEach(([id, groups]) => {
+      if (!groups.includes(gid)) return;
+      if (itemDates[id] !== dayIso) return;
+      const item = DATA.find(d => d.id === id);
+      if (item) evs.push({ item, mine:true, applied:!!applied[id] });
+    });
+    // 友達が申請している活動(同じ日付に割り当てられているもの)
+    const members = roomMembers(gid);
+    const friendItemIds = new Set();
+    members.forEach(f => f.applied.forEach(id => friendItemIds.add(id)));
+    friendItemIds.forEach(id => {
+      if (itemDates[id] !== dayIso) return;
+      if (evs.some(e => e.item.id === id)) return; // 自分の分と重複しない
+      const item = DATA.find(d => d.id === id);
+      if (item) evs.push({ item, mine:false, applied:false });
+    });
+    return evs;
+  };
+
+  /* 部屋カレンダーのドット表示用 */
+  const roomDots = (gid) => {
+    const dots = {};
+    Object.entries(bookmarks).forEach(([id, groups]) => {
+      if (!groups.includes(gid)) return;
+      const dt = itemDates[id]; if (!dt) return;
+      const d = parseIso(dt); if (!sameYM(d, roomMonth)) return;
+      if (!dots[dt]) dots[dt] = {};
+      if (applied[id]) dots[dt].applied = true; else dots[dt].bookmark = true;
+    });
+    roomMembers(gid).forEach(f => f.applied.forEach(id => {
+      const dt = itemDates[id]; if (!dt) return;
+      const d = parseIso(dt); if (!sameYM(d, roomMonth)) return;
+      if (!dots[dt]) dots[dt] = {};
+      dots[dt].friend = true;
+    }));
+    return dots;
+  };
+
+  /* ある活動に「参加する側」のメンバー一覧(自分＋友達) */
+  const goingMembers = (gid, itemId) => {
+    const list = [];
+    if (applied[itemId] && bookmarks[itemId]?.includes(gid)) list.push({ id:"me", name:t.you, emoji:"⭐", mine:true, applied:true });
+    else if (bookmarks[itemId]?.includes(gid)) list.push({ id:"me", name:t.you, emoji:"⭐", mine:true, applied:false });
+    roomMembers(gid).forEach(f => { if (f.applied.includes(itemId)) list.push({ ...f, applied:true }); });
+    return list;
+  };
+
+  const roomCalCells = (() => {
+    const first = new Date(roomMonth.getFullYear(), roomMonth.getMonth(), 1);
+    const startPad = first.getDay();
+    const daysInMonth = new Date(roomMonth.getFullYear(), roomMonth.getMonth()+1, 0).getDate();
+    const cells = [];
+    for (let i = 0; i < startPad; i++) cells.push(null);
+    for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(roomMonth.getFullYear(), roomMonth.getMonth(), d));
+    return cells;
+  })();
+
 
   return (
-    <div style={{ minHeight: "100vh", background: C.skyPale, fontFamily: "Poppins,sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap');*{box-sizing:border-box;margin:0;padding:0}input[type=time],input[type=date]{font-family:inherit}
-.app-shell{max-width:420px;margin:0 auto;padding-bottom:48px;}
+    <div style={{ minHeight:"100vh", background:C.skyPale, fontFamily:"Poppins,sans-serif" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap');*{box-sizing:border-box;margin:0;padding:0}
+.app-shell{max-width:440px;margin:0 auto;padding-bottom:88px;position:relative;min-height:100vh;}
 @media (min-width:700px){ .app-shell{max-width:560px;} }
-.mode-card{background:${C.white};border:2px solid ${C.line};cursor:pointer;transition:background 0.18s ease,border-color 0.18s ease;}
-.mode-card-title,.mode-card-desc{transition:color 0.18s ease;}
-.mode-card-plan:hover,.mode-card-plan:focus-visible{background:linear-gradient(110deg,${C.sky},#00D8EE);border-color:${C.sky};}
-.mode-card-plan:hover .mode-card-title,.mode-card-plan:focus-visible .mode-card-title{color:${C.white};}
-.mode-card-plan:hover .mode-card-desc,.mode-card-plan:focus-visible .mode-card-desc{color:rgba(255,255,255,0.9);}
-.mode-card-vol:hover,.mode-card-vol:focus-visible{background:linear-gradient(110deg,${C.sky},#00D8EE);border-color:${C.sky};}
-.mode-card-vol:hover .mode-card-title,.mode-card-vol:focus-visible .mode-card-title{color:${C.white};}
-.mode-card-vol:hover .mode-card-desc,.mode-card-vol:focus-visible .mode-card-desc{color:rgba(255,255,255,0.9);}
 `}</style>
 
       <div className="app-shell">
 
         {/* NAV */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
-          padding: "13px 20px", background: `linear-gradient(100deg,${C.sky},${C.skyDark})`,
-          position: "sticky", top: 0, zIndex: 10 }}>
-          <button onClick={() => { setScreen("home"); setOpenId(null); }}
-            style={{ fontWeight: 900, fontSize: 16, color: C.white, background: "none", border: "none", cursor: "pointer", letterSpacing: "-0.02em", fontFamily: "Poppins,sans-serif" }}>
-            <span style={{ fontWeight: 300, letterSpacing: "0.06em", opacity: 0.88 }}>a&nbsp;little&nbsp;</span><span style={{ fontWeight: 900, fontSize: 20, color: C.sun, letterSpacing: "-0.02em" }}>V</span>
-          </button>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
+          padding:"13px 20px", background:`linear-gradient(100deg,${C.sky},${C.skyDark})`,
+          position:"sticky", top:0, zIndex:20 }}>
+          <div style={{ fontWeight:900, fontSize:16, color:C.white }}>
+            <span style={{ fontWeight:300, letterSpacing:"0.06em", opacity:0.88 }}>a&nbsp;little&nbsp;</span>
+            <span style={{ fontWeight:900, fontSize:20, color:C.sun }}>V</span>
+          </div>
           <button onClick={() => setLang(lang === "en" ? "ja" : "en")}
-            style={{ fontSize: 11, fontWeight: 800, padding: "5px 12px", borderRadius: 999,
-              border: "2px solid rgba(255,255,255,0.65)", color: C.white, background: "rgba(255,255,255,0.18)",
-              cursor: "pointer", letterSpacing: "0.04em", fontFamily: "Poppins,sans-serif" }}>
+            style={{ fontSize:11, fontWeight:800, padding:"5px 12px", borderRadius:999,
+              border:"2px solid rgba(255,255,255,0.65)", color:C.white,
+              background:"rgba(255,255,255,0.18)", cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
             {lang === "en" ? "日本語" : "English"}
           </button>
         </div>
 
-        {/* HOME */}
-        {screen === "home" && (
-          <div>
-            <div style={{ background: `linear-gradient(140deg,${C.sky} 0%,#0DCDE8 55%,#00DDBF 100%)`, padding: "36px 24px 44px", borderRadius: "0 0 28px 28px" }}>
-              {/* ---- ロゴ: a little / 巨大V / tagline ---- */}
-              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.18em", color: "rgba(255,255,255,0.65)", marginBottom: 18 }}>{t.tag}</div>
-              <div style={{ fontWeight: 300, fontSize: 16, letterSpacing: "0.08em", color: "rgba(255,255,255,0.82)", textTransform: "uppercase" }}>{t.h1}</div>
-              <div style={{ fontWeight: 800, fontSize: 52, lineHeight: 1.15, color: C.sun, letterSpacing: "0.01em", margin: "8px 0 10px 0" }}>{t.bigWord}</div>
-              <div style={{ fontWeight: 800, fontSize: 19, color: C.white, letterSpacing: "-0.01em", lineHeight: 1.3, marginBottom: 8 }}>{t.h1c}</div>
-              
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.9)", lineHeight: 1.65, maxWidth: 320 }}>{t.sub}</p>
-            </div>
-            <div style={{ padding: "20px 20px 0" }}>
-              <button onClick={() => setScreen("mode")}
-                style={{ width: "100%", padding: "18px", borderRadius: 18, background: C.sun, color: C.sunText,
-                  fontWeight: 900, fontSize: 16, border: "none", cursor: "pointer",
-                  boxShadow: "0 8px 24px rgba(255,213,53,0.4)", letterSpacing: "-0.01em", fontFamily: "Poppins,sans-serif" }}>
-                {t.start}
+        {/* ===== PUBLIC: 検索ページ or ボランティアページ ===== */}
+        {tab === "public" && !openItem && (
+          <div style={{ padding:"16px 16px 0" }}>
+            {/* 検索バー */}
+            <div style={{ display:"flex", gap:8, marginBottom:12 }}>
+              <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t.searchPlaceholder}
+                style={{ flex:1, minHeight:44, padding:"10px 14px", borderRadius:14, border:`1.5px solid ${C.line}`,
+                  fontSize:14, color:C.ink, background:C.white, fontFamily:"Poppins,sans-serif", outline:"none" }} />
+              <button onClick={() => setShowFilters(!showFilters)}
+                style={{ minHeight:44, padding:"0 14px", borderRadius:14, fontWeight:800, fontSize:12.5,
+                  border:`2px solid ${showFilters || activeFilterCount ? C.sky : C.line}`,
+                  background: showFilters || activeFilterCount ? C.sky : C.white,
+                  color: showFilters || activeFilterCount ? C.white : C.ink,
+                  cursor:"pointer", fontFamily:"Poppins,sans-serif", whiteSpace:"nowrap" }}>
+                {t.filters}{activeFilterCount ? ` (${activeFilterCount})` : ""}
               </button>
-              <p style={{ textAlign: "center", fontSize: 12, color: C.fade, marginTop: 8, fontWeight: 600 }}>{t.how}</p>
-            </div>
-            <div style={{ padding: "20px 20px 0", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              {[
-                { icon:"⏱", en:"Just 1–2 hrs",enb:"Any free window works.",ja:"たった1〜2時間",jab:"空き時間でOK。" },
-                { icon:"🗓", en:"No full-day plan",enb:"Your free slot only.",ja:"1日計画は不要",jab:"空いてる時間帯だけ入れる。" },
-                { icon:"🚗", en:"Travel included",enb:"Driving time in the plan.",ja:"移動も計算",jab:"移動時間込みでプランを作成。" },
-                { icon:"🌴", en:"Pace options",enb:"Relaxed to active.",ja:"ペース選択あり",jab:"ゆったり〜アクティブで調整。" },
-              ].map((c, i) => (
-                <div key={i} style={{ background: C.white, borderRadius: 16, padding: "14px", border: `1.5px solid ${C.line}` }}>
-                  <div style={{ fontSize: 22, marginBottom: 5 }}>{c.icon}</div>
-                  <div style={{ fontWeight: 800, fontSize: 12, color: C.ink, marginBottom: 2 }}>{lang === "en" ? c.en : c.ja}</div>
-                  <div style={{ fontSize: 11, color: C.fade, lineHeight: 1.4 }}>{lang === "en" ? c.enb : c.jab}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* MODE — 目的を選ぶ二択画面(ベースは統一・ホバーで色が変わる) */}
-        {screen === "mode" && (
-          <div style={{ padding: "24px 20px 0" }}>
-            <button onClick={() => setScreen("home")}
-              style={{ fontSize: 12, fontWeight: 700, color: C.fade, background: "none", border: "none", cursor: "pointer", padding: 0, marginBottom: 16, fontFamily: "Poppins,sans-serif" }}>
-              {t.modeBack}
-            </button>
-            <h2 style={{ fontWeight: 900, fontSize: 24, color: C.ink, letterSpacing: "-0.02em", marginBottom: 20 }}>{t.modeTitle}</h2>
-
-            <button className="mode-card mode-card-vol" onClick={() => { setMode("volunteer"); setScreen("form"); }}
-              style={{ width: "100%", textAlign: "left", padding: "18px", borderRadius: 20, marginBottom: 14 }}>
-              <div style={{ fontSize: 26, marginBottom: 8 }}>🙋</div>
-              <div className="mode-card-title" style={{ fontWeight: 900, fontSize: 18, color: C.ink, marginBottom: 4, fontFamily: "Poppins,sans-serif" }}>{t.modeVolTitle}</div>
-              <div className="mode-card-desc" style={{ fontSize: 13, color: C.fade, lineHeight: 1.5, fontFamily: "Poppins,sans-serif" }}>{t.modeVolDesc}</div>
-            </button>
-
-            <button className="mode-card mode-card-plan" onClick={() => { setMode("plan"); setScreen("form"); }}
-              style={{ width: "100%", textAlign: "left", padding: "18px", borderRadius: 20 }}>
-              <div style={{ fontSize: 26, marginBottom: 8 }}>🗺️</div>
-              <div className="mode-card-title" style={{ fontWeight: 900, fontSize: 18, color: C.ink, marginBottom: 4, fontFamily: "Poppins,sans-serif" }}>{t.modePlanTitle}</div>
-              <div className="mode-card-desc" style={{ fontSize: 13, color: C.fade, lineHeight: 1.5, fontFamily: "Poppins,sans-serif" }}>{t.modePlanDesc}</div>
-            </button>
-          </div>
-        )}
-
-        {/* FORM */}
-        {screen === "form" && (
-          <div style={{ padding: "20px 20px 0" }}>
-            <h2 style={{ fontWeight: 900, fontSize: 24, color: C.ink, letterSpacing: "-0.02em", marginBottom: 20 }}>{t.fTitle}</h2>
-
-            {/* time range */}
-            <div style={{ background: C.white, borderRadius: 20, padding: "16px", border: `1.5px solid ${C.line}`, marginBottom: 14 }}>
-              <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 12 }}>{t.fTime}</div>
-              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <div onClick={() => openPicker(startRef)}
-                  style={{ flex: 1, minWidth: 0, minHeight: 48, display: "flex", alignItems: "center", padding: "0 10px", borderRadius: 12, border: `1.5px solid ${C.line}`, background: C.skyPale, cursor: "pointer" }}>
-                  <input ref={startRef} type="time" value={startTime} onChange={e => setStartTime(e.target.value)}
-                    style={{ width: "100%", minWidth: 0, minHeight: 46, border: "none", background: "transparent", fontSize: 17, fontWeight: 800, color: C.ink, fontFamily: "Poppins,sans-serif", outline: "none", cursor: "pointer" }} />
-                </div>
-                <span style={{ fontSize: 18, color: C.sky, fontWeight: 900 }}>→</span>
-                <div onClick={() => openPicker(endRef)}
-                  style={{ flex: 1, minWidth: 0, minHeight: 48, display: "flex", alignItems: "center", padding: "0 10px", borderRadius: 12, border: `1.5px solid ${C.line}`, background: C.skyPale, cursor: "pointer" }}>
-                  <input ref={endRef} type="time" value={endTime} onChange={e => setEndTime(e.target.value)}
-                    style={{ width: "100%", minWidth: 0, minHeight: 46, border: "none", background: "transparent", fontSize: 17, fontWeight: 800, color: C.ink, fontFamily: "Poppins,sans-serif", outline: "none", cursor: "pointer" }} />
-                </div>
-              </div>
-              {availH > 0 && (
-                <div style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 12px", borderRadius: 999,
-                  background: availH >= 1.5 ? C.skyLight : C.warn, border: `1.5px solid ${availH >= 1.5 ? C.sky : C.warnB}` }}>
-                  <span style={{ fontSize: 12, fontWeight: 800, color: availH >= 1.5 ? C.skyDark : C.warnT, fontFamily: "Poppins,sans-serif" }}>
-                    {availH >= 1.5 ? "✓ " : "⚠ "}{t.avail(availH % 1 === 0 ? availH : availH.toFixed(1))}
-                  </span>
-                </div>
-              )}
-              {availH > 0 && availH < 1.5 && <p style={{ marginTop: 6, fontSize: 11, color: C.warnT, fontFamily: "Poppins,sans-serif" }}>{t.tooShort}</p>}
             </div>
 
-            {/* date optional */}
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 8 }}>{t.fDate}</div>
-              <div onClick={() => openPicker(dateRef)}
-                style={{ position: "relative", width: "100%", minHeight: 48, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 14px", borderRadius: 14, border: `1.5px solid ${C.line}`, background: C.white, cursor: "pointer", overflow: "hidden" }}>
-                <span style={{ fontSize: 15, fontWeight: date ? 700 : 500, color: date ? C.ink : C.fade, fontFamily: "Poppins,sans-serif" }}>
-                  {date ? formatDate(date, lang) : t.datePlaceholder}
-                </span>
-                <span style={{ fontSize: 16, color: C.sky }}>📅</span>
-                {/* ネイティブの入力欄。表示は上のspanが担当し、これは操作用に透明で重ねる */}
-                <input ref={dateRef} type="date" value={date} onChange={e => setDate(e.target.value)}
-                  style={{ position: "absolute", left: 0, top: 0, width: "100%", height: "100%", opacity: 0, border: "none", cursor: "pointer" }} />
-              </div>
-            </div>
-
-            {/* starting point + GPS */}
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 8 }}>{t.fArea}</div>
-              <button onClick={useMyLocation} disabled={gpsBusy}
-                style={{ marginBottom: 9, padding: "7px 14px", borderRadius: 999, fontSize: 12, fontWeight: 800,
-                  border: `2px solid ${C.sky}`, background: C.white, color: C.sky,
-                  cursor: gpsBusy ? "wait" : "pointer", fontFamily: "Poppins,sans-serif" }}>
-                {gpsBusy ? t.gpsSearching : t.gpsBtn}
-              </button>
-              {gpsMsg && (
-                <p style={{ marginBottom: 8, fontSize: 11, color: C.fade, lineHeight: 1.5, fontFamily: "Poppins,sans-serif" }}>{gpsMsg}</p>
-              )}
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-                {START_POINTS.map(sp => (
-                  <Chip key={sp.id} label={lang === "ja" ? sp.ja : sp.en} active={startPoint === sp.id}
-                    onClick={() => { setStartPoint(sp.id); setArea(sp.area); setGpsMsg(""); }} />
+            {/* フィルタ */}
+            {showFilters && (
+              <div style={{ background:C.white, borderRadius:16, border:`1.5px solid ${C.line}`,
+                padding:"14px 16px", marginBottom:12 }}>
+                {[
+                  { label:t.fArea, opts:t.areas, val:fArea, set:setFArea },
+                  { label:t.fContent, opts:t.contents, val:fContent, set:setFContent },
+                  { label:t.fEffort, opts:t.efforts, val:fEffort, set:setFEffort },
+                ].map((row, i) => (
+                  <div key={i} style={{ marginBottom:12 }}>
+                    <div style={{ fontSize:10, fontWeight:800, color:C.sky, letterSpacing:"0.1em", marginBottom:7 }}>{row.label}</div>
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
+                      {Object.entries(row.opts).map(([k, v]) =>
+                        <Chip key={k} label={v} active={row.val.includes(k)} onClick={() => toggle(row.val, row.set, k)} />)}
+                    </div>
+                  </div>
                 ))}
-              </div>
-            </div>
-
-            {/* where to volunteer — 複数選択・空=どこでも */}
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 8 }}>{t.fTarget}</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-                <Chip label={t.anywhere} active={targetAreas.length === 0} onClick={() => setTargetAreas([])} />
-                {Object.entries(t.areas).map(([k, v]) => (
-                  <Chip key={k} label={v} active={targetAreas.includes(k)}
-                    onClick={() => setTargetAreas(p => p.includes(k) ? p.filter(x => x !== k) : [...p, k])} />
-                ))}
-              </div>
-            </div>
-
-            {/* party */}
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 8 }}>{t.fParty}</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-                {Object.entries(t.party).map(([k, v]) => <Chip key={k} label={v} active={party === k} onClick={() => setParty(k)} />)}
-              </div>
-            </div>
-
-            {/* interests */}
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 8 }}>{t.fInt}</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-                {Object.entries(t.ints).map(([k, v]) => <Chip key={k} label={v} active={ints.includes(k)} onClick={() => toggleInt(k)} />)}
-              </div>
-            </div>
-
-            {/* purpose — キャリア目的なら継続開催の活動を優先 */}
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 8 }}>{t.fPurpose}</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-                {Object.entries(t.purpose).map(([k, v]) => <Chip key={k} label={v} active={purpose === k} onClick={() => setPurpose(k)} />)}
-              </div>
-              <p style={{ marginTop: 7, fontSize: 11, color: C.fade, fontFamily: "Poppins,sans-serif" }}>{t.purposeHint[purpose]}</p>
-            </div>
-
-            {/* plan style — 1日プランモードのときだけ表示 */}
-            {mode === "plan" && (
-              <div style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 8 }}>{t.fPlanStyle}</div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-                  {Object.entries(t.planStyleOpts).map(([k, v]) => <Chip key={k} label={v} active={planStyle === k} onClick={() => setPlanStyle(k)} />)}
+                <div style={{ marginBottom:4 }}>
+                  <div style={{ fontSize:10, fontWeight:800, color:C.sky, letterSpacing:"0.1em", marginBottom:7 }}>{t.fTime}</div>
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
+                    {Object.entries(t.times).map(([k, v]) =>
+                      <Chip key={k} label={v} active={fTime === k} onClick={() => setFTime(k)} />)}
+                  </div>
                 </div>
-                <p style={{ marginTop: 7, fontSize: 11, color: C.fade, fontFamily: "Poppins,sans-serif" }}>{t.planStyleHint[planStyle]}</p>
-                {planStyle === "active" && (
-                  <p style={{ marginTop: 5, fontSize: 11, color: C.warnT, fontStyle: "italic", fontFamily: "Poppins,sans-serif" }}>{t.activeThin}</p>
+                {activeFilterCount > 0 && (
+                  <button onClick={clearFilters}
+                    style={{ marginTop:12, fontSize:12, fontWeight:800, color:C.fade, background:"none",
+                      border:"none", cursor:"pointer", padding:0, fontFamily:"Poppins,sans-serif" }}>
+                    {t.clear} ✕
+                  </button>
                 )}
               </div>
             )}
 
-            {/* pace */}
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 8 }}>{t.fPace}</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-                {Object.entries(t.pace).map(([k, v]) => <Chip key={k} label={v} active={pace === k} onClick={() => setPace(k)} />)}
-              </div>
-              <p style={{ marginTop: 7, fontSize: 11, color: C.fade, fontFamily: "Poppins,sans-serif" }}>{t.paceHint[pace]}</p>
+            <div style={{ fontSize:11, fontWeight:800, color:C.fade, letterSpacing:"0.06em", marginBottom:10, paddingLeft:2 }}>
+              {t.resultsN(results.length)}
             </div>
 
-            {/* transport */}
-            <div style={{ marginBottom: 22 }}>
-              <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 8 }}>{t.fTransport}</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-                {Object.entries(t.transport).map(([k, v]) => <Chip key={k} label={v} active={transport === k} onClick={() => setTransport(k)} />)}
+            {results.length === 0 && (
+              <div style={{ background:C.warn, border:`1.5px solid ${C.warnB}`, borderRadius:14,
+                padding:"12px 14px", fontSize:12.5, color:C.warnT, lineHeight:1.5, fontFamily:"Poppins,sans-serif" }}>
+                {t.noResults}
               </div>
-              {/* North Shore warning */}
-              {area === "north" && transport !== "car" && (
-                <div style={{ marginTop: 8, padding: "8px 12px", borderRadius: 10, background: C.warn, border: `1px solid ${C.warnB}`, fontSize: 11, color: C.warnT, fontFamily: "Poppins,sans-serif" }}>
-                  {t.carNote}
+            )}
+
+            {results.map(item => (
+              <ListCard key={item.id} item={item} t={t} lang={lang}
+                onOpen={() => setOpenId(item.id)}
+                bookmarked={!!bookmarks[item.id]} applied={!!applied[item.id]} />
+            ))}
+          </div>
+        )}
+
+        {/* ===== ボランティアページ(詳細) ===== */}
+        {tab === "public" && openItem && (
+          <div style={{ padding:"16px 16px 0" }}>
+            <button onClick={() => setOpenId(null)}
+              style={{ fontSize:12.5, fontWeight:700, color:C.fade, background:"none", border:"none",
+                cursor:"pointer", padding:0, marginBottom:14, fontFamily:"Poppins,sans-serif" }}>
+              {t.detailBack}
+            </button>
+
+            {/* ヘッダー */}
+            <div style={{ borderRadius:20, overflow:"hidden", border:"1.5px solid #9ADBB6",
+              boxShadow:"0 4px 20px rgba(0,168,79,0.12)", marginBottom:16 }}>
+              <div style={{ background:`linear-gradient(110deg,${C.sky} 0%,#0DD8EE 60%,#00E5BE 100%)`,
+                padding:"14px 18px", position:"relative", overflow:"hidden" }}>
+                <div style={{ position:"absolute", inset:0,
+                  backgroundImage:"radial-gradient(circle,rgba(255,255,255,0.22) 1.5px,transparent 1.5px)",
+                  backgroundSize:"14px 14px" }} />
+                <div style={{ position:"relative" }}>
+                  <div style={{ fontWeight:900, fontSize:18, color:C.white, lineHeight:1.3, fontFamily:"Poppins,sans-serif" }}>
+                    {openItem.name}
+                  </div>
+                  {openItem.org && <div style={{ fontSize:12, color:"rgba(255,255,255,0.9)", marginTop:5, fontWeight:600 }}>{openItem.org}</div>}
                 </div>
-              )}
+              </div>
+              <div style={{ background:C.leafLight, padding:"14px 18px" }}>
+                <div style={{ display:"flex", gap:14, fontSize:12, color:C.fade, flexWrap:"wrap", fontFamily:"Poppins,sans-serif" }}>
+                  <span>⏱ {openItem.dur}{t.hours}</span>
+                  <span>📍 {t.areas[openItem.area]}</span>
+                  <span style={{ fontWeight:800, color:C.leaf }}>💵 {t.free}</span>
+                  {openItem.recurring && <span>🔁 {t.every[openItem.recurring]}</span>}
+                </div>
+              </div>
             </div>
 
-            <button onClick={() => { setScreen("plan"); setOffset(0); setOpenId(null); setShowBudget(false); }}
-              disabled={availH <= 0}
-              style={{ width: "100%", padding: "17px", borderRadius: 18,
-                background: availH > 0 ? `linear-gradient(110deg,${C.sky},#00D8EE)` : "#ccc",
-                color: C.white, fontWeight: 900, fontSize: 16, border: "none",
-                cursor: availH > 0 ? "pointer" : "not-allowed",
-                boxShadow: availH > 0 ? `0 8px 24px rgba(11,190,235,0.32)` : "none",
-                letterSpacing: "-0.01em", fontFamily: "Poppins,sans-serif" }}>
-              {t.build}
+            {/* 説明 */}
+            <div style={{ fontSize:10, fontWeight:800, color:C.sky, letterSpacing:"0.12em", marginBottom:7 }}>{t.aboutTitle}</div>
+            <p style={{ fontSize:13.5, color:C.ink, lineHeight:1.7, marginBottom:16, fontFamily:"Poppins,sans-serif" }}>
+              {lang === "ja" ? openItem.ja : openItem.en}
+            </p>
+
+            {/* 参加方法 */}
+            <div style={{ background:C.white, borderRadius:14, border:`1.5px solid ${C.line}`, padding:"12px 15px", marginBottom:16 }}>
+              <div style={{ fontSize:10, fontWeight:800, color:C.sky, letterSpacing:"0.1em", marginBottom:4 }}>{t.joinTitle}</div>
+              <div style={{ fontSize:13, fontWeight:700, color:C.ink, fontFamily:"Poppins,sans-serif" }}>{t.bookLabel[openItem.booking]}</div>
+            </div>
+
+            {/* 申請者一覧(次回) */}
+            <div style={{ background:C.skyPale, borderRadius:14, border:`1px dashed ${C.sky}`, padding:"12px 15px", marginBottom:20 }}>
+              <div style={{ fontSize:11, fontWeight:800, color:C.sky, marginBottom:4 }}>👥 {t.whoTitle}</div>
+              <div style={{ fontSize:11.5, color:C.fade, lineHeight:1.5, fontFamily:"Poppins,sans-serif" }}>{t.whoSoon}</div>
+            </div>
+
+            {/* 申請 + ブックマークボタン */}
+            <div style={{ display:"flex", gap:10, marginBottom:8 }}>
+              <button onClick={() => doApply(openItem)}
+                style={{ flex:1, minHeight:52, borderRadius:16, fontWeight:900, fontSize:13.5,
+                  background: applied[openItem.id] ? C.leaf : C.sun,
+                  color: applied[openItem.id] ? C.white : C.sunText,
+                  border:"none", cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                {applied[openItem.id] ? t.applied : t.applyBtn}
+              </button>
+              <button onClick={() => openBmSheet(openItem.id)}
+                style={{ minWidth:120, minHeight:52, borderRadius:16, fontWeight:800, fontSize:13,
+                  background: bookmarks[openItem.id] ? C.leafLight : C.white,
+                  color: bookmarks[openItem.id] ? C.leafDark : C.ink,
+                  border:`2px solid ${bookmarks[openItem.id] ? C.leaf : C.line}`,
+                  cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                {bookmarks[openItem.id] ? t.bookmarkedBtn : t.bookmarkBtn}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ===== 個人ページ(カレンダー) ===== */}
+        {tab === "personal" && (
+          <div style={{ padding:"16px 16px 0" }}>
+            <h2 style={{ fontWeight:900, fontSize:22, color:C.ink, letterSpacing:"-0.02em", marginBottom:14 }}>
+              📅 {t.calTitle}
+            </h2>
+
+            {/* 活動時間: 実績(済み)と予定込みの総合 */}
+            <div style={{ display:"flex", gap:10, marginBottom:16 }}>
+              <div style={{ flex:1, background:`linear-gradient(110deg,${C.leaf},#00C85E)`, borderRadius:16,
+                padding:"13px 16px", color:C.white }}>
+                <div style={{ fontSize:10, fontWeight:700, opacity:0.9, letterSpacing:"0.04em" }}>{t.hoursDoneT}</div>
+                <div style={{ fontWeight:900, fontSize:27, lineHeight:1.1, marginTop:2 }}>
+                  {doneHours}<span style={{ fontSize:14, fontWeight:800 }}> {t.hoursUnit}</span>
+                </div>
+                <div style={{ fontSize:9, opacity:0.85, marginTop:2, fontFamily:"Poppins,sans-serif" }}>{t.hoursDoneD}</div>
+              </div>
+              <div style={{ flex:1, background:C.white, border:`2px solid ${C.line}`, borderRadius:16,
+                padding:"13px 16px" }}>
+                <div style={{ fontSize:10, fontWeight:700, color:C.fade, letterSpacing:"0.04em" }}>{t.hoursPlanT}</div>
+                <div style={{ fontWeight:900, fontSize:27, lineHeight:1.1, marginTop:2, color:C.ink }}>
+                  {plannedHours}<span style={{ fontSize:14, fontWeight:800, color:C.fade }}> {t.hoursUnit}</span>
+                </div>
+                <div style={{ fontSize:9, color:C.fade, marginTop:2, fontFamily:"Poppins,sans-serif" }}>{t.hoursPlanD}</div>
+              </div>
+            </div>
+
+            {/* 月ナビ */}
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+              <button onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth()-1, 1))}
+                style={{ width:36, height:36, borderRadius:12, border:`1.5px solid ${C.line}`, background:C.white,
+                  cursor:"pointer", fontSize:16, color:C.sky, fontWeight:900 }}>‹</button>
+              <div style={{ fontWeight:900, fontSize:16, color:C.ink }}>
+                {t.months[calMonth.getMonth()]} {calMonth.getFullYear()}
+              </div>
+              <button onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth()+1, 1))}
+                style={{ width:36, height:36, borderRadius:12, border:`1.5px solid ${C.line}`, background:C.white,
+                  cursor:"pointer", fontSize:16, color:C.sky, fontWeight:900 }}>›</button>
+            </div>
+
+            {/* カレンダー本体 */}
+            <div style={{ background:C.white, borderRadius:18, border:`1.5px solid ${C.line}`, padding:"12px 10px", marginBottom:14 }}>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", marginBottom:4 }}>
+                {t.weekdays.map((w, i) => (
+                  <div key={i} style={{ textAlign:"center", fontSize:10, fontWeight:800,
+                    color: i===0 ? "#E06B6B" : i===6 ? C.sky : C.fade, padding:"4px 0" }}>{w}</div>
+                ))}
+              </div>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:2 }}>
+                {calCells.map((cell, i) => {
+                  if (!cell) return <div key={i} />;
+                  const ci = iso(cell);
+                  const dots = monthDots[ci];
+                  const isSel = ci === selDay;
+                  const isToday = ci === iso(new Date());
+                  return (
+                    <button key={i} onClick={() => setSelDay(ci)}
+                      style={{ aspectRatio:"1", border:"none", borderRadius:10, cursor:"pointer",
+                        background: isSel ? C.sky : "transparent",
+                        display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:2,
+                        position:"relative", fontFamily:"Poppins,sans-serif" }}>
+                      <span style={{ fontSize:13, fontWeight: isToday||isSel ? 900 : 600,
+                        color: isSel ? C.white : isToday ? C.sky : C.ink }}>{cell.getDate()}</span>
+                      <span style={{ display:"flex", gap:2, height:5 }}>
+                        {dots?.applied && <span style={{ width:5, height:5, borderRadius:999, background: isSel ? C.white : C.leaf }} />}
+                        {dots?.bookmark && <span style={{ width:5, height:5, borderRadius:999, background: isSel ? "rgba(255,255,255,0.7)" : C.sun, border: isSel ? "none" : `1px solid ${C.sun}` }} />}
+                        {dots?.own && <span style={{ width:5, height:5, borderRadius:999, background: isSel ? "rgba(255,255,255,0.7)" : C.fade }} />}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 凡例 */}
+            <div style={{ display:"flex", gap:14, flexWrap:"wrap", marginBottom:16, paddingLeft:2 }}>
+              {[
+                { c:C.leaf, label:t.legendApplied, solid:true },
+                { c:C.sun, label:t.legendBookmark, solid:false },
+                { c:C.fade, label:t.legendOwn, solid:true },
+              ].map((lg, i) => (
+                <div key={i} style={{ display:"flex", alignItems:"center", gap:5 }}>
+                  <span style={{ width:8, height:8, borderRadius:999, background: lg.solid ? lg.c : "transparent", border:`1.5px solid ${lg.c}` }} />
+                  <span style={{ fontSize:10.5, color:C.fade, fontWeight:700, fontFamily:"Poppins,sans-serif" }}>{lg.label}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* 選択した日の予定 */}
+            <div style={{ fontSize:11, fontWeight:800, color:C.sky, letterSpacing:"0.08em", marginBottom:10, paddingLeft:2 }}>
+              {parseIso(selDay).getDate()} {t.months[parseIso(selDay).getMonth()]}
+            </div>
+
+            {eventsOn(selDay).length === 0 && (
+              <p style={{ fontSize:12.5, color:C.fade, padding:"0 2px 4px", fontFamily:"Poppins,sans-serif" }}>{t.dayEmpty}</p>
+            )}
+
+            {eventsOn(selDay).map((ev, i) => {
+              if (ev.kind === "own") {
+                return (
+                  <div key={i} style={{ background:C.white, borderRadius:14, border:`1.5px solid ${C.line}`,
+                    padding:"12px 15px", marginBottom:10, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                    <div>
+                      <div style={{ fontSize:9, fontWeight:800, color:C.fade, letterSpacing:"0.08em" }}>● {t.legendOwn}</div>
+                      <div style={{ fontSize:14, fontWeight:700, color:C.ink, marginTop:3, fontFamily:"Poppins,sans-serif" }}>{ev.plan.text}</div>
+                    </div>
+                    <button onClick={() => removeOwnPlan(ev.plan.id)}
+                      style={{ fontSize:11, fontWeight:700, color:"#E06B6B", background:"none", border:"none", cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                      {t.removeOwn}
+                    </button>
+                  </div>
+                );
+              }
+              const isApplied = ev.kind === "applied";
+              return (
+                <div key={i} style={{ borderRadius:14, marginBottom:10,
+                  border: isApplied ? `2px solid ${C.leaf}` : `1.5px dashed ${C.sun}`,
+                  background: isApplied ? C.leafLight : C.white, padding:"12px 15px" }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
+                    <span style={{ fontSize:9, fontWeight:900, letterSpacing:"0.06em",
+                      color: isApplied ? C.leafDark : C.sunText,
+                      background: isApplied ? "rgba(0,168,79,0.15)" : "rgba(255,213,53,0.25)",
+                      padding:"2px 8px", borderRadius:999 }}>
+                      {isApplied ? "✓ " + t.confirmed : t.tentative}
+                    </span>
+                    <span style={{ fontSize:10, color:C.fade, fontWeight:700 }}>⏱ {ev.item.dur}{t.hours}</span>
+                  </div>
+                  <div style={{ fontSize:14, fontWeight:800, color: isApplied ? C.leafDark : C.ink, lineHeight:1.35, fontFamily:"Poppins,sans-serif" }}>
+                    {ev.item.name}
+                  </div>
+                  <div style={{ fontSize:11, color:C.fade, marginTop:3, fontFamily:"Poppins,sans-serif" }}>📍 {t.areas[ev.item.area]}</div>
+
+                  {/* 詳細を見る → パブリックのボランティアページへ */}
+                  <button onClick={() => { setTab("public"); setOpenId(ev.item.id); }}
+                    style={{ fontSize:12, fontWeight:800, color:C.sky, background:"none", border:"none",
+                      cursor:"pointer", padding:0, marginTop:8, fontFamily:"Poppins,sans-serif" }}>
+                    {t.viewDetail}
+                  </button>
+
+                  {/* 申請済みならメモ欄(出願用) */}
+                  {isApplied && (
+                    <div style={{ marginTop:10, paddingTop:10, borderTop:`1px solid rgba(0,168,79,0.2)` }}>
+                      <div style={{ fontSize:10, fontWeight:800, color:C.leafDark, marginBottom:5 }}>📝 {t.noteLabel}</div>
+                      <textarea value={notes[ev.item.id] || ""} onChange={e => setNotes({ ...notes, [ev.item.id]: e.target.value })}
+                        placeholder={t.notePlaceholder} rows={2}
+                        style={{ width:"100%", padding:"8px 10px", borderRadius:10, border:`1.5px solid ${C.line}`,
+                          fontSize:12, color:C.ink, background:C.white, fontFamily:"Poppins,sans-serif",
+                          outline:"none", resize:"vertical" }} />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* 自分の予定を追加 */}
+            <button onClick={() => { setOwnDate(selDay); setShowAddOwn(true); }}
+              style={{ width:"100%", padding:"13px", borderRadius:14, marginTop:6, marginBottom:8,
+                border:`2px dashed ${C.line}`, background:C.white, color:C.fade,
+                fontWeight:800, fontSize:13, cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+              {t.addOwn}
             </button>
           </div>
         )}
 
-        {/* PLAN (mode: plan) */}
-        {screen === "plan" && mode === "plan" && (
-          <div style={{ padding: "20px 20px 0" }}>
-            <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 4 }}>{t.planTitle}</div>
-            <div style={{ fontWeight: 900, fontSize: 20, color: C.ink, letterSpacing: "-0.02em", marginBottom: date ? 4 : 14 }}>
-              {t.planSub(startTime, endTime, t.areas[area])}
-            </div>
-            {date && <p style={{ fontSize: 12, color: C.fade, marginBottom: 10, fontWeight: 600 }}>{formatDate(date, lang)}</p>}
+        {/* ===== 友達ページ ===== */}
+        {tab === "friends" && !openRoom && (
+          <div style={{ padding:"16px 16px 0" }}>
+            <h2 style={{ fontWeight:900, fontSize:22, color:C.ink, letterSpacing:"-0.02em", marginBottom:6 }}>
+              👥 {t.roomsTitle}
+            </h2>
+            <p style={{ fontSize:12, color:C.fade, lineHeight:1.6, marginBottom:18, fontFamily:"Poppins,sans-serif" }}>{t.roomsHint}</p>
 
-            {plan.length > 0 && (
-              <div style={{ marginBottom: 14 }}>
-                <button onClick={() => setShowBudget(!showBudget)}
-                  style={{ width: "100%", textAlign: "left", padding: "10px 14px", borderRadius: 14,
-                    background: showBudget ? C.white : C.skyPale, border: `1.5px solid ${C.line}`,
-                    fontSize: 12, fontWeight: 800, color: C.sky, cursor: "pointer",
-                    fontFamily: "Poppins,sans-serif", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span>{showBudget ? t.budgetToggleHide : t.budgetToggleShow}</span>
-                  <span style={{ fontSize: 10, color: C.fade }}>{showBudget ? "" : "▾"}</span>
+            {GROUPS.map(g => {
+              const members = roomMembers(g.id);
+              return (
+                <button key={g.id} onClick={() => { setOpenRoom(g.id); setRoomSelDay(iso(new Date())); }}
+                  style={{ width:"100%", textAlign:"left", background:C.white, borderRadius:18,
+                    border:`1.5px solid ${C.line}`, padding:"16px 18px", marginBottom:12, cursor:"pointer",
+                    display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                  <div>
+                    <div style={{ fontWeight:800, fontSize:15, color:C.ink, fontFamily:"Poppins,sans-serif" }}>
+                      👥 {lang === "ja" ? g.ja : g.en}
+                    </div>
+                    <div style={{ fontSize:11, color:C.fade, marginTop:4, fontWeight:600 }}>{t.membersN(members.length + 1)}</div>
+                  </div>
+                  {/* メンバーアイコンの重なり表示 */}
+                  <div style={{ display:"flex" }}>
+                    <span style={{ fontSize:22, marginLeft:0, filter:"drop-shadow(0 0 1px white)" }}>⭐</span>
+                    {members.slice(0, 3).map((f, i) => (
+                      <span key={f.id} style={{ fontSize:22, marginLeft:-6 }}>{f.emoji}</span>
+                    ))}
+                    {members.length > 3 && <span style={{ fontSize:11, color:C.fade, fontWeight:800, alignSelf:"center", marginLeft:4 }}>+{members.length - 3}</span>}
+                  </div>
                 </button>
-                {showBudget && <div style={{ marginTop: 8 }}><BudgetSummary plan={plan} t={t} /></div>}
-              </div>
-            )}
+              );
+            })}
 
-            {/* pace note */}
-            {pace === "easygoing" && (
-              <div style={{ marginBottom: 10, padding: "7px 12px", borderRadius: 10, background: C.leafLight, border: `1px solid #9ADBB6`, fontSize: 11, color: C.leafDark, fontWeight: 600, fontFamily: "Poppins,sans-serif" }}>
-                🌴 {t.easyNote}
-              </div>
-            )}
-            {purpose === "career" && (
-              <div style={{ marginBottom: 10, padding: "9px 12px", borderRadius: 10, background: C.skyLight, border: `1px solid ${C.sky}`, fontSize: 11, color: C.skyDark, fontWeight: 600, lineHeight: 1.5, fontFamily: "Poppins,sans-serif" }}>
-                {t.careerNote}
-              </div>
-            )}
-            {!hasVol && (
-              <div style={{ background: C.warn, border: `1.5px solid ${C.warnB}`, borderRadius: 14, padding: "10px 14px", marginBottom: 12, fontSize: 12, color: C.warnT, lineHeight: 1.5, fontFamily: "Poppins,sans-serif" }}>
-                ⚠️ {t.noVol}
-              </div>
-            )}
-            {onlyVolunteer && (
-              <div style={{ background: C.skyLight, border: `1.5px solid ${C.sky}`, borderRadius: 14, padding: "10px 14px", marginBottom: 12, fontSize: 12, color: C.skyDark, lineHeight: 1.5, fontWeight: 600, fontFamily: "Poppins,sans-serif" }}>
-                ⏳ {t.onlyVolNote}
-              </div>
-            )}
-            {noFoodButHasMore && planStyle !== "food" && (
-              <div style={{ background: C.skyLight, border: `1.5px solid ${C.sky}`, borderRadius: 14, padding: "10px 14px", marginBottom: 12, fontSize: 12, color: C.skyDark, lineHeight: 1.5, fontWeight: 600, fontFamily: "Poppins,sans-serif" }}>
-                ⏳ {t.onlyVolNoteFood}
-              </div>
-            )}
+            <div style={{ background:C.skyPale, borderRadius:12, border:`1px dashed ${C.sky}`,
+              padding:"11px 14px", marginTop:6, fontSize:11, color:C.fade, lineHeight:1.5, fontFamily:"Poppins,sans-serif" }}>
+              💡 {t.demoNote}
+            </div>
+          </div>
+        )}
 
-            {plan.map((slot, i) => slot.travelCard
-              ? <TravelCard key={i} slot={slot} lang={lang} />
-              : <PlanCard key={i} slot={slot} t={t} lang={lang} openId={openId} setOpenId={setOpenId} />
-            )}
-
-            {/* end marker */}
-            {plan.length > 0 && (
-              <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
-                <div style={{ width: 44, fontSize: 11, fontWeight: 800, color: C.sky, fontFamily: "Poppins,sans-serif", paddingTop: 2, textAlign: "center" }}>{endTime}</div>
-                <div style={{ flex: 1, padding: "8px 14px", borderRadius: 12, background: C.skyLight, border: `1px solid ${C.line}`, fontSize: 12, fontWeight: 700, color: C.skyDark, fontFamily: "Poppins,sans-serif" }}>{t.endLabel}</div>
-              </div>
-            )}
-
-            {plan.length > 0 && (
-              <p style={{ fontSize: 10, color: C.fade, lineHeight: 1.5, marginTop: 10, marginBottom: 2, fontFamily: "Poppins,sans-serif" }}>
-                🗺️ {t.travelNote}
-              </p>
-            )}
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14 }}>
-              <button onClick={() => { setOffset(offset + 1); setOpenId(null); }}
-                style={{ padding: "14px", borderRadius: 16, fontWeight: 800, fontSize: 12, border: `2px solid ${C.sky}`, color: C.sky, background: C.white, cursor: "pointer", fontFamily: "Poppins,sans-serif" }}>
-                {t.shuffle}
+        {/* ===== 部屋のカレンダー ===== */}
+        {tab === "friends" && openRoom && (() => {
+          const g = GROUPS.find(x => x.id === openRoom);
+          const members = roomMembers(openRoom);
+          const dots = roomDots(openRoom);
+          return (
+            <div style={{ padding:"16px 16px 0" }}>
+              <button onClick={() => setOpenRoom(null)}
+                style={{ fontSize:12.5, fontWeight:700, color:C.fade, background:"none", border:"none",
+                  cursor:"pointer", padding:0, marginBottom:14, fontFamily:"Poppins,sans-serif" }}>
+                {t.roomBack}
               </button>
-              <button onClick={() => setScreen("form")}
-                style={{ padding: "14px", borderRadius: 16, fontWeight: 800, fontSize: 12, background: `linear-gradient(110deg,${C.sky},#00D8EE)`, color: C.white, border: "none", cursor: "pointer", fontFamily: "Poppins,sans-serif" }}>
-                {t.back}
+
+              <h2 style={{ fontWeight:900, fontSize:20, color:C.ink, marginBottom:4 }}>
+                👥 {lang === "ja" ? g.ja : g.en}
+              </h2>
+              {/* メンバー一覧 */}
+              <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:16 }}>
+                <span style={{ display:"inline-flex", alignItems:"center", gap:4, background:C.sun,
+                  padding:"4px 10px", borderRadius:999, fontSize:11, fontWeight:800, color:C.sunText }}>⭐ {t.you}</span>
+                {members.map(f => (
+                  <span key={f.id} style={{ display:"inline-flex", alignItems:"center", gap:4, background:C.white,
+                    border:`1.5px solid ${C.line}`, padding:"4px 10px", borderRadius:999, fontSize:11, fontWeight:700, color:C.ink }}>
+                    {f.emoji} {f.name}
+                  </span>
+                ))}
+              </div>
+
+              {/* 月ナビ */}
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+                <button onClick={() => setRoomMonth(new Date(roomMonth.getFullYear(), roomMonth.getMonth()-1, 1))}
+                  style={{ width:36, height:36, borderRadius:12, border:`1.5px solid ${C.line}`, background:C.white, cursor:"pointer", fontSize:16, color:C.sky, fontWeight:900 }}>‹</button>
+                <div style={{ fontWeight:900, fontSize:16, color:C.ink }}>{t.months[roomMonth.getMonth()]} {roomMonth.getFullYear()}</div>
+                <button onClick={() => setRoomMonth(new Date(roomMonth.getFullYear(), roomMonth.getMonth()+1, 1))}
+                  style={{ width:36, height:36, borderRadius:12, border:`1.5px solid ${C.line}`, background:C.white, cursor:"pointer", fontSize:16, color:C.sky, fontWeight:900 }}>›</button>
+              </div>
+
+              {/* カレンダー */}
+              <div style={{ background:C.white, borderRadius:18, border:`1.5px solid ${C.line}`, padding:"12px 10px", marginBottom:14 }}>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", marginBottom:4 }}>
+                  {t.weekdays.map((w, i) => (
+                    <div key={i} style={{ textAlign:"center", fontSize:10, fontWeight:800,
+                      color: i===0 ? "#E06B6B" : i===6 ? C.sky : C.fade, padding:"4px 0" }}>{w}</div>
+                  ))}
+                </div>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:2 }}>
+                  {roomCalCells.map((cell, i) => {
+                    if (!cell) return <div key={i} />;
+                    const ci = iso(cell);
+                    const dd = dots[ci];
+                    const isSel = ci === roomSelDay;
+                    const isToday = ci === iso(new Date());
+                    return (
+                      <button key={i} onClick={() => setRoomSelDay(ci)}
+                        style={{ aspectRatio:"1", border:"none", borderRadius:10, cursor:"pointer",
+                          background: isSel ? C.sky : "transparent",
+                          display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:2, fontFamily:"Poppins,sans-serif" }}>
+                        <span style={{ fontSize:13, fontWeight: isToday||isSel ? 900 : 600,
+                          color: isSel ? C.white : isToday ? C.sky : C.ink }}>{cell.getDate()}</span>
+                        <span style={{ display:"flex", gap:2, height:5 }}>
+                          {dd?.applied && <span style={{ width:5, height:5, borderRadius:999, background: isSel ? C.white : C.leaf }} />}
+                          {dd?.bookmark && <span style={{ width:5, height:5, borderRadius:999, background: isSel ? "rgba(255,255,255,0.7)" : C.sun, border: isSel ? "none" : `1px solid ${C.sun}` }} />}
+                          {dd?.friend && <span style={{ width:5, height:5, borderRadius:999, background: isSel ? "rgba(255,255,255,0.7)" : C.sky }} />}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 選択日の予定 */}
+              <div style={{ fontSize:11, fontWeight:800, color:C.sky, letterSpacing:"0.08em", marginBottom:10, paddingLeft:2 }}>
+                {parseIso(roomSelDay).getDate()} {t.months[parseIso(roomSelDay).getMonth()]}
+              </div>
+
+              {roomEventsOn(openRoom, roomSelDay).length === 0 && (
+                <p style={{ fontSize:12.5, color:C.fade, padding:"0 2px 4px", fontFamily:"Poppins,sans-serif" }}>{t.dayEmpty}</p>
+              )}
+
+              {roomEventsOn(openRoom, roomSelDay).map((ev, i) => {
+                const going = goingMembers(openRoom, ev.item.id);
+                const confirmed = ev.mine && ev.applied;
+                return (
+                  <div key={i} style={{ borderRadius:14, marginBottom:10,
+                    border: confirmed ? `2px solid ${C.leaf}` : `1.5px dashed ${C.sun}`,
+                    background: confirmed ? C.leafLight : C.white, padding:"13px 15px" }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:5 }}>
+                      <span style={{ fontSize:9, fontWeight:900, letterSpacing:"0.06em",
+                        color: confirmed ? C.leafDark : C.sunText,
+                        background: confirmed ? "rgba(0,168,79,0.15)" : "rgba(255,213,53,0.25)",
+                        padding:"2px 8px", borderRadius:999 }}>
+                        {confirmed ? "✓ " + t.confirmed : t.tentative}
+                      </span>
+                      <span style={{ fontSize:10, color:C.fade, fontWeight:700 }}>⏱ {ev.item.dur}{t.hours}</span>
+                    </div>
+                    <div style={{ fontSize:14, fontWeight:800, color: confirmed ? C.leafDark : C.ink, lineHeight:1.35, fontFamily:"Poppins,sans-serif" }}>
+                      {ev.item.name}
+                    </div>
+                    <div style={{ fontSize:11, color:C.fade, marginTop:3, fontFamily:"Poppins,sans-serif" }}>📍 {t.areas[ev.item.area]}</div>
+
+                    {/* 参加メンバー(自分＋友達のアイコン) */}
+                    {going.length > 0 && (
+                      <div style={{ marginTop:10, paddingTop:9, borderTop:`1px solid ${C.line}` }}>
+                        <div style={{ fontSize:9, fontWeight:800, color:C.fade, letterSpacing:"0.06em", marginBottom:6 }}>
+                          {t.whoGoing} · {t.goingN(going.length)}
+                        </div>
+                        <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                          {going.map(m => (
+                            <span key={m.id} style={{ display:"inline-flex", alignItems:"center", gap:4,
+                              background: m.mine ? C.sun : C.skyLight, padding:"3px 9px", borderRadius:999,
+                              fontSize:11, fontWeight:700, color: m.mine ? C.sunText : C.skyDark }}>
+                              {m.emoji} {m.name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <button onClick={() => { setTab("public"); setOpenId(ev.item.id); }}
+                      style={{ fontSize:12, fontWeight:800, color:C.sky, background:"none", border:"none",
+                        cursor:"pointer", padding:0, marginTop:10, fontFamily:"Poppins,sans-serif" }}>
+                      {t.viewDetail}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
+
+        <p style={{ textAlign:"center", fontSize:10, color:C.line, marginTop:24, marginBottom:8,
+          padding:"0 20px", lineHeight:1.6, fontWeight:600 }}>{t.foot}</p>
+
+        {/* ===== トースト ===== */}
+        {toast && (
+          <div style={{ position:"fixed", bottom:96, left:"50%", transform:"translateX(-50%)",
+            background:C.ink, color:C.white, padding:"11px 20px", borderRadius:999, fontSize:12.5,
+            fontWeight:700, zIndex:40, fontFamily:"Poppins,sans-serif", whiteSpace:"nowrap",
+            boxShadow:"0 6px 20px rgba(0,0,0,0.25)" }}>
+            {toast}
+          </div>
+        )}
+
+        {/* ===== 自分の予定を追加するモーダル ===== */}
+        {showAddOwn && (
+          <div onClick={() => setShowAddOwn(false)}
+            style={{ position:"fixed", inset:0, background:"rgba(14,40,48,0.45)", zIndex:50,
+              display:"flex", alignItems:"center", justifyContent:"center", padding:"20px" }}>
+            <div onClick={e => e.stopPropagation()}
+              style={{ width:"100%", maxWidth:360, background:C.white, borderRadius:22,
+                padding:"22px 20px", fontFamily:"Poppins,sans-serif" }}>
+              <h3 style={{ fontWeight:900, fontSize:18, color:C.ink, marginBottom:16 }}>{t.addOwnTitle}</h3>
+              <div style={{ fontSize:10, fontWeight:800, color:C.sky, letterSpacing:"0.1em", marginBottom:6 }}>{t.addOwnDate}</div>
+              <input type="date" value={ownDate} onChange={e => setOwnDate(e.target.value)}
+                style={{ width:"100%", minHeight:44, padding:"8px 12px", borderRadius:12, border:`1.5px solid ${C.line}`,
+                  fontSize:14, color:C.ink, background:C.white, fontFamily:"Poppins,sans-serif", outline:"none", marginBottom:14 }} />
+              <input value={ownText} onChange={e => setOwnText(e.target.value)} placeholder={t.addOwnPlaceholder}
+                style={{ width:"100%", minHeight:44, padding:"10px 12px", borderRadius:12, border:`1.5px solid ${C.line}`,
+                  fontSize:14, color:C.ink, background:C.white, fontFamily:"Poppins,sans-serif", outline:"none", marginBottom:16 }} />
+              <button onClick={addOwnPlan}
+                style={{ width:"100%", padding:"14px", borderRadius:14, marginBottom:9,
+                  background:`linear-gradient(110deg,${C.sky},#00D8EE)`, color:C.white,
+                  fontWeight:900, fontSize:14, border:"none", cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                {t.addOwnSave}
+              </button>
+              <button onClick={() => setShowAddOwn(false)}
+                style={{ width:"100%", padding:"11px", borderRadius:14, background:"none",
+                  color:C.fade, fontWeight:800, fontSize:13, border:`1.5px solid ${C.line}`,
+                  cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                {t.addOwnCancel}
               </button>
             </div>
           </div>
         )}
 
-        {/* PLAN (mode: volunteer) — ボランティア候補リスト */}
-        {screen === "plan" && mode === "volunteer" && (
-          <div style={{ padding: "20px 20px 0" }}>
-            <div style={{ fontSize: 10, fontWeight: 800, color: C.sky, letterSpacing: "0.12em", marginBottom: 4 }}>{t.volResultsTitle}</div>
-            <div style={{ fontWeight: 900, fontSize: 20, color: C.ink, letterSpacing: "-0.02em", marginBottom: date ? 4 : 14 }}>
-              {t.planSub(startTime, endTime, t.areas[area])}
-            </div>
-            {date && <p style={{ fontSize: 12, color: C.fade, marginBottom: 10, fontWeight: 600 }}>{formatDate(date, lang)}</p>}
+        {/* ===== ブックマーク選択シート ===== */}
+        {bmSheetFor && (
+          <div onClick={() => setBmSheetFor(null)}
+            style={{ position:"fixed", inset:0, background:"rgba(14,40,48,0.45)", zIndex:50,
+              display:"flex", alignItems:"flex-end", justifyContent:"center" }}>
+            <div onClick={e => e.stopPropagation()}
+              style={{ width:"100%", maxWidth:440, background:C.white, borderRadius:"24px 24px 0 0",
+                padding:"22px 20px 28px", fontFamily:"Poppins,sans-serif" }}>
+              <div style={{ width:40, height:4, borderRadius:999, background:C.line, margin:"0 auto 18px" }} />
+              <h3 style={{ fontWeight:900, fontSize:19, color:C.ink, marginBottom:6 }}>{t.bmSheetT}</h3>
+              <p style={{ fontSize:12, color:C.fade, lineHeight:1.6, marginBottom:16 }}>{t.bmSheetD}</p>
 
-            {purpose === "career" && (
-              <div style={{ marginBottom: 10, padding: "9px 12px", borderRadius: 10, background: C.skyLight, border: `1px solid ${C.sky}`, fontSize: 11, color: C.skyDark, fontWeight: 600, lineHeight: 1.5, fontFamily: "Poppins,sans-serif" }}>
-                {t.careerNote}
-              </div>
-            )}
-            {pace === "easygoing" && (
-              <div style={{ marginBottom: 10, padding: "7px 12px", borderRadius: 10, background: C.leafLight, border: "1px solid #9ADBB6", fontSize: 11, color: C.leafDark, fontWeight: 600, fontFamily: "Poppins,sans-serif" }}>
-                🌴 {t.easyNote}
-              </div>
-            )}
-
-            {volList.length === 0 && (
-              <div style={{ background: C.warn, border: `1.5px solid ${C.warnB}`, borderRadius: 14, padding: "10px 14px", marginBottom: 12, fontSize: 12, color: C.warnT, lineHeight: 1.5, fontFamily: "Poppins,sans-serif" }}>
-                ⚠️ {t.volNone}
-              </div>
-            )}
-
-            {volList.map(item => (
-              <VolunteerOptionCard key={item.id} item={item} t={t} lang={lang} openId={openId} setOpenId={setOpenId} fromArea={area} transport={transport} />
-            ))}
-
-            {volList.length > 0 && (
-              <p style={{ fontSize: 10, color: C.fade, lineHeight: 1.5, marginTop: 4, marginBottom: 2, fontFamily: "Poppins,sans-serif" }}>
-                🗺️ {t.travelNote}
-              </p>
-            )}
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14 }}>
-              <button onClick={() => { setOffset(offset + 1); setOpenId(null); }}
-                style={{ padding: "14px", borderRadius: 16, fontWeight: 800, fontSize: 12, border: `2px solid ${C.sky}`, color: C.sky, background: C.white, cursor: "pointer", fontFamily: "Poppins,sans-serif" }}>
-                {t.shuffle}
+              {/* 自分のみ */}
+              <button onClick={toggleBmMe}
+                style={{ width:"100%", textAlign:"left", padding:"14px 16px", borderRadius:14, marginBottom:10,
+                  border:`2px solid ${bmDraft.includes("me") ? C.leaf : C.line}`,
+                  background: bmDraft.includes("me") ? C.leafLight : C.white,
+                  cursor:"pointer", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                <span style={{ fontWeight:800, fontSize:14, color:C.ink }}>👤 {t.bmMe}</span>
+                {bmDraft.includes("me") && <span style={{ color:C.leaf, fontWeight:900 }}>✓</span>}
               </button>
-              <button onClick={() => setScreen("form")}
-                style={{ padding: "14px", borderRadius: 16, fontWeight: 800, fontSize: 12, background: `linear-gradient(110deg,${C.sky},#00D8EE)`, color: C.white, border: "none", cursor: "pointer", fontFamily: "Poppins,sans-serif" }}>
-                {t.back}
+
+              {/* グループ(自分のみ選択中は薄く無効化) */}
+              <div style={{ opacity: bmDraft.includes("me") ? 0.4 : 1, pointerEvents: bmDraft.includes("me") ? "none" : "auto" }}>
+                {GROUPS.map(g => {
+                  const on = bmDraft.includes(g.id);
+                  return (
+                    <button key={g.id} onClick={() => toggleBmGroup(g.id)}
+                      style={{ width:"100%", textAlign:"left", padding:"14px 16px", borderRadius:14, marginBottom:10,
+                        border:`2px solid ${on ? C.sky : C.line}`,
+                        background: on ? C.skyLight : C.white,
+                        cursor:"pointer", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                      <span style={{ fontWeight:800, fontSize:14, color:C.ink }}>👥 {lang === "ja" ? g.ja : g.en}</span>
+                      {on && <span style={{ color:C.sky, fontWeight:900 }}>✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button onClick={saveBm}
+                style={{ width:"100%", padding:"15px", borderRadius:16, marginTop:8,
+                  background:`linear-gradient(110deg,${C.sky},#00D8EE)`, color:C.white,
+                  fontWeight:900, fontSize:15, border:"none", cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                {bmDraft.length === 0 ? t.bmRemove : t.bmSave}
               </button>
             </div>
           </div>
         )}
 
-        <p style={{ textAlign: "center", fontSize: 10, color: C.line, marginTop: 28, padding: "0 20px", lineHeight: 1.6, fontWeight: 600 }}>{t.foot}</p>
+        {/* ===== 申請確認ウィンドウ ===== */}
+        {applyConfirmFor && (
+          <div style={{ position:"fixed", inset:0, background:"rgba(14,40,48,0.45)", zIndex:50,
+            display:"flex", alignItems:"center", justifyContent:"center", padding:"20px" }}>
+            <div style={{ width:"100%", maxWidth:360, background:C.white, borderRadius:22,
+              padding:"24px 22px", fontFamily:"Poppins,sans-serif", textAlign:"center" }}>
+              <div style={{ fontSize:40, marginBottom:12 }}>📝</div>
+              <h3 style={{ fontWeight:900, fontSize:19, color:C.ink, marginBottom:8 }}>{t.applyConfirmT}</h3>
+              <p style={{ fontSize:12.5, color:C.fade, lineHeight:1.6, marginBottom:20 }}>{t.applyConfirmD}</p>
+              <button onClick={() => {
+                  setApplied({ ...applied, [applyConfirmFor]:true });
+                  if (!itemDates[applyConfirmFor]) {
+                    const item = DATA.find(d => d.id === applyConfirmFor);
+                    setItemDates({ ...itemDates, [applyConfirmFor]: nextDateFor(item.recurring) });
+                  }
+                  setApplyConfirmFor(null); flash(t.applied);
+                }}
+                style={{ width:"100%", padding:"14px", borderRadius:14, marginBottom:10,
+                  background:C.leaf, color:C.white, fontWeight:900, fontSize:14, border:"none",
+                  cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                {t.applyDone}
+              </button>
+              <button onClick={() => setApplyConfirmFor(null)}
+                style={{ width:"100%", padding:"12px", borderRadius:14, background:"none",
+                  color:C.fade, fontWeight:800, fontSize:13, border:`1.5px solid ${C.line}`,
+                  cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                {t.applyCancel}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ===== 下部タブバー ===== */}
+        <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
+          width:"100%", maxWidth:440, background:C.white, borderTop:`1.5px solid ${C.line}`,
+          display:"flex", zIndex:30 }}>
+          {[
+            { id:"public", icon:"🔍", label:t.tabPublic },
+            { id:"personal", icon:"📅", label:t.tabPersonal },
+            { id:"friends", icon:"👥", label:t.tabFriends },
+          ].map(tb => (
+            <button key={tb.id} onClick={() => { setTab(tb.id); setOpenId(null); setOpenRoom(null); }}
+              style={{ flex:1, padding:"10px 0 12px", background:"none", border:"none", cursor:"pointer",
+                display:"flex", flexDirection:"column", alignItems:"center", gap:3, fontFamily:"Poppins,sans-serif" }}>
+              <span style={{ fontSize:20, filter: tab === tb.id ? "none" : "grayscale(1) opacity(0.5)" }}>{tb.icon}</span>
+              <span style={{ fontSize:10, fontWeight:800, color: tab === tb.id ? C.sky : C.fade }}>{tb.label}</span>
+            </button>
+          ))}
+        </div>
+
       </div>
     </div>
   );
