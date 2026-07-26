@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>A Little V — Volunteer app (prototype)</title>
+<title>volunpeer — Volunteer with your peers</title>
 <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.development.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.development.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.23.2/babel.min.js"></script>
@@ -14,7 +14,7 @@
 const { useState } = React;
 
 /* =========================================================
-   A Little V — アプリ版 v1(パブリックページのみ)
+   volunpeer — ボランティアを仲間と続けるアプリ
    今回のスコープ: ボランティア検索ページ + ボランティアページ + ブックマーク選択
    次回以降: アカウント作成 / 個人・友達カレンダー / 参加有無 / 記念投稿・メモ
    ブックマークの状態は保存して見せるところまで(カレンダー反映は次回)
@@ -127,6 +127,15 @@ const PEOPLE = [
   });
 })();
 
+/* 部屋の最初のトーク(デモ用) */
+const INITIAL_TALKS = {
+  g1:[
+    { who:"Yuki",  avatar:"🐢", text:"Saturday's cleanup — who's in?", mine:false },
+    { who:"Sara",  avatar:"🌺", text:"I'm in! Meeting at the parking lot?", mine:false },
+  ],
+  g2:[], g3:[],
+};
+
 /* ---- デモ用アカウント(プレゼンで「すでに何度か参加している人」を見せる用) ----
    サインアップ画面の『デモアカウントで見る』から読み込む */
 const DEMO_ACCOUNT = {
@@ -170,13 +179,13 @@ function nextDateFor(recurring) {
 
 const T = {
   en:{
-    appName:"a little",
+    appName:"volunpeer",
     obTitle:"Create your account", obSubtitle:"Just three quick things to get started.",
     obNick:"Nickname", obNickPlaceholder:"How friends will see you",
     obIcon:"Pick an icon", obIconNote:"You'll be able to use a photo later.",
     obEmail:"Email", obEmailPlaceholder:"you@example.com",
     obEmailNote:"Demo only — no email is actually sent.",
-    obCreate:"Create account →", obSkip:"Look around first",
+    obCreate:"Create account →",
     obNickError:"Please enter a nickname.",
     accountMenu:"Account", signOut:"Start over",
     tabPublic:"Explore", tabPersonal:"My page", tabFriends:"Friends",
@@ -280,6 +289,13 @@ const T = {
     addFriendBtn:"+ Friend",
     friendAdded:"is now your friend",
     legendFriend:"Friend", legendCo:"Met before", legendNew:"First time",
+    guideTitle:"Getting started",
+    guideOf:(n)=>`Step ${n} of 3`,
+    guide1:"Find an activity you like and tap it — then apply or save it with the bookmark.",
+    guide2:"Open My page to see it on your calendar.",
+    guide3:"Met someone at an activity? Add them by QR from My page → Friends.",
+    guideDone:"You're all set 🎉 Friends you add appear at the top of every participant list.",
+    guideSkip:"Skip guide",
     obDemo:"▶ Try the demo account (Emi)",
     obDemoNote:"See the app as someone who has already volunteered a few times.",
     whoSoon:"Applicant list appears once accounts are added — coming next.",
@@ -287,7 +303,7 @@ const T = {
     sectionOpen:"Open", sectionClose:"Close",
     dayOfWait:"⏰ A check-in appears here 2 hours before the activity starts.",
     demoTrigger:"▶ Show notification",
-    pushTitle:"a little V", pushBody:(n)=>`Starting soon: ${n}. Can't make it? Tap to let everyone know.`,
+    pushTitle:"volunpeer", pushBody:(n)=>`Starting soon: ${n}. Can't make it? Tap to let everyone know.`,
     goingQ:"Can't make it today? Let everyone know.",
     goingQSub:"Your arrival is detected automatically — you only need to tell us if you can't come.",
     imGoing:"Never mind, I'm going", notGoing:"I can't make it",
@@ -299,16 +315,16 @@ const T = {
     gpsDemoBtn:"▶ Demo: update by GPS",
     gpsMineArrived:"GPS: you've arrived",
     goingCount:(g,t)=>`${g} of ${t} going`,
-    foot:"A Little V · App prototype · Public page only · Sample data from Kanu Hawaii & partners",
+    foot:"volunpeer · App prototype · Public page only · Sample data from Kanu Hawaii & partners",
   },
   ja:{
-    appName:"a little",
+    appName:"volunpeer",
     obTitle:"アカウントを作成", obSubtitle:"3つだけ入力すればはじめられます。",
     obNick:"ニックネーム", obNickPlaceholder:"友達からこう見えます",
     obIcon:"アイコンを選ぶ", obIconNote:"写真はあとから使えるようになります。",
     obEmail:"メールアドレス", obEmailPlaceholder:"you@example.com",
     obEmailNote:"デモのため、実際にはメールは送信されません。",
-    obCreate:"アカウントを作成 →", obSkip:"先に中を見てみる",
+    obCreate:"アカウントを作成 →",
     obNickError:"ニックネームを入力してください。",
     accountMenu:"アカウント", signOut:"最初からやり直す",
     tabPublic:"さがす", tabPersonal:"マイページ", tabFriends:"ともだち",
@@ -412,6 +428,13 @@ const T = {
     addFriendBtn:"+ 友達",
     friendAdded:"を友達に登録しました",
     legendFriend:"友達", legendCo:"会ったことがある", legendNew:"はじめて",
+    guideTitle:"はじめかた",
+    guideOf:(n)=>`${n} / 3`,
+    guide1:"気になる活動をタップして、申請かブックマークをしてみましょう。",
+    guide2:"「マイページ」を開くと、カレンダーに予定が入っています。",
+    guide3:"活動で会った人がいたら、マイページ →「ともだち」からQRで交換できます。",
+    guideDone:"準備完了です 🎉 友達に登録した人は、参加者リストの一番上に出るようになります。",
+    guideSkip:"ガイドを閉じる",
     obDemo:"▶ デモアカウントで見る(Emi)",
     obDemoNote:"すでに何度かボランティアに参加している人の画面を見られます。",
     whoSoon:"申請者リストはアカウント機能の追加後に表示されます(次回)。",
@@ -419,7 +442,7 @@ const T = {
     sectionOpen:"開く", sectionClose:"閉じる",
     dayOfWait:"⏰ 開催の2時間前になると、ここに参加確認が表示されます。",
     demoTrigger:"▶ 通知を見る",
-    pushTitle:"a little V", pushBody:(n)=>`まもなく開催:${n}。行けない場合は知らせてください。`,
+    pushTitle:"volunpeer", pushBody:(n)=>`まもなく開催:${n}。行けない場合は知らせてください。`,
     goingQ:"行けなくなった場合は教えてください",
     goingQSub:"到着は位置情報で自動的に分かります。行けないときだけ知らせてください。",
     imGoing:"やっぱり行く", notGoing:"行けなくなった",
@@ -431,7 +454,7 @@ const T = {
     gpsDemoBtn:"▶ デモ:GPSで更新する",
     gpsMineArrived:"GPS:到着しました",
     goingCount:(g,t)=>`${t}人中 ${g}人が参加`,
-    foot:"A Little V · アプリ試作 · パブリックページのみ · サンプルデータは Kanu Hawaii と各団体より",
+    foot:"volunpeer · アプリ試作 · パブリックページのみ · サンプルデータは Kanu Hawaii と各団体より",
   },
 };
 
@@ -527,17 +550,13 @@ function App() {
   const [openSection, setOpenSection] = useState({});   // 詳細ページの折りたたみ { "dayof-v3": true }
   const [postDraft, setPostDraft] = useState({});       // 記念投稿の下書き(投稿ボタンで確定)
   const [editingPost, setEditingPost] = useState({});   // 投稿済みを編集中か
+  const [guideOn, setGuideOn] = useState(false);        // 新規アカウントの使い方ガイド
+  const [visitedPersonal, setVisitedPersonal] = useState(false);
   const [readCount, setReadCount] = useState({});       // 部屋ごとに既読済みメッセージ数
   const [newRoomName, setNewRoomName] = useState("");
   const [newRoomMembers, setNewRoomMembers] = useState([]);
   // グループトーク: { [groupId]: [{who, avatar, text, mine}] }
-  const [talks, setTalks] = useState({
-    g1:[
-      { who:"Yuki",  avatar:"🐢", text:"Saturday's cleanup — who's in?", mine:false },
-      { who:"Sara",  avatar:"🌺", text:"I'm in! Meeting at the parking lot?", mine:false },
-    ],
-    g2:[], g3:[],
-  });
+  const [talks, setTalks] = useState(INITIAL_TALKS);
   const [talkDraft, setTalkDraft] = useState("");
   // 当日の参加有無: デモで「2時間前」になった活動id / 自分の回答 / プッシュ通知バナー
   const [dayOfActive, setDayOfActive] = useState({});   // { itemId: true } = 2時間前モード
@@ -594,14 +613,30 @@ function App() {
   const t = T[lang];
 
   /* アカウント作成 */
+  /* 新しく作ったアカウントは白紙から始める(友達も履歴もない状態) */
+  const startBlank = () => {
+    setPeople(PEOPLE.map(p => ({ ...p, friend:false })));  // 友達はまだ誰もいない
+    setMyHistory([]);                                       // 参加履歴なし
+    setApplied({}); setBookmarks({}); setNotes({}); setPosts({});
+    setPostDraft({}); setEditingPost({});
+    setMyAttend({}); setMyGps({}); setOwnPlans([]);
+    setRooms([]); setTalks({}); setReadCount({});
+    setVisitedPersonal(false);
+    setGuideOn(true);
+  };
+
   const createAccount = () => {
     if (!obNick.trim()) { setObError(true); return; }
     setAccount({ nick: obNick.trim(), avatar: obAvatar, email: obEmail.trim() });
+    startBlank();
     setScreen("app");
   };
   /* デモ用アカウントで開始(プレゼン用: すでに何度か参加している状態) */
   const loadDemoAccount = () => {
     setAccount({ nick:DEMO_ACCOUNT.nick, avatar:DEMO_ACCOUNT.avatar, email:DEMO_ACCOUNT.email });
+    // デモ用の状態に戻す(友達・部屋・トークあり、ガイドは出さない)
+    setPeople(PEOPLE); setRooms(INITIAL_ROOMS); setTalks(INITIAL_TALKS);
+    setReadCount({}); setGuideOn(false); setVisitedPersonal(true);
     setMyHistory(DEMO_ACCOUNT.history);
     const ap = {}; const dates = {};
     // これから参加する分
@@ -632,14 +667,10 @@ function App() {
     setScreen("app");
   };
 
-  const skipOnboarding = () => {
-    setAccount({ nick: lang === "ja" ? "あなた" : "You", avatar: "⭐", email: "" });
-    setScreen("app");
-  };
   const signOut = () => {
     setAccount(null); setScreen("onboarding");
     setObNick(""); setObAvatar(AVATARS[0]); setObEmail(""); setObError(false);
-    setTab("public"); setOpenId(null); setOpenRoom(null);
+    setTab("public"); setOpenId(null); setOpenRoom(null); setGuideOn(false);
   };
   /* 「あなた」の表示名とアイコン(未作成時のフォールバックつき) */
   const meName = account ? account.nick : (lang === "ja" ? "あなた" : "You");
@@ -665,6 +696,16 @@ function App() {
     }
     return true;
   });
+
+  /* 使い方ガイドの現在地(操作に合わせて自動で進む) */
+  const guideStep = (() => {
+    if (!guideOn) return 0;
+    const savedAny = Object.keys(bookmarks).length > 0 || Object.values(applied).some(Boolean);
+    if (!savedAny) return 1;
+    if (!visitedPersonal) return 2;
+    if (!people.some(p => p.friend)) return 3;
+    return 4;   // 完了
+  })();
 
   /* その活動に申請している友達 */
   const friendsIn = (itemId) => people.filter(pp => pp.friend && pp.signedUp.includes(itemId));
@@ -994,8 +1035,8 @@ function App() {
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
             padding:"13px 20px", background:`linear-gradient(100deg,${C.sky},${C.skyDark})` }}>
             <div style={{ fontWeight:900, fontSize:16, color:C.white }}>
-              <span style={{ fontWeight:300, letterSpacing:"0.06em", opacity:0.88 }}>a&nbsp;little&nbsp;</span>
-              <span style={{ fontWeight:900, fontSize:20, color:C.sun }}>V</span>
+              <span style={{ fontWeight:300, letterSpacing:"0.02em", opacity:0.9 }}>volun</span>
+              <span style={{ fontWeight:900, color:C.sun }}>peer</span>
             </div>
             <button onClick={() => setLang(lang === "en" ? "ja" : "en")}
               style={{ fontSize:11, fontWeight:800, padding:"5px 12px", borderRadius:999,
@@ -1078,12 +1119,7 @@ function App() {
               </p>
             </div>
 
-            <button onClick={skipOnboarding}
-              style={{ width:"100%", padding:"13px", borderRadius:14, marginTop:10, background:"none",
-                color:C.fade, fontWeight:800, fontSize:13, border:"none", cursor:"pointer",
-                textDecoration:"underline", fontFamily:"Poppins,sans-serif" }}>
-              {t.obSkip}
-            </button>
+
           </div>
         </div>
       </div>
@@ -1104,8 +1140,8 @@ function App() {
           padding:"13px 20px", background:`linear-gradient(100deg,${C.sky},${C.skyDark})`,
           position:"sticky", top:0, zIndex:20 }}>
           <div style={{ fontWeight:900, fontSize:16, color:C.white }}>
-            <span style={{ fontWeight:300, letterSpacing:"0.06em", opacity:0.88 }}>a&nbsp;little&nbsp;</span>
-            <span style={{ fontWeight:900, fontSize:20, color:C.sun }}>V</span>
+            <span style={{ fontWeight:300, letterSpacing:"0.02em", opacity:0.9 }}>volun</span>
+            <span style={{ fontWeight:900, color:C.sun }}>peer</span>
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
             <button onClick={() => setLang(lang === "en" ? "ja" : "en")}
@@ -1134,7 +1170,7 @@ function App() {
               boxShadow:"0 8px 28px rgba(11,190,235,0.28)", padding:"12px 14px", fontFamily:"Poppins,sans-serif" }}>
               <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
                 <span style={{ width:26, height:26, borderRadius:7, background:`linear-gradient(140deg,${C.sky},${C.leaf})`,
-                  display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, color:C.white, fontWeight:900 }}>V</span>
+                  display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, color:C.white, fontWeight:900 }}>vp</span>
                 <span style={{ fontSize:11, fontWeight:800, color:C.ink }}>{t.pushTitle}</span>
                 <button onClick={() => setPushFor(null)}
                   style={{ marginLeft:"auto", fontSize:14, color:C.fade, background:"none", border:"none", cursor:"pointer", lineHeight:1 }}>✕</button>
@@ -2525,6 +2561,46 @@ function App() {
           </div>
         )}
 
+        {/* ===== 使い方ガイド(新規アカウントのみ・操作に合わせて進む) ===== */}
+        {guideStep > 0 && (
+          <div style={{ position:"fixed", bottom:74, left:"50%", transform:"translateX(-50%)",
+            width:"100%", maxWidth:440, padding:"0 12px", zIndex:35, boxSizing:"border-box" }}>
+            <div style={{ background:C.ink, color:C.white, borderRadius:16, padding:"13px 15px",
+              boxShadow:"0 8px 28px rgba(14,40,48,0.35)", fontFamily:"Poppins,sans-serif" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
+                <span style={{ fontSize:10, fontWeight:800, letterSpacing:"0.1em", color:C.sun }}>
+                  💡 {t.guideTitle}{guideStep < 4 ? ` · ${t.guideOf(guideStep)}` : ""}
+                </span>
+                <button onClick={() => setGuideOn(false)}
+                  style={{ fontSize:10.5, fontWeight:700, color:"rgba(255,255,255,0.6)", background:"none",
+                    border:"none", cursor:"pointer", padding:0, fontFamily:"Poppins,sans-serif" }}>
+                  {t.guideSkip} ✕
+                </button>
+              </div>
+              <p style={{ fontSize:12.5, lineHeight:1.55 }}>
+                {guideStep === 1 ? t.guide1 : guideStep === 2 ? t.guide2 : guideStep === 3 ? t.guide3 : t.guideDone}
+              </p>
+              {/* 進み具合 */}
+              {guideStep < 4 && (
+                <div style={{ display:"flex", gap:5, marginTop:10 }}>
+                  {[1,2,3].map(n => (
+                    <span key={n} style={{ flex:1, height:3, borderRadius:999,
+                      background: n <= guideStep ? C.sun : "rgba(255,255,255,0.22)" }} />
+                  ))}
+                </div>
+              )}
+              {guideStep === 4 && (
+                <button onClick={() => setGuideOn(false)}
+                  style={{ marginTop:10, padding:"8px 14px", borderRadius:10, background:C.sun,
+                    color:C.sunText, fontWeight:900, fontSize:12, border:"none", cursor:"pointer",
+                    fontFamily:"Poppins,sans-serif" }}>
+                  OK
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* ===== 下部タブバー ===== */}
         <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)",
           width:"100%", maxWidth:440, background:C.white, borderTop:`1.5px solid ${C.line}`,
@@ -2534,7 +2610,7 @@ function App() {
             { id:"personal", icon:"📅", label:t.tabPersonal },
             { id:"friends", icon:"👥", label:t.tabFriends },
           ].map(tb => (
-            <button key={tb.id} onClick={() => { setTab(tb.id); setOpenId(null); setOpenRoom(null); }}
+            <button key={tb.id} onClick={() => { setTab(tb.id); setOpenId(null); setOpenRoom(null); if (tb.id === "personal") setVisitedPersonal(true); }}
               style={{ flex:1, padding:"10px 0 12px", background:"none", border:"none", cursor:"pointer",
                 display:"flex", flexDirection:"column", alignItems:"center", gap:3, fontFamily:"Poppins,sans-serif" }}>
               <span style={{ fontSize:20, filter: tab === tb.id ? "none" : "grayscale(1) opacity(0.5)" }}>{tb.icon}</span>
