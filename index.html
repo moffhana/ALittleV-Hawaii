@@ -30,46 +30,119 @@ const C = {
 
 /* ---- ボランティアデータ(データ収集シート由来) ---- */
 const DATA = [
-  {id:"v3",cost:0,recurring:"monthly",type:"volunteer",name:"JOIN US FOR COMMUNITY WORK DAY!",org:"Kanu Hawaii",area:"north",dur:3,fam:2,diff:"medium",tags:["ocean"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/join-us-for-community-work-day/",en:"Join every third Saturday of the month, everyone is welcome at our Lā Hana!",ja:"Join every third Saturday of the month, everyone is welcome at our Lā Hana!"},
-  {id:"v4",cost:0,recurring:"monthly",type:"volunteer",name:"Third Saturday Service Days at Lyon Arboretum",org:"Kanu Hawaii",area:"honolulu",dur:6,fam:0,diff:"hard",tags:["nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/third-saturday-service-days-at-lyon-arboretum/",en:"Every third Saturday of the month, the Arboretum Grounds Department invites the public to participate in a service day. Help is needed to clear the area and pull weeds to allow the endemic koa trees to continue to grow and spread.",ja:"Every third Saturday of the month, the Arboretum Grounds Department invites the public to participate in a service day. Help is needed to clear the area and pull weeds to allow the endemic koa trees to continue to grow and spread."},
-  {id:"v5",cost:0,recurring:"varies",type:"volunteer",name:"MĀLAMA PONO",org:"PACIFIC WHALE FOUNDATION",area:"other",dur:3,fam:1,diff:"medium",tags:["nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/organization/pacific-whale-foundation/",en:"Participants help protect nature by taking part in activities such as beach cleanup, planting native trees, and so on.",ja:"Participants help protect nature by taking part in activities such as beach cleanup, planting native trees, and so on.",donation:true},
-  {id:"v8",cost:0,recurring:"weekly",type:"volunteer",name:"Forest Restoration – Limahuli Garden & Preserve",org:"Kanu Hawaii",area:"other",dur:5,fam:1,diff:"hard",tags:["nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/forest-restoration-volunteer/",en:"A volunteer program that restores Hawaii’s native forests by removing invasive plants, caring for native species, and helping protect the natural environment.",ja:"A volunteer program that restores Hawaii’s native forests by removing invasive plants, caring for native species, and helping protect the natural environment."},
-  {id:"v9",cost:0,recurring:"monthly",type:"volunteer",name:"Lēʻahi Park Cleanup",org:"DLNR Division of State Parks",area:"honolulu",dur:2,fam:2,diff:"easy",tags:["nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/leʻahi-park-cleanup-4/",en:"A volunteer program that helps maintain Diamond Head State Monument through park cleanups, garden maintenance, painting, and repair work.",ja:"A volunteer program that helps maintain Diamond Head State Monument through park cleanups, garden maintenance, painting, and repair work."},
-  {id:"v10",cost:0,recurring:"varies",type:"volunteer",name:"Volunteer Now!",org:"Hawaiʻi Children’s Action Network",area:"honolulu",dur:3,fam:2,diff:"easy",tags:["culture"],booking:"check",url:"https://www.kanuhawaii.org/need/volunteer-now/",en:"We have various opportunities such as helping in the office, social media support, tabling at a community event, helping with a fundraiser, advocating for a policy or bill, and more!",ja:"We have various opportunities such as helping in the office, social media support, tabling at a community event, helping with a fundraiser, advocating for a policy or bill, and more!"},
-  {id:"v11",cost:0,recurring:"varies",type:"volunteer",name:"Community Living Center",org:"VA Pacific Islands Healthcare System",area:"honolulu",dur:3,fam:0,diff:"easy",tags:["culture"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/community-living-center/",en:"Volunteers at the Community Living Center support military veterans at a Honolulu medical facility by assisting with daily activities and site operations.",ja:"Volunteers at the Community Living Center support military veterans at a Honolulu medical facility by assisting with daily activities and site operations."},
-  {id:"v12",cost:0,recurring:"monthly",type:"volunteer",name:"Devil Weed Volunteer Surveys at Pūpūkea-Paumalū State Park Reserve",org:"Oʻahu Invasive Species Committee",area:"north",dur:4,fam:1,diff:"medium",tags:["nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/devil-weed-volunteer-surveys-at-pupukea-paumalu-state-park-reserve/",en:"Volunteers hike trails at Pūpūkea-Paumalū to identify and pull out the highly invasive \"Devil Weed\" to protect Oahu's native ecosystem",ja:"Volunteers hike trails at Pūpūkea-Paumalū to identify and pull out the highly invasive \"Devil Weed\" to protect Oahu's native ecosystem"},
-  {id:"v13",cost:0,recurring:"weekly",type:"volunteer",name:"WATERMANS ACADEMY GROUP LEADER",org:"Ikaika Hawaii",area:"honolulu",dur:6,fam:0,diff:"hard",tags:["ocean"],booking:"check",url:"https://www.kanuhawaii.org/need/watermans-academy-group-leader/",en:"Lead a group of 8–12 children in weekly water sports and ocean safety activities, teaching surfing, kayaking, SUP, and other skills while ensuring a safe, fun, and supportive environment. Team Leaders volunteer from 8:00 a.m. to 2:00 p.m. and receive lunch each day.",ja:"Lead a group of 8–12 children in weekly water sports and ocean safety activities, teaching surfing, kayaking, SUP, and other skills while ensuring a safe, fun, and supportive environment. Team Leaders volunteer from 8:00 a.m. to 2:00 p.m. and receive lunch each day."},
-  {id:"v14",cost:0,recurring:"varies",type:"volunteer",name:"Habitat Restoration and Stewardship of Wetland and Endemic Forest Species",org:"Healthy Climate Communities",area:"east",dur:2,fam:2,diff:"easy",tags:["nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/habitat-restoration-and-stewardship-of-wetland-and-endemic-forest-species/",en:"Volunteers help restore native forests and wetland habitats in Kailua by planting indigenous trees and clearing invasive species to protect local wildlife and ecosystems.",ja:"Volunteers help restore native forests and wetland habitats in Kailua by planting indigenous trees and clearing invasive species to protect local wildlife and ecosystems."},
-  {id:"v15",cost:1,recurring:"varies",type:"volunteer",name:"Kona Low Storm Recovery — Honolulu Habitat for Humanity Home Repair",org:"Honolulu Habitat for Humanity",area:"honolulu",dur:5,fam:0,diff:"hard",tags:["nature"],booking:"check",url:"https://www.kanuhawaii.org/need/kona-low-storm-response-honolulu-habitat-for-humanity-home-repair/",en:"Help repair and rebuild flood-damaged homes for North Shore families through construction, cleanup, and home repair projects. Skilled trades are needed, but no experience is required for general volunteer tasks such as site preparation and finishing work.",ja:"Help repair and rebuild flood-damaged homes for North Shore families through construction, cleanup, and home repair projects. Skilled trades are needed, but no experience is required for general volunteer tasks such as site preparation and finishing work.",paid:true},
-  {id:"v16",cost:0,recurring:"varies",type:"volunteer",name:"Inspire Change & Mentor Our Tomorrow! Honolulu",org:"Big Brothers Big Sisters Hawaii",area:"honolulu",dur:2,fam:0,diff:"easy",tags:["culture"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/inspire-change-mentor-our-tomorrow-honolulu/",en:"Volunteers build meaningful one-on-one friendships with local youth as mentors, guiding and supporting them through fun activities and regular meetups over the course of a year.",ja:"Volunteers build meaningful one-on-one friendships with local youth as mentors, guiding and supporting them through fun activities and regular meetups over the course of a year."},
-  {id:"v17",cost:1,recurring:"varies",type:"volunteer",name:"SCH Corporate & Group Beach Cleanups",org:"Sustainable Coastlines Hawaiʻi",area:"waikiki",dur:4,fam:1,diff:"medium",tags:["ocean"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/sch-corporate-group-beach-cleanups",en:"Join a customized beach cleanup that combines removing marine debris with team building and environmental education for corporate and community groups.",ja:"Join a customized beach cleanup that combines removing marine debris with team building and environmental education for corporate and community groups.",paid:true},
-  {id:"v19",cost:0,recurring:"weekly",type:"volunteer",name:"Thrift Shop Volunteer",org:"Hickam Thrift Shop (Hickam Officers' Spouses' Club)",area:"west",dur:4,fam:2,diff:"medium",tags:["culture"],booking:"dropin",url:"https://www.kanuhawaii.org/need/thrift-shop-volunteer",en:"Sort donations, organize merchandise, and assist customers at a community thrift shop supporting local grants and scholarships.",ja:"Sort donations, organize merchandise, and assist customers at a community thrift shop supporting local grants and scholarships."},
-  {id:"v20",cost:0,recurring:"weekly",type:"volunteer",name:"To Support Our FoodBasket Program During Days Of Operation And Home Deliveries",org:"Gregory House Programs",area:"honolulu",dur:6,fam:1,diff:"hard",tags:["culture"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/houseless-service-care/",en:"Volunteers support individuals and families affected by HIV/AIDS in Honolulu by preparing and serving hot lunches, packing grocery bags, and delivering meals to homebound clients.",ja:"Volunteers support individuals and families affected by HIV/AIDS in Honolulu by preparing and serving hot lunches, packing grocery bags, and delivering meals to homebound clients."},
-  {id:"v21",cost:0,recurring:"monthly",type:"volunteer",name:"RMH Hospitality Cart Volunteers",org:"Ronald McDonald House Charities Hawaiʻi",area:"honolulu",dur:3,fam:1,diff:"medium",tags:["animals"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/rmh-hospitality-cart-volunteers/",en:"Support NICU families by greeting visitors, serving refreshments, and providing activities through the Ronald McDonald House Hospitality Cart at local hospitals.",ja:"Support NICU families by greeting visitors, serving refreshments, and providing activities through the Ronald McDonald House Hospitality Cart at local hospitals."},
-  {id:"v22",cost:0,recurring:"varies",type:"volunteer",name:"NOAA Inouye Regional Center School Group Volunteer & Community Outreach",org:"National Oceanic and Atmospheric Administration Inouye Regional Center",area:"honolulu",dur:3,fam:1,diff:"medium",tags:["ocean"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/noaa-inouye-regional-center-school-group-volunteer-community-outreach/",en:"Support NOAA educational tours by guiding students, leading tour activities, and creating content about climate, weather, oceans, coasts, and marine life. Volunteers can also join weekend community outreach events.",ja:"Support NOAA educational tours by guiding students, leading tour activities, and creating content about climate, weather, oceans, coasts, and marine life. Volunteers can also join weekend community outreach events."},
-  {id:"v23",cost:0,recurring:"weekly",type:"volunteer",name:"Ola Nā Kini Laulima Saturdays",org:"Mālama Learning Center",area:"other",dur:3,fam:2,diff:"medium",tags:["food"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/ola-na-kini-laulima-saturdays/",en:"Volunteer with us as we strive to heal the land, ​sea, and multitude of life through education and restoration.",ja:"Volunteer with us as we strive to heal the land, ​sea, and multitude of life through education and restoration."},
-  {id:"v24",cost:0,recurring:"monthly",type:"volunteer",name:"Mālama The Native Forest At Hāmākua Marsh",org:"Healthy Climate Communities",area:"east",dur:2,fam:2,diff:"easy",tags:["nature"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/malama-the-native-forest-at-hamakua-marsh/",en:"Join us to restore the native forest, plant trees, and remove invasive species while learning about Hawaii's endangered wetland birds in the beautiful Hāmākua Marsh.",ja:"Join us to restore the native forest, plant trees, and remove invasive species while learning about Hawaii's endangered wetland birds in the beautiful Hāmākua Marsh."},
-  {id:"v25",cost:0,recurring:"weekly",type:"volunteer",name:"Free Store",org:"Susannah Wesley Community Center",area:"other",dur:3,fam:2,diff:"medium",tags:["food"],booking:"rsvp",url:"https://www.kanuhawaii.org/need/27804-2/",en:"Help care for a tropical farm sanctuary through gardening, fruit picking, animal care, and farm maintenance.",ja:"Help care for a tropical farm sanctuary through gardening, fruit picking, animal care, and farm maintenance."},
+  {id:"v1",cost:0,recurring:"monthly",type:"volunteer",name:"Beach Cleanup at Kahuku (James Campbell National Wildlife Refuge)",org:"Sustainable Coastlines Hawai'i",area:"north",dur:3,fam:2,diff:"medium",tags:["ocean"],booking:"check",src:"org",url:"https://www.sustainablecoastlineshawaii.org/schedule",en:"Join a monthly beach cleanup and help protect a wildlife refuge on the North Shore.",ja:"Join a monthly beach cleanup and help protect a wildlife refuge on the North Shore."},
+  {id:"v2",cost:0,recurring:"varies",type:"volunteer",name:"Community Cleanups across O'ahu",org:"808 Cleanups",area:"honolulu",dur:2,fam:1,diff:"easy",tags:["ocean"],booking:"rsvp",src:"org",url:"https://808cleanups.org/",en:"Year-round cleanups of beaches, trails and parks. RSVP from the website calendar.",ja:"Year-round cleanups of beaches, trails and parks. RSVP from the website calendar."},
+  {id:"v3",cost:0,recurring:"monthly",type:"volunteer",name:"JOIN US FOR COMMUNITY WORK DAY!",org:"Kanu Hawaii",area:"north",dur:3,fam:2,diff:"medium",tags:["ocean"],booking:"rsvp",src:"kanu",url:"https://www.kanuhawaii.org/need/join-us-for-community-work-day/",en:"Join every third Saturday of the month, everyone is welcome at our Lā Hana!",ja:"Join every third Saturday of the month, everyone is welcome at our Lā Hana!"},
+  {id:"v4",cost:0,recurring:"monthly",type:"volunteer",name:"Third Saturday Service Days at Lyon Arboretum",org:"Kanu Hawaii",area:"honolulu",dur:6,fam:0,diff:"hard",tags:["nature"],booking:"rsvp",src:"kanu",url:"https://www.kanuhawaii.org/need/third-saturday-service-days-at-lyon-arboretum/",en:"Every third Saturday of the month, the Arboretum Grounds Department invites the public to participate in a service day. Help is needed to clear the area and pull weeds to allow the endemic koa trees to continue to grow and spread.",ja:"Every third Saturday of the month, the Arboretum Grounds Department invites the public to participate in a service day. Help is needed to clear the area and pull weeds to allow the endemic koa trees to continue to grow and spread."},
+  {id:"v5",cost:0,recurring:"varies",type:"volunteer",name:"MĀLAMA PONO",org:"PACIFIC WHALE FOUNDATION",area:"other",dur:3,fam:1,diff:"medium",tags:["nature"],booking:"rsvp",src:"kanu",url:"https://www.kanuhawaii.org/organization/pacific-whale-foundation/",en:"Participants help protect nature by taking part in activities such as beach cleanup, planting native trees, and so on.",ja:"Participants help protect nature by taking part in activities such as beach cleanup, planting native trees, and so on.",donation:true},
+  {id:"v6",cost:0,recurring:"monthly",type:"volunteer",name:"The Genki Ala Wai Project",org:"Hawaiʻi Exemplary State Foundation",area:"waikiki",dur:3,fam:1,diff:"medium",tags:["ocean"],booking:"rsvp",src:"org",url:"https://www.genkialawai.org",en:"A volunteer program that improves the water quality of the Ala Wai Canal and promotes environmental conservation",ja:"A volunteer program that improves the water quality of the Ala Wai Canal and promotes environmental conservation"},
+  {id:"v7",cost:0,recurring:"weekly",type:"volunteer",name:"Pia Power Hours — Weekly Restoration Workday",org:"Protect & Preserve Hawaiʻi",area:"honolulu",dur:4,fam:0,diff:"medium",tags:["nature"],booking:"rsvp",src:"org",url:"https://www.protectpreservehi.org/event-details-registration/pia-power-hours-meet-in-the-cul-de-sac-at-the-top-of-anolani-st-8",en:"A volunteer program that restores Hawaiʻi's native forests by removing invasive plants and planting native species.",ja:"A volunteer program that restores Hawaiʻi's native forests by removing invasive plants and planting native species."},
+  {id:"v8",cost:0,recurring:"weekly",type:"volunteer",name:"Forest Restoration – Limahuli Garden & Preserve",org:"Kanu Hawaii",area:"other",dur:5,fam:1,diff:"hard",tags:["nature"],booking:"rsvp",src:"kanu",url:"https://www.kanuhawaii.org/need/forest-restoration-volunteer/",en:"A volunteer program that restores Hawaii’s native forests by removing invasive plants, caring for native species, and helping protect the natural environment.",ja:"A volunteer program that restores Hawaii’s native forests by removing invasive plants, caring for native species, and helping protect the natural environment."},
+  {id:"v9",cost:0,recurring:"monthly",type:"volunteer",name:"Lēʻahi Park Cleanup",org:"DLNR Division of State Parks",area:"honolulu",dur:2,fam:2,diff:"easy",tags:["nature"],booking:"rsvp",src:"kanu",url:"https://www.kanuhawaii.org/need/leʻahi-park-cleanup-4/",en:"A volunteer program that helps maintain Diamond Head State Monument through park cleanups, garden maintenance, painting, and repair work.",ja:"A volunteer program that helps maintain Diamond Head State Monument through park cleanups, garden maintenance, painting, and repair work."},
+  {id:"v10",cost:0,recurring:"varies",type:"volunteer",name:"Volunteer Now!",org:"Hawaiʻi Children’s Action Network",area:"honolulu",dur:3,fam:2,diff:"easy",tags:["culture"],booking:"check",src:"kanu",url:"https://www.kanuhawaii.org/need/volunteer-now/",en:"We have various opportunities such as helping in the office, social media support, tabling at a community event, helping with a fundraiser, advocating for a policy or bill, and more!",ja:"We have various opportunities such as helping in the office, social media support, tabling at a community event, helping with a fundraiser, advocating for a policy or bill, and more!"},
+  {id:"v11",cost:0,recurring:"varies",type:"volunteer",name:"Community Living Center",org:"VA Pacific Islands Healthcare System",area:"honolulu",dur:3,fam:0,diff:"easy",tags:["culture"],booking:"rsvp",src:"kanu",url:"https://www.kanuhawaii.org/need/community-living-center/",en:"Volunteers at the Community Living Center support military veterans at a Honolulu medical facility by assisting with daily activities and site operations.",ja:"Volunteers at the Community Living Center support military veterans at a Honolulu medical facility by assisting with daily activities and site operations."},
+  {id:"v12",cost:0,recurring:"monthly",type:"volunteer",name:"Devil Weed Volunteer Surveys at Pūpūkea-Paumalū State Park Reserve",org:"Oʻahu Invasive Species Committee",area:"north",dur:4,fam:1,diff:"medium",tags:["nature"],booking:"rsvp",src:"kanu",url:"https://www.kanuhawaii.org/need/devil-weed-volunteer-surveys-at-pupukea-paumalu-state-park-reserve/",en:"Volunteers hike trails at Pūpūkea-Paumalū to identify and pull out the highly invasive \"Devil Weed\" to protect Oahu's native ecosystem",ja:"Volunteers hike trails at Pūpūkea-Paumalū to identify and pull out the highly invasive \"Devil Weed\" to protect Oahu's native ecosystem"},
+  {id:"v13",cost:0,recurring:"weekly",type:"volunteer",name:"WATERMANS ACADEMY GROUP LEADER",org:"Ikaika Hawaii",area:"honolulu",dur:6,fam:0,diff:"hard",tags:["ocean"],booking:"check",src:"kanu",url:"https://www.kanuhawaii.org/need/watermans-academy-group-leader/",en:"Lead a group of 8–12 children in weekly water sports and ocean safety activities, teaching surfing, kayaking, SUP, and other skills while ensuring a safe, fun, and supportive environment. Team Leaders volunteer from 8:00 a.m. to 2:00 p.m. and receive lunch each day.",ja:"Lead a group of 8–12 children in weekly water sports and ocean safety activities, teaching surfing, kayaking, SUP, and other skills while ensuring a safe, fun, and supportive environment. Team Leaders volunteer from 8:00 a.m. to 2:00 p.m. and receive lunch each day."},
+  {id:"v14",cost:0,recurring:"varies",type:"volunteer",name:"Habitat Restoration and Stewardship of Wetland and Endemic Forest Species",org:"Healthy Climate Communities",area:"east",dur:2,fam:2,diff:"easy",tags:["nature"],booking:"rsvp",src:"kanu",url:"https://www.kanuhawaii.org/need/habitat-restoration-and-stewardship-of-wetland-and-endemic-forest-species/",en:"Volunteers help restore native forests and wetland habitats in Kailua by planting indigenous trees and clearing invasive species to protect local wildlife and ecosystems.",ja:"Volunteers help restore native forests and wetland habitats in Kailua by planting indigenous trees and clearing invasive species to protect local wildlife and ecosystems."},
+  {id:"v15",cost:1,recurring:"varies",type:"volunteer",name:"Kona Low Storm Recovery — Honolulu Habitat for Humanity Home Repair",org:"Honolulu Habitat for Humanity",area:"honolulu",dur:5,fam:0,diff:"hard",tags:["nature"],booking:"check",src:"kanu",url:"https://www.kanuhawaii.org/need/kona-low-storm-response-honolulu-habitat-for-humanity-home-repair/",en:"Help repair and rebuild flood-damaged homes for North Shore families through construction, cleanup, and home repair projects. Skilled trades are needed, but no experience is required for general volunteer tasks such as site preparation and finishing work.",ja:"Help repair and rebuild flood-damaged homes for North Shore families through construction, cleanup, and home repair projects. Skilled trades are needed, but no experience is required for general volunteer tasks such as site preparation and finishing work.",paid:true},
+  {id:"v16",cost:0,recurring:"varies",type:"volunteer",name:"Inspire Change & Mentor Our Tomorrow! Honolulu",org:"Big Brothers Big Sisters Hawaii",area:"honolulu",dur:2,fam:0,diff:"easy",tags:["culture"],booking:"rsvp",src:"kanu",url:"https://www.kanuhawaii.org/need/inspire-change-mentor-our-tomorrow-honolulu/",en:"Volunteers build meaningful one-on-one friendships with local youth as mentors, guiding and supporting them through fun activities and regular meetups over the course of a year.",ja:"Volunteers build meaningful one-on-one friendships with local youth as mentors, guiding and supporting them through fun activities and regular meetups over the course of a year."},
+  {id:"v17",cost:1,recurring:"varies",type:"volunteer",name:"SCH Corporate & Group Beach Cleanups",org:"Sustainable Coastlines Hawaiʻi",area:"waikiki",dur:4,fam:1,diff:"medium",tags:["ocean"],booking:"rsvp",src:"kanu",url:"https://www.kanuhawaii.org/need/sch-corporate-group-beach-cleanups",en:"Join a customized beach cleanup that combines removing marine debris with team building and environmental education for corporate and community groups.",ja:"Join a customized beach cleanup that combines removing marine debris with team building and environmental education for corporate and community groups.",paid:true},
+  {id:"v18",cost:0,recurring:"monthly",type:"volunteer",name:"Houseless Service Care",org:"YMCA Oʻahu – Windward Branch",area:"east",dur:2,fam:2,diff:"easy",tags:["culture"],booking:"rsvp",src:"none",url:"",en:"Volunteers gather monthly in Kailua to serve hot meals, distribute clothing, and provide essential supplies to houseless individuals in the community.",ja:"Volunteers gather monthly in Kailua to serve hot meals, distribute clothing, and provide essential supplies to houseless individuals in the community."},
+  {id:"v19",cost:0,recurring:"weekly",type:"volunteer",name:"Thrift Shop Volunteer",org:"Hickam Thrift Shop (Hickam Officers' Spouses' Club)",area:"west",dur:4,fam:2,diff:"medium",tags:["culture"],booking:"dropin",src:"kanu",url:"https://www.kanuhawaii.org/need/thrift-shop-volunteer",en:"Sort donations, organize merchandise, and assist customers at a community thrift shop supporting local grants and scholarships.",ja:"Sort donations, organize merchandise, and assist customers at a community thrift shop supporting local grants and scholarships."},
+  {id:"v20",cost:0,recurring:"weekly",type:"volunteer",name:"To Support Our FoodBasket Program During Days Of Operation And Home Deliveries",org:"Gregory House Programs",area:"honolulu",dur:6,fam:1,diff:"hard",tags:["culture"],booking:"rsvp",src:"kanu",url:"https://www.kanuhawaii.org/need/houseless-service-care/",en:"Volunteers support individuals and families affected by HIV/AIDS in Honolulu by preparing and serving hot lunches, packing grocery bags, and delivering meals to homebound clients.",ja:"Volunteers support individuals and families affected by HIV/AIDS in Honolulu by preparing and serving hot lunches, packing grocery bags, and delivering meals to homebound clients."},
+  {id:"v21",cost:0,recurring:"monthly",type:"volunteer",name:"RMH Hospitality Cart Volunteers",org:"Ronald McDonald House Charities Hawaiʻi",area:"honolulu",dur:3,fam:1,diff:"medium",tags:["animals"],booking:"rsvp",src:"kanu",url:"https://www.kanuhawaii.org/need/rmh-hospitality-cart-volunteers/",en:"Support NICU families by greeting visitors, serving refreshments, and providing activities through the Ronald McDonald House Hospitality Cart at local hospitals.",ja:"Support NICU families by greeting visitors, serving refreshments, and providing activities through the Ronald McDonald House Hospitality Cart at local hospitals."},
+  {id:"v22",cost:0,recurring:"varies",type:"volunteer",name:"NOAA Inouye Regional Center School Group Volunteer & Community Outreach",org:"National Oceanic and Atmospheric Administration Inouye Regional Center",area:"honolulu",dur:3,fam:1,diff:"medium",tags:["ocean"],booking:"rsvp",src:"kanu",url:"https://www.kanuhawaii.org/need/noaa-inouye-regional-center-school-group-volunteer-community-outreach/",en:"Support NOAA educational tours by guiding students, leading tour activities, and creating content about climate, weather, oceans, coasts, and marine life. Volunteers can also join weekend community outreach events.",ja:"Support NOAA educational tours by guiding students, leading tour activities, and creating content about climate, weather, oceans, coasts, and marine life. Volunteers can also join weekend community outreach events."},
+  {id:"v23",cost:0,recurring:"weekly",type:"volunteer",name:"Ola Nā Kini Laulima Saturdays",org:"Mālama Learning Center",area:"other",dur:3,fam:2,diff:"medium",tags:["food"],booking:"rsvp",src:"kanu",url:"https://www.kanuhawaii.org/need/ola-na-kini-laulima-saturdays/",en:"Volunteer with us as we strive to heal the land, ​sea, and multitude of life through education and restoration.",ja:"Volunteer with us as we strive to heal the land, ​sea, and multitude of life through education and restoration."},
+  {id:"v24",cost:0,recurring:"monthly",type:"volunteer",name:"Mālama The Native Forest At Hāmākua Marsh",org:"Healthy Climate Communities",area:"east",dur:2,fam:2,diff:"easy",tags:["nature"],booking:"rsvp",src:"kanu",url:"https://www.kanuhawaii.org/need/malama-the-native-forest-at-hamakua-marsh/",en:"Join us to restore the native forest, plant trees, and remove invasive species while learning about Hawaii's endangered wetland birds in the beautiful Hāmākua Marsh.",ja:"Join us to restore the native forest, plant trees, and remove invasive species while learning about Hawaii's endangered wetland birds in the beautiful Hāmākua Marsh."},
+  {id:"v25",cost:0,recurring:"weekly",type:"volunteer",name:"Free Store",org:"Susannah Wesley Community Center",area:"other",dur:3,fam:2,diff:"medium",tags:["food"],booking:"rsvp",src:"kanu",url:"https://www.kanuhawaii.org/need/27804-2/",en:"Help care for a tropical farm sanctuary through gardening, fruit picking, animal care, and farm maintenance.",ja:"Help care for a tropical farm sanctuary through gardening, fruit picking, animal care, and farm maintenance."},
+  /* ---- デモ当日用の活動(プレゼンする日に開催されている想定) ----
+     この活動だけ「開始2時間前」の状態になり、GPSの到着/向かい中が表示される */
+  {id:"vd",cost:0,recurring:"weekly",type:"volunteer",name:"Magic Island Shoreline Cleanup",org:"Sustainable Coastlines Hawaiʻi",area:"honolulu",dur:2,fam:2,diff:"easy",tags:["ocean"],booking:"dropin",src:"org",url:"https://www.sustainablecoastlineshawaii.org/",en:"A short morning cleanup along the Magic Island shoreline. Gloves, buckets and pickers are provided — just show up. Great for first-timers and groups.",ja:"A short morning cleanup along the Magic Island shoreline. Gloves, buckets and pickers are provided — just show up. Great for first-timers and groups."},
+  {id:"v26",cost:0,recurring:"monthly",type:"volunteer",name:"Maunawila Heiau Complex",org:"Hawaiʻi Land Trust",area:"north",dur:3,fam:1,diff:"medium",tags:["nature"],booking:"check",src:"none",url:"",en:"",ja:""},
 ];
 
 /* ---- 仮の友達グループ(次回、作成機能を実装するまでのダミー) ---- */
-const GROUPS = [
-  { id:"g1", en:"Ocean-lover friends", ja:"海好きの友達" },
-  { id:"g2", en:"Classmates",          ja:"クラスのみんな" },
-  { id:"g3", en:"Dorm crew",           ja:"寮のなかま" },
+/* 部屋(グループ)の初期データ。memberIds = 参加している友達のid。
+   アプリ内で友達一覧から新しい部屋を作れる(rooms は state で持つ) */
+const INITIAL_ROOMS = [
+  { id:"g1", en:"Ocean-lover friends", ja:"海好きの友達",   memberIds:["p1","p2"] },
+  { id:"g2", en:"Classmates",          ja:"クラスのみんな", memberIds:["p2"] },
+  { id:"g3", en:"Dorm crew",           ja:"寮のなかま",     memberIds:["p1"] },
 ];
 
-/* ---- ダミーの友達(次回のアカウント機能までの見せ玉) ----
-   emoji はアイコン代わり。後で写真( avatar:"photos/xxx.jpg" )に差し替え可能。
-   groups=所属グループ / applied=申請済みの活動id */
-const FRIENDS = [
-  { id:"f1", name:"Yuki",  emoji:"🐢", groups:["g1","g3"], applied:["v3","v17"] },
-  { id:"f2", name:"Sara",  emoji:"🌺", groups:["g1","g2"], applied:["v3","v9"]  },
-  { id:"f3", name:"Ken",   emoji:"🏄", groups:["g1"],      applied:["v13","v17"]},
-  { id:"f4", name:"Mia",   emoji:"🌱", groups:["g2","g3"], applied:["v4","v9"]  },
-  { id:"f5", name:"Leo",   emoji:"⛰️", groups:["g3"],      applied:["v12","v24"]},
-  { id:"f6", name:"Hana",  emoji:"🌊", groups:["g2"],      applied:["v22"]      },
+/* ---- アカウント作成で選べるアイコン(あとで写真アップロードに拡張可能) ---- */
+const AVATARS = ["🌊","🌺","🐢","🏄","🌱","⛰️","☀️","🐬","🌴","🦎","🐠","🌈","🍍","🐙","🦜","🌸"];
+
+/* ---- 参加者プール(デモ用) --------------------------------------
+   history = これまで参加した活動id → 自分の履歴と重なった数が「一緒に参加した回数」になる
+   signedUp = 今回そのボランティアに申し込んでいる活動id
+   attend   = 当日の参加回答 { 活動id: "going" | "not" }(未回答は入れない)
+   friend   = 友達登録済みか(アプリ内で登録すると true になる)          */
+const PEOPLE = [
+  // ── 友達登録済み(最初から2人) ─────────────────
+  { id:"p1",  name:"Yuki",   emoji:"🐢", friend:true,  history:["v3","v9","v17","v12"], signedUp:["v3","v17","vd"], attend:{}, gps:{ vd:"arrived" } },
+  { id:"p2",  name:"Sara",   emoji:"🌺", friend:true,  history:["v3","v9","v24"],       signedUp:["v3","v9","vd"],  attend:{ v9:"not" }, gps:{ vd:"onway" } },
+  // ── 何度も同じ活動で会っている人(友達ではない) ──
+  { id:"p3",  name:"Kaipo",  emoji:"🏄", friend:false, history:["v3","v9","v17","v12","v24"], signedUp:["v3","v9","v17","vd"], attend:{}, gps:{ vd:"arrived" } },
+  { id:"p4",  name:"Malia",  emoji:"🌴", friend:false, history:["v3","v17","v9"],       signedUp:["v3","v17","vd"], attend:{}, gps:{ vd:"onway" } },
+  { id:"p5",  name:"Noe",    emoji:"🌸", friend:false, history:["v3","v12"],            signedUp:["v3","v12","vd"], attend:{ vd:"not" } },
+  { id:"p6",  name:"Ethan",  emoji:"⛰️", friend:false, history:["v9","v24"],            signedUp:["v3","v24"], attend:{} },
+  // ── 初対面の参加者(履歴の重なりなし) ────────────
+  { id:"p7",  name:"Jonah",  emoji:"🐬", friend:false, history:["v15","v20"],           signedUp:["v3","v15","vd"], attend:{}, gps:{ vd:"arrived" } },
+  { id:"p8",  name:"Leilani",emoji:"🌈", friend:false, history:["v21"],                 signedUp:["v3","vd"],  attend:{} },
+  { id:"p9",  name:"Ken",    emoji:"🦎", friend:false, history:["v13"],                 signedUp:["v3","v13","vd"], attend:{ vd:"not" } },
+  { id:"p10", name:"Aiko",   emoji:"🍍", friend:false, history:[],                      signedUp:["v3","vd"],  attend:{} },
+  { id:"p11", name:"Mika",   emoji:"🐠", friend:false, history:["v22"],                 signedUp:["v3","v22","vd"], attend:{}, gps:{ vd:"onway" } },
+  { id:"p12", name:"Tyler",  emoji:"🦜", friend:false, history:[],                      signedUp:["v3"],       attend:{} },
+  { id:"p13", name:"Hana",   emoji:"🌊", friend:false, history:["v9","v22"],            signedUp:["v9","v22"], attend:{} },
+  { id:"p14", name:"Sam",    emoji:"🐙", friend:false, history:["v17"],                 signedUp:["v17","v9"], attend:{} },
+  { id:"p15", name:"Rina",   emoji:"☀️", friend:false, history:["v24","v12"],           signedUp:["v24","v12"],attend:{} },
+  { id:"p16", name:"Dylan",  emoji:"🌱", friend:false, history:[],                      signedUp:["v9","v17"], attend:{} },
+  // ── 他の活動にも申請者がいるように(デモの自然さのため) ──
+  { id:"p17", name:"Kalani", emoji:"🌋", friend:false, history:[], signedUp:[], attend:{} },
+  { id:"p18", name:"Reina",  emoji:"🐚", friend:false, history:[], signedUp:[], attend:{} },
+  { id:"p19", name:"Marcus", emoji:"🌾", friend:false, history:[], signedUp:[], attend:{} },
+  { id:"p20", name:"Ana",    emoji:"🦋", friend:false, history:[], signedUp:[], attend:{} },
+  { id:"p21", name:"Tomo",   emoji:"🍃", friend:false, history:[], signedUp:[], attend:{} },
+  { id:"p22", name:"Ivy",    emoji:"🌷", friend:false, history:[], signedUp:[], attend:{} },
+  { id:"p23", name:"Noa",    emoji:"🐳", friend:false, history:[], signedUp:[], attend:{} },
+  { id:"p24", name:"Sky",    emoji:"☁️", friend:false, history:[], signedUp:[], attend:{} },
+  { id:"p25", name:"Lani",   emoji:"🌻", friend:false, history:[], signedUp:[], attend:{} },
+  { id:"p26", name:"Ben",    emoji:"🪴", friend:false, history:[], signedUp:[], attend:{} },
 ];
+
+/* どの活動にも申請者が数人いるように、p17以降の人を機械的に割り当てる。
+   最初からいる友達(p1/p2)は増やさないので「友達が参加する活動」は限られたままになる */
+(function seedSignups() {
+  const MIN = 3;
+  const fillers = PEOPLE.filter(p => Number(p.id.slice(1)) >= 17);
+  let cursor = 0;
+  DATA.filter(d => d.type === "volunteer").forEach(item => {
+    const already = PEOPLE.filter(p => p.signedUp.includes(item.id)).length;
+    for (let k = already; k < MIN; k++) {
+      const p = fillers[cursor % fillers.length];
+      cursor++;
+      if (!p.signedUp.includes(item.id)) p.signedUp.push(item.id);
+    }
+  });
+})();
+
+/* ---- デモ用アカウント(プレゼンで「すでに何度か参加している人」を見せる用) ----
+   サインアップ画面の『デモアカウントで見る』から読み込む */
+const DEMO_ACCOUNT = {
+  nick:"Emi", avatar:"🌺", email:"emi@example.com",
+  history:["v3","v9","v17","v12","v24"],   // これまで参加した活動 → 他の人との「一緒に参加した回数」の元になる
+  applied:["v3"],                           // これから参加する(申し込み済み)
+  today:"vd",                               // 今日ひらかれる活動(GPSの確認が出るのはこれだけ)
+  /* 履歴タブに出る「参加済み」の記録。
+     1件目 = メモも写真コメントも入力済み / 2件目 = 未入力(その場で書ける) */
+  past:[
+    { id:"v17", daysAgo:12,
+      note:"Cleaned the shoreline near Kaimana Beach with about 20 people. Collected 14 bags of trash — mostly plastic bottles and cigarette filters. Learned that most of it washes in from the canal, not from beachgoers.",
+      comment:"14 bags in 3 hours! 🌊" },
+    { id:"v9",  daysAgo:4, note:"", comment:"" },
+  ],
+};
 
 /* ---- 日付ユーティリティ ---- */
 const iso = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
@@ -98,6 +171,14 @@ function nextDateFor(recurring) {
 const T = {
   en:{
     appName:"a little",
+    obTitle:"Create your account", obSubtitle:"Just three quick things to get started.",
+    obNick:"Nickname", obNickPlaceholder:"How friends will see you",
+    obIcon:"Pick an icon", obIconNote:"You'll be able to use a photo later.",
+    obEmail:"Email", obEmailPlaceholder:"you@example.com",
+    obEmailNote:"Demo only — no email is actually sent.",
+    obCreate:"Create account →", obSkip:"Look around first",
+    obNickError:"Please enter a nickname.",
+    accountMenu:"Account", signOut:"Start over",
     tabPublic:"Explore", tabPersonal:"My page", tabFriends:"Friends",
     soon:"Coming soon",
     soonPersonalT:"Your page", soonPersonalD:"Your volunteer calendar, hours, and notes will live here.",
@@ -110,11 +191,49 @@ const T = {
     addOwnDate:"Date", addOwnSave:"Add", addOwnCancel:"Cancel",
     tentative:"Tentative", confirmed:"Confirmed",
     viewDetail:"See details →",
+    calApply:"Apply ↗", calApplied:"Applied ✓", calCheckin:"Check in for today",
+    upcomingTitle:"Upcoming", upcomingEmpty:"No upcoming volunteer plans yet. Bookmark or apply to something to see it here.", upcomingPast:"Past",
+    subCal:"📅 Calendar", subHistory:"🎓 History",
+    histTitle:"Volunteer record",
+    histHours:"Total hours", histCount:"Activities", histUnit:"h",
+    histEmpty:"Once you apply to activities, your record shows up here — with your hours and notes for applications.",
+    histNoteLabel:"My note", histNotePlaceholder:"What you did, what you learned, who you helped… (for college/scholarship applications)",
+    histAddNote:"+ Add a note", histUpcoming:"Upcoming (not counted yet)",
+    noteHide:"Close", noteOpen:"Open",
+    postTitle:"Add a memory", postHint:"Share a photo and one line from the day. It'll show on your history too.",
+    postPhoto:"📷 Add a photo", postChange:"Change photo", postComment:"One line", postCommentPh:"How was it?",
+    postSave:"Post", postEdit:"Edit", postSaved:"Posted!", postYours:"Your memory", pastPostsTitle:"Memories from past sessions",
+    postEditHint:"Tap to edit your memory",
     removeOwn:"Remove",
     hoursDoneT:"Hours done", hoursDoneD:"Completed & confirmed", hoursPlanT:"Total incl. planned", hoursPlanD:"All confirmed activities", hoursUnit:"h",
     noteLabel:"My note", notePlaceholder:"What did you do? What did you learn? (for applications later)",
     noteSave:"Save note", noteSaved:"Note saved",
     soonFriendsT:"Friends", soonFriendsD:"Shared calendars with your groups will live here.",
+    friendsListTitle:"Your volunteer friends",
+    subFriends:"💛 Friends",
+    newRoomBtn:"+ New room",
+    newRoomTitle:"Create a room",
+    newRoomNameLabel:"Room name",
+    newRoomNamePh:"e.g. Saturday beach crew",
+    newRoomPick:"Who's in?",
+    newRoomCreate:"Create room",
+    newRoomCancel:"Cancel",
+    roomCreated:"Room created",
+    pickedN:(n)=>`${n} selected`,
+    friendsNone:"No friends yet. Swap accounts with someone you met at an activity.",
+    swapQR:"📷 Swap accounts (QR)",
+    qrTitle:"Swap accounts",
+    qrMine:"Show this to your new friend",
+    qrScan:"Or scan theirs",
+    qrScanBtn:"📷 Scan a code",
+    qrPick:"Demo: pick someone you met today",
+    qrClose:"Close",
+    metAt:(n)=>`Met at ${n} activities`,
+    talkTitle:"Group chat",
+    roomTabCal:"📅 Calendar", roomTabTalk:"💬 Chat",
+    talkPlaceholder:"Message your group…",
+    talkSend:"Send",
+    talkEmpty:"No messages yet. Say hi!",
     roomsTitle:"Your rooms",
     roomsHint:"Shared calendars with your friend groups. Anyone can join later — no size limit.",
     membersN:(n)=>`${n} ${n===1?"member":"members"}`,
@@ -132,6 +251,10 @@ const T = {
     efforts:{ easy:"Light", medium:"Medium", hard:"Hard" },
     times:{ short:"≤2h", half:"≤4h", full:"Any" },
     resultsN:(n)=>`${n} ${n===1?"activity":"activities"}`,
+    fromOrgs:(n)=>`from ${n} organizations`,
+    friendPick:(n)=>`💛 Friends are going to ${n} of these`,
+    friendsGoingLabel:(names)=>`${names} going`,
+    andMore:(n)=>`+${n}`,
     noResults:"No activities match. Try clearing some filters.",
     hours:"h", free:"Free",
     every:{ weekly:"Every week", monthly:"Once a month", varies:"Dates vary" },
@@ -140,7 +263,7 @@ const T = {
     aboutTitle:"About this activity",
     joinTitle:"How to join",
     applyBtn:"Apply on Kanu Hawaii ↗",
-    bookmarkBtn:"Bookmark", bookmarkedBtn:"Bookmarked ✓",
+    bookmarkBtn:"Save", bookmarkedBtn:"Saved",
     applyConfirmT:"Did you finish applying?",
     applyConfirmD:"You were sent to Kanu Hawaii to sign up. Once your application is done, we'll add it to your calendar as confirmed.",
     applyDone:"Yes, I applied", applyCancel:"Not yet",
@@ -149,12 +272,45 @@ const T = {
     bmMe:"Just me", bmSave:"Save", bmRemove:"Remove bookmark",
     savedToMe:"Saved to your page",
     savedToGroups:(n)=>`Saved to ${n} ${n===1?"group":"groups"} + your page`,
-    whoTitle:"Who's applied",
+    whoTitle:"Who's signed up",
+    whoNone:"No one has signed up yet. Be the first!",
+    whoCount:(n)=>`${n} people`,
+    coTimes:(n)=>`${n}x together`,
+    friendLabel:"Friend",
+    addFriendBtn:"+ Friend",
+    friendAdded:"is now your friend",
+    legendFriend:"Friend", legendCo:"Met before", legendNew:"First time",
+    obDemo:"▶ Try the demo account (Emi)",
+    obDemoNote:"See the app as someone who has already volunteered a few times.",
     whoSoon:"Applicant list appears once accounts are added — coming next.",
+    dayOfTitle:"Starting in 2 hours",
+    sectionOpen:"Open", sectionClose:"Close",
+    dayOfWait:"⏰ A check-in appears here 2 hours before the activity starts.",
+    demoTrigger:"▶ Show notification",
+    pushTitle:"a little V", pushBody:(n)=>`Starting soon: ${n}. Can't make it? Tap to let everyone know.`,
+    goingQ:"Can't make it today? Let everyone know.",
+    goingQSub:"Your arrival is detected automatically — you only need to tell us if you can't come.",
+    imGoing:"Never mind, I'm going", notGoing:"I can't make it",
+    youGoing:"You're going", youNot:"You told everyone you can't make it",
+    statusNot:"can't make it",
+    gpsArrived:"Arrived", gpsOnway:"On the way",
+    gpsHow:"📍 On the day, location sharing updates this automatically — you'll see who has arrived and who is on the way.",
+    gpsDemoNote:"In this demo you tap to answer. In the real app, GPS updates it for you.",
+    gpsDemoBtn:"▶ Demo: update by GPS",
+    gpsMineArrived:"GPS: you've arrived",
+    goingCount:(g,t)=>`${g} of ${t} going`,
     foot:"A Little V · App prototype · Public page only · Sample data from Kanu Hawaii & partners",
   },
   ja:{
     appName:"a little",
+    obTitle:"アカウントを作成", obSubtitle:"3つだけ入力すればはじめられます。",
+    obNick:"ニックネーム", obNickPlaceholder:"友達からこう見えます",
+    obIcon:"アイコンを選ぶ", obIconNote:"写真はあとから使えるようになります。",
+    obEmail:"メールアドレス", obEmailPlaceholder:"you@example.com",
+    obEmailNote:"デモのため、実際にはメールは送信されません。",
+    obCreate:"アカウントを作成 →", obSkip:"先に中を見てみる",
+    obNickError:"ニックネームを入力してください。",
+    accountMenu:"アカウント", signOut:"最初からやり直す",
     tabPublic:"さがす", tabPersonal:"マイページ", tabFriends:"ともだち",
     soon:"近日公開",
     soonPersonalT:"マイページ", soonPersonalD:"あなたのボランティア予定・活動時間・メモがここに入ります。",
@@ -167,11 +323,49 @@ const T = {
     addOwnDate:"日付", addOwnSave:"追加", addOwnCancel:"キャンセル",
     tentative:"仮", confirmed:"確定",
     viewDetail:"詳細を見る →",
+    calApply:"申請する ↗", calApplied:"申請済み ✓", calCheckin:"当日の参加確認",
+    upcomingTitle:"これからの予定", upcomingEmpty:"これからのボランティア予定はまだありません。ブックマークや申請をするとここに表示されます。", upcomingPast:"過去",
+    subCal:"📅 カレンダー", subHistory:"🎓 履歴",
+    histTitle:"ボランティア記録",
+    histHours:"合計時間", histCount:"活動数", histUnit:"時間",
+    histEmpty:"活動に申請すると、ここに記録が残ります。活動時間とメモは出願に使えます。",
+    histNoteLabel:"メモ", histNotePlaceholder:"何をした・何を学んだ・誰を助けた…(進学・奨学金の出願用)",
+    histAddNote:"+ メモを追加", histUpcoming:"これから(まだ集計されません)",
+    noteHide:"閉じる", noteOpen:"開く",
+    postTitle:"記念を投稿", postHint:"当日の写真と一言をどうぞ。履歴にも表示されます。",
+    postPhoto:"📷 写真を追加", postChange:"写真を変える", postComment:"一言", postCommentPh:"どうだった?",
+    postSave:"投稿する", postEdit:"編集する", postSaved:"投稿しました!", postYours:"あなたの投稿", pastPostsTitle:"過去の回の記念",
+    postEditHint:"タップして編集",
     removeOwn:"削除",
     hoursDoneT:"活動した時間", hoursDoneD:"開催日を過ぎた確定分", hoursPlanT:"予定込みの総合", hoursPlanD:"申請済みすべて", hoursUnit:"時間",
     noteLabel:"メモ", notePlaceholder:"何をした?何を学んだ?(あとで出願に使えます)",
     noteSave:"メモを保存", noteSaved:"メモを保存しました",
     soonFriendsT:"ともだち", soonFriendsD:"グループと共有するカレンダーがここに入ります。",
+    friendsListTitle:"ボラン友達",
+    subFriends:"💛 ともだち",
+    newRoomBtn:"+ 新しい部屋",
+    newRoomTitle:"部屋を作る",
+    newRoomNameLabel:"部屋の名前",
+    newRoomNamePh:"例:土曜のビーチ組",
+    newRoomPick:"誰と作る?",
+    newRoomCreate:"部屋を作る",
+    newRoomCancel:"キャンセル",
+    roomCreated:"部屋を作りました",
+    pickedN:(n)=>`${n}人を選択中`,
+    friendsNone:"まだ友達がいません。活動で会った人とアカウントを交換しましょう。",
+    swapQR:"📷 アカウントを交換(QR)",
+    qrTitle:"アカウント交換",
+    qrMine:"これを相手に見せる",
+    qrScan:"相手のコードを読み取る",
+    qrScanBtn:"📷 コードを読み取る",
+    qrPick:"デモ:今日会った人を選んでください",
+    qrClose:"閉じる",
+    metAt:(n)=>`${n}回 同じ活動で会っています`,
+    talkTitle:"グループトーク",
+    roomTabCal:"📅 カレンダー", roomTabTalk:"💬 トーク",
+    talkPlaceholder:"メッセージを入力…",
+    talkSend:"送信",
+    talkEmpty:"まだメッセージがありません。話しかけてみよう!",
     roomsTitle:"あなたの部屋",
     roomsHint:"友達グループと共有するカレンダー。あとから誰でも参加できます(人数制限なし)。",
     membersN:(n)=>`${n}人`,
@@ -189,6 +383,10 @@ const T = {
     efforts:{ easy:"軽め", medium:"ふつう", hard:"がっつり" },
     times:{ short:"2時間以内", half:"4時間以内", full:"すべて" },
     resultsN:(n)=>`${n}件`,
+    fromOrgs:(n)=>`${n}団体から`,
+    friendPick:(n)=>`💛 うち${n}件に友達が参加します`,
+    friendsGoingLabel:(names)=>`${names} が参加`,
+    andMore:(n)=>`他${n}人`,
     noResults:"条件に合う活動がありません。絞り込みを減らしてみてください。",
     hours:"時間", free:"無料",
     every:{ weekly:"毎週ひらかれる", monthly:"月に1回", varies:"日程はさまざま" },
@@ -197,7 +395,7 @@ const T = {
     aboutTitle:"活動について",
     joinTitle:"参加のしかた",
     applyBtn:"Kanu Hawaiiで申請する ↗",
-    bookmarkBtn:"ブックマーク", bookmarkedBtn:"ブックマーク済み ✓",
+    bookmarkBtn:"保存", bookmarkedBtn:"保存済み",
     applyConfirmT:"申請は完了しましたか?",
     applyConfirmD:"Kanu Hawaiiの申請ページを開きました。申請が完了したら、確定の予定としてカレンダーに追加します。",
     applyDone:"はい、申請しました", applyCancel:"まだです",
@@ -206,8 +404,33 @@ const T = {
     bmMe:"自分のみ", bmSave:"保存する", bmRemove:"ブックマークを外す",
     savedToMe:"マイページに保存しました",
     savedToGroups:(n)=>`${n}つのグループとマイページに保存しました`,
-    whoTitle:"申請したメンバー",
+    whoTitle:"申請済みのメンバー",
+    whoNone:"まだ誰も申請していません。最初の1人になりませんか?",
+    whoCount:(n)=>`${n}人`,
+    coTimes:(n)=>`一緒に${n}回`,
+    friendLabel:"友達",
+    addFriendBtn:"+ 友達",
+    friendAdded:"を友達に登録しました",
+    legendFriend:"友達", legendCo:"会ったことがある", legendNew:"はじめて",
+    obDemo:"▶ デモアカウントで見る(Emi)",
+    obDemoNote:"すでに何度かボランティアに参加している人の画面を見られます。",
     whoSoon:"申請者リストはアカウント機能の追加後に表示されます(次回)。",
+    dayOfTitle:"開始2時間前",
+    sectionOpen:"開く", sectionClose:"閉じる",
+    dayOfWait:"⏰ 開催の2時間前になると、ここに参加確認が表示されます。",
+    demoTrigger:"▶ 通知を見る",
+    pushTitle:"a little V", pushBody:(n)=>`まもなく開催:${n}。行けない場合は知らせてください。`,
+    goingQ:"行けなくなった場合は教えてください",
+    goingQSub:"到着は位置情報で自動的に分かります。行けないときだけ知らせてください。",
+    imGoing:"やっぱり行く", notGoing:"行けなくなった",
+    youGoing:"参加予定です", youNot:"「行けない」と伝えました",
+    statusNot:"行けない",
+    gpsArrived:"到着", gpsOnway:"向かっています",
+    gpsHow:"📍 当日は位置情報で自動更新されます。誰が到着したか・向かっているかが分かります。",
+    gpsDemoNote:"このデモでは手動で答えていますが、実際はGPSが自動で反映します。",
+    gpsDemoBtn:"▶ デモ:GPSで更新する",
+    gpsMineArrived:"GPS:到着しました",
+    goingCount:(g,t)=>`${t}人中 ${g}人が参加`,
     foot:"A Little V · アプリ試作 · パブリックページのみ · サンプルデータは Kanu Hawaii と各団体より",
   },
 };
@@ -224,12 +447,40 @@ function Chip({ label, active, onClick }) {
   );
 }
 
-function ListCard({ item, t, lang, onOpen, bookmarked, applied }) {
+/* ブックマークのリボンアイコン(押されていれば塗りつぶし) */
+function BookmarkIcon({ filled, size = 18, color }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24"
+      fill={filled ? color : "none"} stroke={color} strokeWidth="2.2"
+      strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}>
+      <path d="M6 3h12a1 1 0 0 1 1 1v17l-7-5-7 5V4a1 1 0 0 1 1-1z"/>
+    </svg>
+  );
+}
+
+function ListCard({ item, t, lang, onOpen, bookmarked, applied, friendsGoing = [] }) {
   return (
     <button onClick={onOpen}
       style={{ width:"100%", textAlign:"left", background:C.white, borderRadius:18,
-        border:`1.5px solid ${C.line}`, padding:0, marginBottom:12, cursor:"pointer",
+        border:`1.5px solid ${friendsGoing.length ? C.sun : C.line}`, padding:0, marginBottom:12, cursor:"pointer",
         overflow:"hidden", display:"block" }}>
+      {/* 友達が参加していると上に黄色い帯が出る(おすすめ) */}
+      {friendsGoing.length > 0 && (
+        <div style={{ display:"flex", alignItems:"center", gap:7, padding:"7px 14px",
+          background:"rgba(255,213,53,0.22)" }}>
+          <div style={{ display:"flex" }}>
+            {friendsGoing.slice(0, 3).map((f, i) => (
+              <span key={f.id} style={{ width:22, height:22, borderRadius:"50%", background:C.white,
+                border:`1.5px solid ${C.sun}`, display:"flex", alignItems:"center", justifyContent:"center",
+                fontSize:12, marginLeft: i === 0 ? 0 : -7 }}>{f.emoji}</span>
+            ))}
+          </div>
+          <span style={{ fontSize:11, fontWeight:800, color:C.sunText, fontFamily:"Poppins,sans-serif" }}>
+            💛 {t.friendsGoingLabel(friendsGoing.slice(0, 2).map(f => f.name).join(", ")
+                 + (friendsGoing.length > 2 ? " " + t.andMore(friendsGoing.length - 2) : ""))}
+          </span>
+        </div>
+      )}
       <div style={{ padding:"13px 16px" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:8 }}>
           <div style={{ fontWeight:800, fontSize:14.5, color:C.ink, lineHeight:1.35, fontFamily:"Poppins,sans-serif" }}>
@@ -237,7 +488,7 @@ function ListCard({ item, t, lang, onOpen, bookmarked, applied }) {
           </div>
           <div style={{ display:"flex", gap:4, flexShrink:0 }}>
             {applied && <span style={{ fontSize:11, fontWeight:800, color:C.leaf }}>✓</span>}
-            {bookmarked && <span style={{ fontSize:14 }}>🔖</span>}
+            {bookmarked && <BookmarkIcon filled size={15} color={C.leaf} />}
           </div>
         </div>
         {item.org && <div style={{ fontSize:11, color:C.fade, marginTop:3, fontWeight:600, fontFamily:"Poppins,sans-serif" }}>{item.org}</div>}
@@ -256,6 +507,42 @@ function ListCard({ item, t, lang, onOpen, bookmarked, applied }) {
 function App() {
   const [lang, setLang] = useState("en");
   const [tab, setTab] = useState("public");
+  // アカウント: 未作成なら onboarding 画面を出す
+  const [account, setAccount] = useState(null);   // { nick, avatar, email } | null
+  const [screen, setScreen] = useState("onboarding"); // "onboarding" | "app"
+  // アカウント作成フォーム
+  const [obNick, setObNick] = useState("");
+  const [obAvatar, setObAvatar] = useState(AVATARS[0]);
+  const [obEmail, setObEmail] = useState("");
+  const [obError, setObError] = useState(false);
+  // 参加者プール(友達登録で friend が変わる)と、自分の参加履歴
+  const [people, setPeople] = useState(PEOPLE);
+  const [myHistory, setMyHistory] = useState([]);
+  const [showQR, setShowQR] = useState(false);
+  const [rooms, setRooms] = useState(INITIAL_ROOMS);
+  const [showNewRoom, setShowNewRoom] = useState(false);
+  const [roomTab, setRoomTab] = useState("calendar");   // 部屋の中: "calendar" | "talk"
+  const [myGps, setMyGps] = useState({});               // 自分のGPS状態 { 活動id: "arrived"|"onway" }
+  const [openNotes, setOpenNotes] = useState({});       // 履歴で開いているメモ { 活動id: true }
+  const [openSection, setOpenSection] = useState({});   // 詳細ページの折りたたみ { "dayof-v3": true }
+  const [postDraft, setPostDraft] = useState({});       // 記念投稿の下書き(投稿ボタンで確定)
+  const [editingPost, setEditingPost] = useState({});   // 投稿済みを編集中か
+  const [readCount, setReadCount] = useState({});       // 部屋ごとに既読済みメッセージ数
+  const [newRoomName, setNewRoomName] = useState("");
+  const [newRoomMembers, setNewRoomMembers] = useState([]);
+  // グループトーク: { [groupId]: [{who, avatar, text, mine}] }
+  const [talks, setTalks] = useState({
+    g1:[
+      { who:"Yuki",  avatar:"🐢", text:"Saturday's cleanup — who's in?", mine:false },
+      { who:"Sara",  avatar:"🌺", text:"I'm in! Meeting at the parking lot?", mine:false },
+    ],
+    g2:[], g3:[],
+  });
+  const [talkDraft, setTalkDraft] = useState("");
+  // 当日の参加有無: デモで「2時間前」になった活動id / 自分の回答 / プッシュ通知バナー
+  const [dayOfActive, setDayOfActive] = useState({});   // { itemId: true } = 2時間前モード
+  const [myAttend, setMyAttend] = useState({});         // { itemId: "going"|"not" }
+  const [pushFor, setPushFor] = useState(null);         // プッシュ通知バナーで表示中の活動id
   const [openId, setOpenId] = useState(null);      // ボランティアページで開いている活動
   const [query, setQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
@@ -278,7 +565,7 @@ function App() {
   // 友達(ダミー)が申請済みの活動には、最初から日付を割り当てておく(共有カレンダーに乗るように)
   const [itemDates, setItemDates] = useState(() => {
     const init = {};
-    FRIENDS.forEach(f => f.applied.forEach(id => {
+    PEOPLE.forEach(f => f.signedUp.forEach(id => {
       if (init[id]) return;
       const item = DATA.find(d => d.id === id);
       if (item) init[id] = nextDateFor(item.recurring);
@@ -289,9 +576,12 @@ function App() {
   const [ownPlans, setOwnPlans] = useState([]);
   // 活動ごとのメモ: { [itemId]: "テキスト" }
   const [notes, setNotes] = useState({});
+  // 記念投稿: { [itemId]: { photo: dataURL|null, comment: "" } }
+  const [posts, setPosts] = useState({});
   // カレンダーで表示中の月・選択中の日
   const [calMonth, setCalMonth] = useState(() => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), 1); });
   const [selDay, setSelDay] = useState(() => iso(new Date()));
+  const [personalSub, setPersonalSub] = useState("calendar"); // "calendar" | "history"
   // 自分の予定の追加モーダル
   const [showAddOwn, setShowAddOwn] = useState(false);
   const [ownText, setOwnText] = useState("");
@@ -302,6 +592,58 @@ function App() {
   const [roomMonth, setRoomMonth] = useState(() => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), 1); });
 
   const t = T[lang];
+
+  /* アカウント作成 */
+  const createAccount = () => {
+    if (!obNick.trim()) { setObError(true); return; }
+    setAccount({ nick: obNick.trim(), avatar: obAvatar, email: obEmail.trim() });
+    setScreen("app");
+  };
+  /* デモ用アカウントで開始(プレゼン用: すでに何度か参加している状態) */
+  const loadDemoAccount = () => {
+    setAccount({ nick:DEMO_ACCOUNT.nick, avatar:DEMO_ACCOUNT.avatar, email:DEMO_ACCOUNT.email });
+    setMyHistory(DEMO_ACCOUNT.history);
+    const ap = {}; const dates = {};
+    // これから参加する分
+    DEMO_ACCOUNT.applied.forEach(id => {
+      ap[id] = true;
+      const item = DATA.find(d => d.id === id);
+      if (item) dates[id] = nextDateFor(item.recurring);
+    });
+    // 今日ひらかれる活動(カレンダーにも今日として入る)
+    if (DEMO_ACCOUNT.today) {
+      ap[DEMO_ACCOUNT.today] = true;
+      dates[DEMO_ACCOUNT.today] = iso(new Date());
+    }
+    // 参加済みの分(履歴タブに出る)。日付を過去にする
+    const nt = {}; const ps = {};
+    DEMO_ACCOUNT.past.forEach(rec => {
+      ap[rec.id] = true;
+      const d = new Date();
+      d.setDate(d.getDate() - rec.daysAgo);
+      dates[rec.id] = iso(d);
+      if (rec.note) nt[rec.id] = rec.note;
+      if (rec.comment) ps[rec.id] = { photo:null, comment:rec.comment };
+    });
+    setApplied(ap);
+    setItemDates(prev => ({ ...prev, ...dates }));
+    setNotes(nt);
+    setPosts(ps);
+    setScreen("app");
+  };
+
+  const skipOnboarding = () => {
+    setAccount({ nick: lang === "ja" ? "あなた" : "You", avatar: "⭐", email: "" });
+    setScreen("app");
+  };
+  const signOut = () => {
+    setAccount(null); setScreen("onboarding");
+    setObNick(""); setObAvatar(AVATARS[0]); setObEmail(""); setObError(false);
+    setTab("public"); setOpenId(null); setOpenRoom(null);
+  };
+  /* 「あなた」の表示名とアイコン(未作成時のフォールバックつき) */
+  const meName = account ? account.nick : (lang === "ja" ? "あなた" : "You");
+  const meAvatar = account ? account.avatar : "⭐";
 
   const toggle = (arr, set, k) => set(arr.includes(k) ? arr.filter(x => x !== k) : [...arr, k]);
   const clearFilters = () => { setFArea([]); setFContent([]); setFEffort([]); setFTime("full"); setQuery(""); };
@@ -323,6 +665,13 @@ function App() {
     }
     return true;
   });
+
+  /* その活動に申請している友達 */
+  const friendsIn = (itemId) => people.filter(pp => pp.friend && pp.signedUp.includes(itemId));
+
+  /* 友達が参加している活動を上に持ってくる(おすすめ) */
+  const sortedResults = [...results].sort((a, b) => friendsIn(b.id).length - friendsIn(a.id).length);
+  const friendPickCount = results.filter(d => friendsIn(d.id).length > 0).length;
 
   const activeFilterCount = fArea.length + fContent.length + fEffort.length + (fTime !== "full" ? 1 : 0);
   const openItem = openId ? DATA.find(d => d.id === openId) : null;
@@ -425,8 +774,54 @@ function App() {
   };
   const removeOwnPlan = (pid) => setOwnPlans(ownPlans.filter(p => p.id !== pid));
 
+  /* これからの予定リスト: 申請済み/ブックマークした活動を日付順に。
+     今日以降を上に、過去は下にまとめる */
+  const upcomingList = (() => {
+    const rows = [];
+    Object.entries(itemDates).forEach(([id, dt]) => {
+      // 自分が関与しているものだけ(申請済み or ブックマーク済み)
+      if (!applied[id] && !bookmarks[id]) return;
+      const item = DATA.find(d => d.id === id);
+      if (!item) return;
+      rows.push({ date: dt, item, applied: !!applied[id] });
+    });
+    rows.sort((a, b) => a.date.localeCompare(b.date));
+    const today = iso(new Date());
+    return { future: rows.filter(r => r.date >= today), past: rows.filter(r => r.date < today) };
+  })();
+
+  /* 履歴: 申請済み(確定)の活動を対象に、済んだもの/これからで分ける。
+     済んだものだけ時間を合計(改善前の doneHours と同じ考え方) */
+  const historyRows = (() => {
+    const today = iso(new Date());
+    const rows = Object.keys(applied).filter(id => applied[id]).map(id => {
+      const item = DATA.find(d => d.id === id);
+      return item ? { id, item, date: itemDates[id] || null } : null;
+    }).filter(Boolean);
+    rows.sort((a, b) => (b.date || "").localeCompare(a.date || "")); // 新しい順
+    const done = rows.filter(r => r.date && r.date <= today);
+    const future = rows.filter(r => !r.date || r.date > today);
+    const totalH = done.reduce((s, r) => s + r.item.dur, 0);
+    return { done, future, totalH, count: done.length };
+  })();
+
   /* ---- 友達ページ ---- */
-  const roomMembers = (gid) => FRIENDS.filter(f => f.groups.includes(gid));
+  const roomMembers = (gid) => {
+    const room = rooms.find(x => x.id === gid);
+    if (!room) return [];
+    return people.filter(p => room.memberIds.includes(p.id));
+  };
+  /* 部屋の表示名(自分で作った部屋は name、初期の部屋は言語に合わせて) */
+  const roomName = (room) => room.name || (lang === "ja" ? room.ja : room.en);
+
+  /* 友達一覧から新しい部屋を作る */
+  const createRoom = () => {
+    if (!newRoomName.trim() || newRoomMembers.length === 0) return;
+    const id = "g" + Date.now();
+    setRooms([...rooms, { id, name:newRoomName.trim(), en:newRoomName.trim(), ja:newRoomName.trim(), memberIds:[...newRoomMembers] }]);
+    setNewRoomName(""); setNewRoomMembers([]); setShowNewRoom(false);
+    flash(t.roomCreated);
+  };
 
   /* 部屋のカレンダーに乗る予定を日付ごとに集める。
      自分がそのグループにブックマーク/申請した活動 + 友達がその活動に申請している状況 */
@@ -442,7 +837,7 @@ function App() {
     // 友達が申請している活動(同じ日付に割り当てられているもの)
     const members = roomMembers(gid);
     const friendItemIds = new Set();
-    members.forEach(f => f.applied.forEach(id => friendItemIds.add(id)));
+    members.forEach(f => f.signedUp.forEach(id => friendItemIds.add(id)));
     friendItemIds.forEach(id => {
       if (itemDates[id] !== dayIso) return;
       if (evs.some(e => e.item.id === id)) return; // 自分の分と重複しない
@@ -462,7 +857,7 @@ function App() {
       if (!dots[dt]) dots[dt] = {};
       if (applied[id]) dots[dt].applied = true; else dots[dt].bookmark = true;
     });
-    roomMembers(gid).forEach(f => f.applied.forEach(id => {
+    roomMembers(gid).forEach(f => f.signedUp.forEach(id => {
       const dt = itemDates[id]; if (!dt) return;
       const d = parseIso(dt); if (!sameYM(d, roomMonth)) return;
       if (!dots[dt]) dots[dt] = {};
@@ -474,10 +869,106 @@ function App() {
   /* ある活動に「参加する側」のメンバー一覧(自分＋友達) */
   const goingMembers = (gid, itemId) => {
     const list = [];
-    if (applied[itemId] && bookmarks[itemId]?.includes(gid)) list.push({ id:"me", name:t.you, emoji:"⭐", mine:true, applied:true });
-    else if (bookmarks[itemId]?.includes(gid)) list.push({ id:"me", name:t.you, emoji:"⭐", mine:true, applied:false });
-    roomMembers(gid).forEach(f => { if (f.applied.includes(itemId)) list.push({ ...f, applied:true }); });
+    if (applied[itemId] && bookmarks[itemId]?.includes(gid)) list.push({ id:"me", name:meName, emoji:meAvatar, mine:true, applied:true });
+    else if (bookmarks[itemId]?.includes(gid)) list.push({ id:"me", name:meName, emoji:meAvatar, mine:true, applied:false });
+    roomMembers(gid).forEach(f => { if (f.signedUp.includes(itemId)) list.push({ ...f, applied:true }); });
     return list;
+  };
+
+  /* 活動の申請者一覧(グループ横断)＋各自の当日回答ステータス。
+     status: "going" | "not" | null(未回答) */
+  const applicantsOf = (itemId) => {
+    const list = [];
+    if (applied[itemId]) {
+      list.push({ id:"me", name:meName, emoji:meAvatar, mine:true, friend:false, coCount:0,
+                  status: myAttend[itemId] || null, gps: myGps[itemId] || null });
+    }
+    people.forEach(pp => {
+      if (!pp.signedUp.includes(itemId)) return;
+      // 自分の参加履歴と重なった数 = 「一緒に参加した回数」
+      const coCount = pp.history.filter(h => myHistory.includes(h)).length;
+      list.push({ id:pp.id, name:pp.name, emoji:pp.emoji, mine:false,
+                  friend: pp.friend, coCount, status: pp.attend[itemId] || null,
+                  gps: (pp.gps && pp.gps[itemId]) || null });
+    });
+    // 並び順: 自分 → 友達(回数多い順) → 友達以外(回数多い順) → 初対面
+    return list.sort((a, b) => {
+      if (a.mine !== b.mine) return a.mine ? -1 : 1;
+      if (a.friend !== b.friend) return a.friend ? -1 : 1;
+      return b.coCount - a.coCount;
+    });
+  };
+
+  /* 未読メッセージ数(自分以外の発言のうち、まだ見ていない分) */
+  const unreadOf = (gid) => {
+    const all = (talks[gid] || []).length;
+    return Math.max(0, all - (readCount[gid] || 0));
+  };
+  /* トークを開いたら既読にする */
+  const openTalk = (gid) => {
+    setRoomTab("talk");
+    setReadCount({ ...readCount, [gid]: (talks[gid] || []).length });
+  };
+
+  /* グループトークに送信 */
+  const sendTalk = (gid) => {
+    if (!talkDraft.trim()) return;
+    const msg = { who: meName, avatar: meAvatar, text: talkDraft.trim(), mine:true };
+    const next = [...(talks[gid] || []), msg];
+    setTalks({ ...talks, [gid]: next });
+    setReadCount({ ...readCount, [gid]: next.length });
+    setTalkDraft("");
+  };
+
+  /* 友達登録する(アカウント交換) */
+  const addFriend = (personId) => {
+    setPeople(people.map(pp => pp.id === personId ? { ...pp, friend:true } : pp));
+    const target = people.find(pp => pp.id === personId);
+    if (target) flash(`${target.name} ${t.friendAdded}`);
+  };
+
+  /* 自分が当日回答する(デモ) */
+  const answerAttend = (itemId, ans) => {
+    setMyAttend({ ...myAttend, [itemId]: ans });
+    setPushFor(null);
+  };
+  /* デモ: 「2時間前」の状態にする(プッシュ通知も出す) */
+  const triggerDayOf = (itemId) => {
+    setDayOfActive({ ...dayOfActive, [itemId]: true });
+    setPushFor(itemId);
+  };
+
+  /* 記念投稿: 端末から画像を選んで表示(dataURLに変換して保持。デモなので再読込で消える) */
+  /* 下書きの中身(まだ投稿していなければ下書き、なければ投稿済みの内容) */
+  const draftOf = (itemId) => postDraft[itemId] || posts[itemId] || { photo:null, comment:"" };
+
+  const pickPhoto = (itemId, file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setPostDraft(prev => ({ ...prev, [itemId]: { ...(prev[itemId] || posts[itemId] || { photo:null, comment:"" }), photo: ev.target.result } }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  /* 投稿ボタン: 下書きを確定する */
+  const submitPost = (itemId) => {
+    const d = draftOf(itemId);
+    if (!d.photo && !(d.comment || "").trim()) return;
+    setPosts({ ...posts, [itemId]: d });
+    setEditingPost({ ...editingPost, [itemId]: false });
+    flash(t.postSaved);
+  };
+  const setPostComment = (itemId, text) => {
+    setPostDraft(prev => ({ ...prev, [itemId]: { ...(prev[itemId] || posts[itemId] || { photo:null, comment:"" }), comment: text } }));
+  };
+  /* 同じ活動(毎週開催など)への過去の投稿を集める。今は自分の投稿のみだが、
+     将来は他メンバーの投稿もここに集約できる構造 */
+  const pastPostsFor = (item) => {
+    // recurring が weekly/monthly のとき、その活動自身の投稿を「過去の回」として見せる
+    const p = posts[item.id];
+    if (!p || (!p.photo && !p.comment)) return [];
+    return [{ who: meName, avatar: meAvatar, ...p }];
   };
 
   const roomCalCells = (() => {
@@ -490,6 +981,114 @@ function App() {
     return cells;
   })();
 
+
+  /* ===== アカウント作成(オンボーディング)画面 ===== */
+  if (screen === "onboarding") {
+    return (
+      <div style={{ minHeight:"100vh", background:C.skyPale, fontFamily:"Poppins,sans-serif" }}>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap');*{box-sizing:border-box;margin:0;padding:0}
+.ob-shell{max-width:440px;margin:0 auto;min-height:100vh;}
+@media (min-width:700px){ .ob-shell{max-width:520px;} }`}</style>
+        <div className="ob-shell">
+          {/* ヘッダー */}
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
+            padding:"13px 20px", background:`linear-gradient(100deg,${C.sky},${C.skyDark})` }}>
+            <div style={{ fontWeight:900, fontSize:16, color:C.white }}>
+              <span style={{ fontWeight:300, letterSpacing:"0.06em", opacity:0.88 }}>a&nbsp;little&nbsp;</span>
+              <span style={{ fontWeight:900, fontSize:20, color:C.sun }}>V</span>
+            </div>
+            <button onClick={() => setLang(lang === "en" ? "ja" : "en")}
+              style={{ fontSize:11, fontWeight:800, padding:"5px 12px", borderRadius:999,
+                border:"2px solid rgba(255,255,255,0.65)", color:C.white,
+                background:"rgba(255,255,255,0.18)", cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+              {lang === "en" ? "日本語" : "English"}
+            </button>
+          </div>
+
+          <div style={{ padding:"28px 22px 40px" }}>
+            {/* 選択中アイコンの大プレビュー */}
+            <div style={{ textAlign:"center", marginBottom:22 }}>
+              <div style={{ width:96, height:96, borderRadius:"50%", margin:"0 auto",
+                background:`linear-gradient(140deg,${C.skyLight},${C.leafLight})`,
+                border:`3px solid ${C.sky}`, display:"flex", alignItems:"center", justifyContent:"center",
+                fontSize:52 }}>{obAvatar}</div>
+            </div>
+
+            <h1 style={{ fontWeight:900, fontSize:25, color:C.ink, letterSpacing:"-0.02em", textAlign:"center", marginBottom:6 }}>
+              {t.obTitle}
+            </h1>
+            <p style={{ fontSize:13, color:C.fade, textAlign:"center", marginBottom:26, fontFamily:"Poppins,sans-serif" }}>
+              {t.obSubtitle}
+            </p>
+
+            {/* ニックネーム */}
+            <div style={{ marginBottom:20 }}>
+              <div style={{ fontSize:10, fontWeight:800, color:C.sky, letterSpacing:"0.1em", marginBottom:7 }}>{t.obNick}</div>
+              <input value={obNick} onChange={e => { setObNick(e.target.value); setObError(false); }}
+                placeholder={t.obNickPlaceholder}
+                style={{ width:"100%", minHeight:48, padding:"12px 14px", borderRadius:14,
+                  border:`1.5px solid ${obError ? "#E06B6B" : C.line}`, fontSize:15, color:C.ink,
+                  background:C.white, fontFamily:"Poppins,sans-serif", outline:"none" }} />
+              {obError && <p style={{ fontSize:11, color:"#E06B6B", fontWeight:700, marginTop:5, fontFamily:"Poppins,sans-serif" }}>{t.obNickError}</p>}
+            </div>
+
+            {/* アイコン選択 */}
+            <div style={{ marginBottom:20 }}>
+              <div style={{ fontSize:10, fontWeight:800, color:C.sky, letterSpacing:"0.1em", marginBottom:3 }}>{t.obIcon}</div>
+              <p style={{ fontSize:10.5, color:C.fade, marginBottom:9, fontFamily:"Poppins,sans-serif" }}>{t.obIconNote}</p>
+              {/* 写真アップロードを足すときは、この grid の先頭に「＋写真」ボタンを追加する */}
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(8,1fr)", gap:6 }}>
+                {AVATARS.map(a => (
+                  <button key={a} onClick={() => setObAvatar(a)}
+                    style={{ aspectRatio:"1", borderRadius:12, cursor:"pointer", fontSize:22,
+                      border:`2px solid ${obAvatar === a ? C.sky : C.line}`,
+                      background: obAvatar === a ? C.skyLight : C.white,
+                      display:"flex", alignItems:"center", justifyContent:"center" }}>{a}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* メール */}
+            <div style={{ marginBottom:26 }}>
+              <div style={{ fontSize:10, fontWeight:800, color:C.sky, letterSpacing:"0.1em", marginBottom:7 }}>{t.obEmail}</div>
+              <input type="email" value={obEmail} onChange={e => setObEmail(e.target.value)}
+                placeholder={t.obEmailPlaceholder}
+                style={{ width:"100%", minHeight:48, padding:"12px 14px", borderRadius:14,
+                  border:`1.5px solid ${C.line}`, fontSize:15, color:C.ink,
+                  background:C.white, fontFamily:"Poppins,sans-serif", outline:"none" }} />
+              <p style={{ fontSize:10.5, color:C.fade, marginTop:6, fontFamily:"Poppins,sans-serif" }}>{t.obEmailNote}</p>
+            </div>
+
+            <button onClick={createAccount}
+              style={{ width:"100%", padding:"17px", borderRadius:18, background:C.sun, color:C.sunText,
+                fontWeight:900, fontSize:16, border:"none", cursor:"pointer",
+                boxShadow:"0 8px 24px rgba(255,213,53,0.4)", fontFamily:"Poppins,sans-serif" }}>
+              {t.obCreate}
+            </button>
+            {/* デモ用: すでに何度か参加している人の状態で開始(プレゼン用) */}
+            <div style={{ marginTop:16, padding:"14px 16px", borderRadius:16, background:C.leafLight,
+              border:`2px dashed ${C.leaf}` }}>
+              <button onClick={loadDemoAccount}
+                style={{ width:"100%", padding:"13px", borderRadius:12, background:C.leaf, color:C.white,
+                  fontWeight:900, fontSize:14, border:"none", cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                {t.obDemo}
+              </button>
+              <p style={{ fontSize:11, color:C.leafDark, lineHeight:1.5, marginTop:8, fontFamily:"Poppins,sans-serif" }}>
+                {t.obDemoNote}
+              </p>
+            </div>
+
+            <button onClick={skipOnboarding}
+              style={{ width:"100%", padding:"13px", borderRadius:14, marginTop:10, background:"none",
+                color:C.fade, fontWeight:800, fontSize:13, border:"none", cursor:"pointer",
+                textDecoration:"underline", fontFamily:"Poppins,sans-serif" }}>
+              {t.obSkip}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight:"100vh", background:C.skyPale, fontFamily:"Poppins,sans-serif" }}>
@@ -508,13 +1107,47 @@ function App() {
             <span style={{ fontWeight:300, letterSpacing:"0.06em", opacity:0.88 }}>a&nbsp;little&nbsp;</span>
             <span style={{ fontWeight:900, fontSize:20, color:C.sun }}>V</span>
           </div>
-          <button onClick={() => setLang(lang === "en" ? "ja" : "en")}
-            style={{ fontSize:11, fontWeight:800, padding:"5px 12px", borderRadius:999,
-              border:"2px solid rgba(255,255,255,0.65)", color:C.white,
-              background:"rgba(255,255,255,0.18)", cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
-            {lang === "en" ? "日本語" : "English"}
-          </button>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <button onClick={() => setLang(lang === "en" ? "ja" : "en")}
+              style={{ fontSize:11, fontWeight:800, padding:"5px 12px", borderRadius:999,
+                border:"2px solid rgba(255,255,255,0.65)", color:C.white,
+                background:"rgba(255,255,255,0.18)", cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+              {lang === "en" ? "日本語" : "English"}
+            </button>
+            {/* アカウントのアイコン(タップでやり直し) */}
+            <button onClick={signOut} title={t.signOut}
+              style={{ width:34, height:34, borderRadius:"50%", border:"2px solid rgba(255,255,255,0.7)",
+                background:"rgba(255,255,255,0.22)", cursor:"pointer", fontSize:18,
+                display:"flex", alignItems:"center", justifyContent:"center" }}>
+              {meAvatar}
+            </button>
+          </div>
         </div>
+
+        {/* ===== プッシュ通知バナー(デモ) ===== */}
+        {pushFor && (() => {
+          const item = DATA.find(d => d.id === pushFor);
+          if (!item) return null;
+          return (
+            <div style={{ position:"sticky", top:60, zIndex:35, margin:"10px 12px 0",
+              background:C.white, borderRadius:16, border:`1.5px solid ${C.sky}`,
+              boxShadow:"0 8px 28px rgba(11,190,235,0.28)", padding:"12px 14px", fontFamily:"Poppins,sans-serif" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+                <span style={{ width:26, height:26, borderRadius:7, background:`linear-gradient(140deg,${C.sky},${C.leaf})`,
+                  display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, color:C.white, fontWeight:900 }}>V</span>
+                <span style={{ fontSize:11, fontWeight:800, color:C.ink }}>{t.pushTitle}</span>
+                <button onClick={() => setPushFor(null)}
+                  style={{ marginLeft:"auto", fontSize:14, color:C.fade, background:"none", border:"none", cursor:"pointer", lineHeight:1 }}>✕</button>
+              </div>
+              <p style={{ fontSize:12.5, color:C.ink, lineHeight:1.5, marginBottom:10 }}>{t.pushBody(item.name)}</p>
+              <button onClick={() => answerAttend(pushFor, "not")}
+                style={{ width:"100%", padding:"9px", borderRadius:10, fontWeight:800, fontSize:12,
+                  background:C.white, color:"#C0392B", border:"1.5px solid #E8A9A9", cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                {t.notGoing}
+              </button>
+            </div>
+          );
+        })()}
 
         {/* ===== PUBLIC: 検索ページ or ボランティアページ ===== */}
         {tab === "public" && !openItem && (
@@ -568,9 +1201,19 @@ function App() {
               </div>
             )}
 
-            <div style={{ fontSize:11, fontWeight:800, color:C.fade, letterSpacing:"0.06em", marginBottom:10, paddingLeft:2 }}>
-              {t.resultsN(results.length)}
+            <div style={{ display:"flex", alignItems:"baseline", gap:8, marginBottom:10, paddingLeft:2 }}>
+              <span style={{ fontSize:11, fontWeight:800, color:C.fade, letterSpacing:"0.06em" }}>{t.resultsN(results.length)}</span>
+              <span style={{ fontSize:10.5, fontWeight:700, color:C.sky }}>
+                {t.fromOrgs(new Set(results.map(d => d.org).filter(Boolean)).size)}
+              </span>
             </div>
+            {friendPickCount > 0 && (
+              <div style={{ background:"rgba(255,213,53,0.18)", border:`1.5px solid ${C.sun}`,
+                borderRadius:12, padding:"8px 13px", marginBottom:12, fontSize:12, fontWeight:800,
+                color:C.sunText, fontFamily:"Poppins,sans-serif" }}>
+                {t.friendPick(friendPickCount)}
+              </div>
+            )}
 
             {results.length === 0 && (
               <div style={{ background:C.warn, border:`1.5px solid ${C.warnB}`, borderRadius:14,
@@ -579,10 +1222,11 @@ function App() {
               </div>
             )}
 
-            {results.map(item => (
+            {sortedResults.map(item => (
               <ListCard key={item.id} item={item} t={t} lang={lang}
                 onOpen={() => setOpenId(item.id)}
-                bookmarked={!!bookmarks[item.id]} applied={!!applied[item.id]} />
+                bookmarked={!!bookmarks[item.id]} applied={!!applied[item.id]}
+                friendsGoing={friendsIn(item.id)} />
             ))}
           </div>
         )}
@@ -633,11 +1277,270 @@ function App() {
               <div style={{ fontSize:13, fontWeight:700, color:C.ink, fontFamily:"Poppins,sans-serif" }}>{t.bookLabel[openItem.booking]}</div>
             </div>
 
-            {/* 申請者一覧(次回) */}
-            <div style={{ background:C.skyPale, borderRadius:14, border:`1px dashed ${C.sky}`, padding:"12px 15px", marginBottom:20 }}>
-              <div style={{ fontSize:11, fontWeight:800, color:C.sky, marginBottom:4 }}>👥 {t.whoTitle}</div>
-              <div style={{ fontSize:11.5, color:C.fade, lineHeight:1.5, fontFamily:"Poppins,sans-serif" }}>{t.whoSoon}</div>
-            </div>
+            {/* ===== 参加者リスト(このアプリの核心) =====
+                 並び順: 自分 → 友達(💛) → 一緒に参加した回数が多い人 → はじめての人
+                 縦スクロールで限られた枠に収める                         */}
+            {(() => {
+              const apps = applicantsOf(openItem.id);
+              const goingN = apps.filter(a => a.gps === "arrived" || a.gps === "onway").length;
+              return (
+                <div style={{ background:C.white, borderRadius:16, border:`1.5px solid ${C.line}`, marginBottom:16, overflow:"hidden" }}>
+                  {/* ヘッダー */}
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
+                    padding:"12px 15px", borderBottom:apps.length?`1px solid ${C.line}`:"none" }}>
+                    <div style={{ fontSize:12, fontWeight:800, color:C.sky }}>👥 {t.whoTitle}</div>
+                    <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+                      <span style={{ fontSize:10.5, fontWeight:700, color:C.fade }}>{t.whoCount(apps.length)}</span>
+                      {goingN > 0 && <span style={{ fontSize:10.5, fontWeight:800, color:C.leaf }}>📍 {goingN}</span>}
+                    </div>
+                  </div>
+
+                  {apps.length === 0 && (
+                    <div style={{ padding:"14px 15px", fontSize:12, color:C.fade, lineHeight:1.5, fontFamily:"Poppins,sans-serif" }}>{t.whoNone}</div>
+                  )}
+
+                  {/* 縦スクロールする参加者リスト */}
+                  {apps.length > 0 && (
+                    <div style={{ maxHeight:290, overflowY:"auto", WebkitOverflowScrolling:"touch" }}>
+                      {apps.map((a, idx) => (
+                        <div key={a.id} style={{ display:"flex", alignItems:"center", gap:11,
+                          padding:"10px 15px",
+                          borderTop: idx === 0 ? "none" : `1px solid ${C.skyPale}`,
+                          background: a.mine ? "rgba(255,213,53,0.10)" : (a.friend ? "rgba(255,213,53,0.05)" : "transparent"),
+                          opacity: a.status === "not" ? 0.45 : 1 }}>
+
+                          {/* アイコン */}
+                          <div style={{ flexShrink:0, width:38, height:38, borderRadius:"50%",
+                            background: a.mine ? C.sun : C.skyLight, display:"flex", alignItems:"center", justifyContent:"center",
+                            fontSize:19, filter: a.status === "not" ? "grayscale(1)" : "none" }}>{a.emoji}</div>
+
+                          {/* 名前 + 💛友達 + 一緒に参加した回数 */}
+                          <div style={{ flex:1, minWidth:0 }}>
+                            <div style={{ display:"flex", alignItems:"center", gap:5 }}>
+                              <span style={{ fontSize:13.5, fontWeight:800, color:C.ink, fontFamily:"Poppins,sans-serif",
+                                overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{a.name}</span>
+                              {a.friend && <span style={{ fontSize:13 }} title={t.friendLabel}>💛</span>}
+                            </div>
+                            {!a.mine && a.coCount > 0 && (
+                              <div style={{ fontSize:10.5, fontWeight:700, color:C.leaf, marginTop:2, fontFamily:"Poppins,sans-serif" }}>
+                                🔁 {t.coTimes(a.coCount)}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* 友達登録ボタン(まだ友達でない人だけ) */}
+                          {!a.mine && !a.friend && (
+                            <button onClick={() => addFriend(a.id)}
+                              style={{ flexShrink:0, padding:"5px 10px", borderRadius:999, fontSize:10.5, fontWeight:800,
+                                border:`1.5px solid ${C.sky}`, background:C.white, color:C.sky, cursor:"pointer",
+                                fontFamily:"Poppins,sans-serif", whiteSpace:"nowrap" }}>
+                              {t.addFriendBtn}
+                            </button>
+                          )}
+
+                          {/* 右端: 当日の状況。GPSが取れていれば位置(到着/向かい中)、
+                               なければ本人の回答(✓/✕)、未回答は空欄 */}
+                          <div style={{ flexShrink:0, minWidth:26, textAlign:"right" }}>
+                            {a.gps === "arrived" ? (
+                              <span style={{ display:"inline-flex", alignItems:"center", gap:3,
+                                background:C.leafLight, color:C.leafDark, padding:"3px 8px", borderRadius:999,
+                                fontSize:10, fontWeight:900, fontFamily:"Poppins,sans-serif", whiteSpace:"nowrap" }}>
+                                📍 {t.gpsArrived}
+                              </span>
+                            ) : a.gps === "onway" ? (
+                              <span style={{ display:"inline-flex", alignItems:"center", gap:3,
+                                background:C.skyLight, color:C.skyDark, padding:"3px 8px", borderRadius:999,
+                                fontSize:10, fontWeight:900, fontFamily:"Poppins,sans-serif", whiteSpace:"nowrap" }}>
+                                🚶 {t.gpsOnway}
+                              </span>
+                            ) : a.status === "not" ? (
+                              <span style={{ fontSize:16, fontWeight:900, color:"#E06B6B" }}>✕</span>
+                            ) : null}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* 凡例 */}
+                  {apps.length > 0 && (
+                    <div style={{ display:"flex", gap:12, flexWrap:"wrap", padding:"9px 15px",
+                      borderTop:`1px solid ${C.line}`, background:C.skyPale }}>
+                      <span style={{ fontSize:9.5, fontWeight:700, color:C.fade }}>💛 {t.legendFriend}</span>
+                      <span style={{ fontSize:9.5, fontWeight:700, color:C.fade }}>🔁 {t.legendCo}</span>
+                      <span style={{ fontSize:9.5, fontWeight:700, color:C.leafDark }}>📍 {t.gpsArrived}</span>
+                      <span style={{ fontSize:9.5, fontWeight:700, color:C.skyDark }}>🚶 {t.gpsOnway}</span>
+                      <span style={{ fontSize:9.5, fontWeight:700, color:"#E06B6B" }}>✕ {t.statusNot}</span>
+                    </div>
+                  )}
+                  {/* GPSで自動更新されるという仕組みの説明 */}
+                  {apps.length > 0 && (
+                    <div style={{ padding:"9px 15px", borderTop:`1px solid ${C.line}`, background:C.white }}>
+                      <p style={{ fontSize:10.5, color:C.fade, lineHeight:1.55, fontFamily:"Poppins,sans-serif" }}>
+                        {t.gpsHow}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* 開始2時間前の確認。今日ひらかれる活動のときだけ出る */}
+            {applied[openItem.id] && itemDates[openItem.id] === iso(new Date()) && (
+              <div style={{ background:C.skyPale, borderRadius:14, border:`2px solid ${C.sky}`, padding:"14px 16px", marginBottom:12 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:11 }}>
+                  <span style={{ fontSize:11.5, fontWeight:900, color:C.sky }}>⏰ {t.dayOfTitle}</span>
+                  <button onClick={() => setPushFor(openItem.id)}
+                    style={{ fontSize:10.5, fontWeight:800, color:C.sky, background:C.white,
+                      border:`1.5px dashed ${C.sky}`, borderRadius:9, padding:"5px 10px",
+                      cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                    {t.demoTrigger}
+                  </button>
+                </div>
+                <div>
+                {myAttend[openItem.id] ? (
+                  <>
+                  <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                    <span style={{ fontSize:22 }}>{myAttend[openItem.id] === "going" ? "✋" : "🙏"}</span>
+                    <span style={{ fontSize:14, fontWeight:800, color: myAttend[openItem.id] === "going" ? C.leafDark : C.fade, fontFamily:"Poppins,sans-serif" }}>
+                      {myAttend[openItem.id] === "going" ? t.youGoing : t.youNot}
+                    </span>
+                    <button onClick={() => setMyAttend({ ...myAttend, [openItem.id]: myAttend[openItem.id] === "going" ? "not" : "going" })}
+                      style={{ marginLeft:"auto", fontSize:11, fontWeight:700, color:C.sky, background:"none", border:"none", cursor:"pointer", textDecoration:"underline", fontFamily:"Poppins,sans-serif" }}>
+                      {myAttend[openItem.id] === "going" ? t.notGoing : t.imGoing}
+                    </button>
+                  </div>
+                  {/* GPSで自動更新される部分(デモではボタンで再現) */}
+                  <div style={{ marginTop:11, paddingTop:10, borderTop:`1px solid ${C.line}` }}>
+                    {myGps[openItem.id] === "arrived" ? (
+                      <div style={{ display:"inline-flex", alignItems:"center", gap:6, background:C.leafLight,
+                        color:C.leafDark, padding:"6px 12px", borderRadius:999, fontSize:12, fontWeight:800,
+                        fontFamily:"Poppins,sans-serif" }}>
+                        📍 {t.gpsMineArrived}
+                      </div>
+                    ) : (
+                      <button onClick={() => setMyGps({ ...myGps, [openItem.id]: "arrived" })}
+                        style={{ fontSize:11.5, fontWeight:800, color:C.leaf, background:C.white,
+                          border:`1.5px dashed ${C.leaf}`, borderRadius:10, padding:"7px 13px",
+                          cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                        {t.gpsDemoBtn}
+                      </button>
+                    )}
+                    <p style={{ fontSize:10.5, color:C.fade, lineHeight:1.5, marginTop:7, fontFamily:"Poppins,sans-serif" }}>
+                      {t.gpsDemoNote}
+                    </p>
+                  </div>
+                  </>
+                ) : (
+                  <>
+                    <p style={{ fontSize:13.5, fontWeight:800, color:C.ink, marginBottom:4, fontFamily:"Poppins,sans-serif" }}>{t.goingQ}</p>
+                    <p style={{ fontSize:11.5, color:C.fade, lineHeight:1.55, marginBottom:12, fontFamily:"Poppins,sans-serif" }}>{t.goingQSub}</p>
+                    <button onClick={() => answerAttend(openItem.id, "not")}
+                      style={{ width:"100%", padding:"12px", borderRadius:12, fontWeight:800, fontSize:13,
+                        background:C.white, color:"#C0392B", border:"1.5px solid #E8A9A9", cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                      {t.notGoing}
+                    </button>
+                  </>
+                )}
+                </div>
+              </div>
+            )}
+
+            {/* 記念投稿(申請済み=参加した活動に対して) */}
+            {applied[openItem.id] && (() => {
+              const saved = posts[openItem.id];
+              const hasPost = saved && (saved.photo || saved.comment);
+              const editing = editingPost[openItem.id] || !hasPost;
+              const d = draftOf(openItem.id);
+              const canPost = !!(d.photo || (d.comment || "").trim());
+              return (
+                <div style={{ background:C.white, borderRadius:14, border:`1.5px solid ${C.leaf}`, padding:"12px 16px", marginBottom:12 }}>
+                  <button onClick={() => setOpenSection({ ...openSection, ["memo-"+openItem.id]: !openSection["memo-"+openItem.id] })}
+                    style={{ width:"100%", display:"flex", justifyContent:"space-between", alignItems:"center",
+                      background:"none", border:"none", cursor:"pointer", padding:0, fontFamily:"Poppins,sans-serif" }}>
+                    <span style={{ fontSize:11.5, fontWeight:800, color:C.leafDark }}>
+                      📸 {t.postTitle}{hasPost ? " ✓" : ""}
+                    </span>
+                    <span style={{ fontSize:11, fontWeight:800, color:C.leafDark }}>{openSection["memo-"+openItem.id] ? "▲" : "▼"}</span>
+                  </button>
+
+                  {openSection["memo-"+openItem.id] && (<div style={{ marginTop:11 }}>
+                    {editing ? (
+                      /* ---- 書く(下書き) ---- */
+                      <>
+                        <p style={{ fontSize:11.5, color:C.fade, lineHeight:1.5, marginBottom:12, fontFamily:"Poppins,sans-serif" }}>{t.postHint}</p>
+
+                        {d.photo ? (
+                          <div style={{ position:"relative", marginBottom:10 }}>
+                            <img src={d.photo} alt="" style={{ width:"100%", borderRadius:12, display:"block", maxHeight:260, objectFit:"cover" }} />
+                            <label style={{ position:"absolute", bottom:8, right:8, background:"rgba(14,40,48,0.7)", color:C.white,
+                              fontSize:11, fontWeight:700, padding:"6px 12px", borderRadius:999, cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                              {t.postChange}
+                              <input type="file" accept="image/*" onChange={e => pickPhoto(openItem.id, e.target.files[0])} style={{ display:"none" }} />
+                            </label>
+                          </div>
+                        ) : (
+                          <label style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+                            gap:6, height:120, borderRadius:12, border:`2px dashed ${C.line}`, background:C.skyPale,
+                            cursor:"pointer", marginBottom:10 }}>
+                            <span style={{ fontSize:26 }}>📷</span>
+                            <span style={{ fontSize:12, fontWeight:800, color:C.sky, fontFamily:"Poppins,sans-serif" }}>{t.postPhoto}</span>
+                            <input type="file" accept="image/*" onChange={e => pickPhoto(openItem.id, e.target.files[0])} style={{ display:"none" }} />
+                          </label>
+                        )}
+
+                        <input value={d.comment || ""} onChange={e => setPostComment(openItem.id, e.target.value)}
+                          placeholder={t.postCommentPh}
+                          style={{ width:"100%", minHeight:44, padding:"11px 13px", borderRadius:12, border:`1.5px solid ${C.line}`,
+                            fontSize:14, color:C.ink, background:C.white, fontFamily:"Poppins,sans-serif", outline:"none" }} />
+
+                        {/* 投稿ボタン */}
+                        <button onClick={() => submitPost(openItem.id)} disabled={!canPost}
+                          style={{ width:"100%", padding:"13px", borderRadius:14, marginTop:11,
+                            background: canPost ? C.leaf : C.line, color:C.white,
+                            fontWeight:900, fontSize:14, border:"none",
+                            cursor: canPost ? "pointer" : "not-allowed", fontFamily:"Poppins,sans-serif" }}>
+                          {t.postSave}
+                        </button>
+                      </>
+                    ) : (
+                      /* ---- 投稿済みの表示 ---- */
+                      <>
+                        {saved.photo && (
+                          <img src={saved.photo} alt="" style={{ width:"100%", borderRadius:12, display:"block", maxHeight:260, objectFit:"cover", marginBottom:9 }} />
+                        )}
+                        {saved.comment && (
+                          <p style={{ fontSize:14, color:C.ink, lineHeight:1.6, fontFamily:"Poppins,sans-serif" }}>{saved.comment}</p>
+                        )}
+                        <button onClick={() => setEditingPost({ ...editingPost, [openItem.id]: true })}
+                          style={{ fontSize:12, fontWeight:800, color:C.sky, background:"none", border:"none",
+                            cursor:"pointer", padding:0, marginTop:10, fontFamily:"Poppins,sans-serif" }}>
+                          ✏️ {t.postEdit}
+                        </button>
+                      </>
+                    )}
+                  </div>)}
+                </div>
+              );
+            })()}
+
+            {/* 毎週・毎月開催の過去の回の記念(参考) */}
+            {(openItem.recurring === "weekly" || openItem.recurring === "monthly") && pastPostsFor(openItem).length > 0 && (
+              <div style={{ marginBottom:16 }}>
+                <div style={{ fontSize:10, fontWeight:800, color:C.sky, letterSpacing:"0.1em", marginBottom:9 }}>🕘 {t.pastPostsTitle}</div>
+                {pastPostsFor(openItem).map((pp, i) => (
+                  <div key={i} style={{ background:C.white, borderRadius:14, border:`1.5px solid ${C.line}`, padding:"12px 14px", marginBottom:10 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:8 }}>
+                      <span style={{ width:26, height:26, borderRadius:"50%", background:C.skyLight,
+                        display:"flex", alignItems:"center", justifyContent:"center", fontSize:14 }}>{pp.avatar}</span>
+                      <span style={{ fontSize:12, fontWeight:800, color:C.ink, fontFamily:"Poppins,sans-serif" }}>{pp.who}</span>
+                    </div>
+                    {pp.photo && <img src={pp.photo} alt="" style={{ width:"100%", borderRadius:10, display:"block", maxHeight:200, objectFit:"cover", marginBottom:8 }} />}
+                    {pp.comment && <p style={{ fontSize:13, color:C.ink, lineHeight:1.5, fontFamily:"Poppins,sans-serif" }}>{pp.comment}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* 申請 + ブックマークボタン */}
             <div style={{ display:"flex", gap:10, marginBottom:8 }}>
@@ -649,11 +1552,14 @@ function App() {
                 {applied[openItem.id] ? t.applied : t.applyBtn}
               </button>
               <button onClick={() => openBmSheet(openItem.id)}
-                style={{ minWidth:120, minHeight:52, borderRadius:16, fontWeight:800, fontSize:13,
+                style={{ minWidth:118, minHeight:52, borderRadius:16, fontWeight:800, fontSize:12.5,
+                  display:"flex", alignItems:"center", justifyContent:"center", gap:7,
                   background: bookmarks[openItem.id] ? C.leafLight : C.white,
                   color: bookmarks[openItem.id] ? C.leafDark : C.ink,
                   border:`2px solid ${bookmarks[openItem.id] ? C.leaf : C.line}`,
                   cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                <BookmarkIcon filled={!!bookmarks[openItem.id]} size={17}
+                  color={bookmarks[openItem.id] ? C.leaf : C.fade} />
                 {bookmarks[openItem.id] ? t.bookmarkedBtn : t.bookmarkBtn}
               </button>
             </div>
@@ -663,6 +1569,25 @@ function App() {
         {/* ===== 個人ページ(カレンダー) ===== */}
         {tab === "personal" && (
           <div style={{ padding:"16px 16px 0" }}>
+            {/* サブタブ: カレンダー / 履歴 */}
+            <div style={{ display:"flex", gap:8, marginBottom:16, background:C.white, padding:5,
+              borderRadius:14, border:`1.5px solid ${C.line}` }}>
+              {[
+                { id:"calendar", label:t.subCal },
+                { id:"history", label:t.subHistory },
+                { id:"friends", label:t.subFriends },
+              ].map(s => (
+                <button key={s.id} onClick={() => setPersonalSub(s.id)}
+                  style={{ flex:1, padding:"9px", borderRadius:10, fontSize:13, fontWeight:800, cursor:"pointer",
+                    border:"none", fontFamily:"Poppins,sans-serif",
+                    background: personalSub === s.id ? C.sky : "transparent",
+                    color: personalSub === s.id ? C.white : C.fade }}>
+                  {s.label}
+                </button>
+              ))}
+            </div>
+
+            {personalSub === "calendar" && (<>
             <h2 style={{ fontWeight:900, fontSize:22, color:C.ink, letterSpacing:"-0.02em", marginBottom:14 }}>
               📅 {t.calTitle}
             </h2>
@@ -792,12 +1717,21 @@ function App() {
                   </div>
                   <div style={{ fontSize:11, color:C.fade, marginTop:3, fontFamily:"Poppins,sans-serif" }}>📍 {t.areas[ev.item.area]}</div>
 
-                  {/* 詳細を見る → パブリックのボランティアページへ */}
-                  <button onClick={() => { setTab("public"); setOpenId(ev.item.id); }}
-                    style={{ fontSize:12, fontWeight:800, color:C.sky, background:"none", border:"none",
-                      cursor:"pointer", padding:0, marginTop:8, fontFamily:"Poppins,sans-serif" }}>
-                    {t.viewDetail}
-                  </button>
+                  {/* アクション: 仮の予定なら「申請する」、詳細も同じ行に */}
+                  <div style={{ display:"flex", gap:8, alignItems:"center", marginTop:10, flexWrap:"wrap" }}>
+                    {!isApplied && (
+                      <button onClick={() => doApply(ev.item)}
+                        style={{ padding:"8px 14px", borderRadius:10, fontSize:12, fontWeight:900,
+                          background:C.sun, color:C.sunText, border:"none", cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                        {t.calApply}
+                      </button>
+                    )}
+                    <button onClick={() => { setTab("public"); setOpenId(ev.item.id); }}
+                      style={{ padding:"8px 14px", borderRadius:10, fontSize:12, fontWeight:800,
+                        background:"none", color:C.sky, border:`1.5px solid ${C.line}`, cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                      {t.viewDetail}
+                    </button>
+                  </div>
 
                   {/* 申請済みならメモ欄(出願用) */}
                   {isApplied && (
@@ -821,33 +1755,280 @@ function App() {
                 fontWeight:800, fontSize:13, cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
               {t.addOwn}
             </button>
+
+            {/* これからの予定リスト(日付を選ばなくても全体を見渡せる) */}
+            <div style={{ marginTop:22, paddingTop:18, borderTop:`1.5px solid ${C.line}` }}>
+              <div style={{ fontSize:11, fontWeight:800, color:C.sky, letterSpacing:"0.1em", marginBottom:12 }}>
+                🗓 {t.upcomingTitle}
+              </div>
+
+              {upcomingList.future.length === 0 && upcomingList.past.length === 0 && (
+                <p style={{ fontSize:12.5, color:C.fade, lineHeight:1.6, fontFamily:"Poppins,sans-serif" }}>{t.upcomingEmpty}</p>
+              )}
+
+              {upcomingList.future.map((r, i) => (
+                <button key={i} onClick={() => { setSelDay(r.date); if (!sameYM(parseIso(r.date), calMonth)) setCalMonth(new Date(parseIso(r.date).getFullYear(), parseIso(r.date).getMonth(), 1)); }}
+                  style={{ width:"100%", textAlign:"left", display:"flex", alignItems:"center", gap:12,
+                    background:C.white, borderRadius:14, border:`1.5px solid ${r.applied ? C.leaf : C.line}`,
+                    padding:"11px 14px", marginBottom:9, cursor:"pointer" }}>
+                  {/* 日付ブロック */}
+                  <div style={{ flexShrink:0, textAlign:"center", minWidth:38 }}>
+                    <div style={{ fontSize:10, fontWeight:800, color:C.fade, textTransform:"uppercase" }}>{t.months[parseIso(r.date).getMonth()].slice(0,3)}</div>
+                    <div style={{ fontSize:20, fontWeight:900, color: r.applied ? C.leafDark : C.ink, lineHeight:1 }}>{parseIso(r.date).getDate()}</div>
+                  </div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:13, fontWeight:800, color: r.applied ? C.leafDark : C.ink, lineHeight:1.3,
+                      fontFamily:"Poppins,sans-serif", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                      {r.item.name}
+                    </div>
+                    <div style={{ fontSize:10.5, color:C.fade, marginTop:2, fontFamily:"Poppins,sans-serif" }}>
+                      ⏱ {r.item.dur}{t.hours} · 📍 {t.areas[r.item.area]}
+                    </div>
+                  </div>
+                  <span style={{ flexShrink:0, fontSize:8.5, fontWeight:900, letterSpacing:"0.04em",
+                    color: r.applied ? C.leafDark : C.sunText,
+                    background: r.applied ? "rgba(0,168,79,0.15)" : "rgba(255,213,53,0.25)",
+                    padding:"3px 7px", borderRadius:999 }}>
+                    {r.applied ? "✓ " + t.confirmed : t.tentative}
+                  </span>
+                </button>
+              ))}
+
+              {/* 過去の予定(あれば折りたたまず下にまとめる) */}
+              {upcomingList.past.length > 0 && (
+                <>
+                  <div style={{ fontSize:10, fontWeight:800, color:C.fade, letterSpacing:"0.08em", margin:"14px 0 9px" }}>{t.upcomingPast}</div>
+                  {upcomingList.past.map((r, i) => (
+                    <button key={i} onClick={() => { setSelDay(r.date); if (!sameYM(parseIso(r.date), calMonth)) setCalMonth(new Date(parseIso(r.date).getFullYear(), parseIso(r.date).getMonth(), 1)); }}
+                      style={{ width:"100%", textAlign:"left", display:"flex", alignItems:"center", gap:12,
+                        background:C.white, borderRadius:14, border:`1.5px solid ${C.line}`,
+                        padding:"11px 14px", marginBottom:9, cursor:"pointer", opacity:0.6 }}>
+                      <div style={{ flexShrink:0, textAlign:"center", minWidth:38 }}>
+                        <div style={{ fontSize:10, fontWeight:800, color:C.fade, textTransform:"uppercase" }}>{t.months[parseIso(r.date).getMonth()].slice(0,3)}</div>
+                        <div style={{ fontSize:20, fontWeight:900, color:C.ink, lineHeight:1 }}>{parseIso(r.date).getDate()}</div>
+                      </div>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontSize:13, fontWeight:800, color:C.ink, lineHeight:1.3,
+                          fontFamily:"Poppins,sans-serif", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                          {r.item.name}
+                        </div>
+                        <div style={{ fontSize:10.5, color:C.fade, marginTop:2, fontFamily:"Poppins,sans-serif" }}>
+                          ⏱ {r.item.dur}{t.hours} · 📍 {t.areas[r.item.area]}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </>
+              )}
+            </div>
+            </>)}
+
+            {/* ===== 履歴ビュー ===== */}
+            {personalSub === "history" && (<>
+              <h2 style={{ fontWeight:900, fontSize:22, color:C.ink, letterSpacing:"-0.02em", marginBottom:14 }}>
+                🎓 {t.histTitle}
+              </h2>
+
+              {/* サマリー: 合計時間・活動数 */}
+              <div style={{ display:"flex", gap:10, marginBottom:18 }}>
+                <div style={{ flex:1, background:`linear-gradient(110deg,${C.leaf},#00C85E)`, borderRadius:16, padding:"14px 16px", color:C.white }}>
+                  <div style={{ fontSize:10, fontWeight:700, opacity:0.9, letterSpacing:"0.04em" }}>{t.histHours}</div>
+                  <div style={{ fontWeight:900, fontSize:28, lineHeight:1.1, marginTop:2 }}>
+                    {historyRows.totalH}<span style={{ fontSize:14, fontWeight:800 }}> {t.histUnit}</span>
+                  </div>
+                </div>
+                <div style={{ flex:1, background:C.white, border:`2px solid ${C.line}`, borderRadius:16, padding:"14px 16px" }}>
+                  <div style={{ fontSize:10, fontWeight:700, color:C.fade, letterSpacing:"0.04em" }}>{t.histCount}</div>
+                  <div style={{ fontWeight:900, fontSize:28, lineHeight:1.1, marginTop:2, color:C.ink }}>{historyRows.count}</div>
+                </div>
+              </div>
+
+              {historyRows.done.length === 0 && historyRows.future.length === 0 && (
+                <p style={{ fontSize:12.5, color:C.fade, lineHeight:1.7, fontFamily:"Poppins,sans-serif" }}>{t.histEmpty}</p>
+              )}
+
+              {/* 済んだ活動(メモ編集つき) */}
+              {historyRows.done.map((r) => (
+                <div key={r.id} style={{ background:C.white, borderRadius:16, border:`1.5px solid ${C.leaf}`,
+                  padding:"14px 16px", marginBottom:12 }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:8 }}>
+                    <div style={{ fontSize:14.5, fontWeight:800, color:C.leafDark, lineHeight:1.35, fontFamily:"Poppins,sans-serif" }}>{r.item.name}</div>
+                    <span style={{ flexShrink:0, fontSize:11, fontWeight:800, color:C.leaf }}>✓</span>
+                  </div>
+                  <div style={{ display:"flex", gap:12, marginTop:6, fontSize:11, color:C.fade, flexWrap:"wrap", fontFamily:"Poppins,sans-serif" }}>
+                    {r.date && <span>🗓 {parseIso(r.date).getDate()} {t.months[parseIso(r.date).getMonth()]}</span>}
+                    <span>⏱ {r.item.dur}{t.histUnit}</span>
+                    <span>📍 {t.areas[r.item.area]}</span>
+                  </div>
+
+                  {/* 記念写真・コメント(投稿があれば表示) */}
+                  {posts[r.id] && (posts[r.id].photo || posts[r.id].comment) && (
+                    <div style={{ marginTop:11 }}>
+                      {posts[r.id].photo && (
+                        <img src={posts[r.id].photo} alt="" style={{ width:"100%", borderRadius:10, display:"block", maxHeight:220, objectFit:"cover", marginBottom:posts[r.id].comment?8:0 }} />
+                      )}
+                      {posts[r.id].comment && (
+                        <p style={{ fontSize:13, color:C.ink, lineHeight:1.5, fontStyle:"italic", fontFamily:"Poppins,sans-serif" }}>"{posts[r.id].comment}"</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* メモ(出願用) */}
+                  <div style={{ marginTop:11 }}>
+                    {openNotes[r.id] ? (
+                      /* 開いた状態: 編集できる */
+                      <>
+                        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:5 }}>
+                          <span style={{ fontSize:10, fontWeight:800, color:C.leafDark }}>📝 {t.histNoteLabel}</span>
+                          <button onClick={() => setOpenNotes({ ...openNotes, [r.id]: false })}
+                            style={{ fontSize:10.5, fontWeight:800, color:C.fade, background:"none", border:"none",
+                              cursor:"pointer", padding:0, fontFamily:"Poppins,sans-serif" }}>
+                            {t.noteHide} ▲
+                          </button>
+                        </div>
+                        <textarea value={notes[r.id] || ""} onChange={e => setNotes({ ...notes, [r.id]: e.target.value })}
+                          placeholder={t.histNotePlaceholder} rows={4} autoFocus
+                          style={{ width:"100%", padding:"9px 11px", borderRadius:10, border:`1.5px solid ${C.line}`,
+                            fontSize:12.5, color:C.ink, background:C.skyPale, fontFamily:"Poppins,sans-serif",
+                            outline:"none", resize:"vertical", lineHeight:1.5 }} />
+                      </>
+                    ) : (
+                      /* 閉じた状態: 冒頭だけ薄く見せる。押すと開く */
+                      <button onClick={() => setOpenNotes({ ...openNotes, [r.id]: true })}
+                        style={{ width:"100%", textAlign:"left", display:"flex", alignItems:"center", gap:8,
+                          background:C.skyPale, border:`1.5px solid ${C.line}`, borderRadius:10,
+                          padding:"9px 11px", cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                        <span style={{ fontSize:10, fontWeight:800, color:C.leafDark, flexShrink:0 }}>📝</span>
+                        <span style={{ flex:1, minWidth:0, fontSize:11.5, lineHeight:1.5,
+                          color: notes[r.id] ? "rgba(14,40,48,0.45)" : C.fade,
+                          overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                          {notes[r.id] ? notes[r.id] : t.histAddNote}
+                        </span>
+                        <span style={{ fontSize:10.5, fontWeight:800, color:C.sky, flexShrink:0 }}>▼</span>
+                      </button>
+                    )}
+                  </div>
+                  <button onClick={() => { setTab("public"); setOpenId(r.item.id); }}
+                    style={{ fontSize:12, fontWeight:800, color:C.sky, background:"none", border:"none",
+                      cursor:"pointer", padding:0, marginTop:9, fontFamily:"Poppins,sans-serif" }}>
+                    {t.viewDetail}
+                  </button>
+                </div>
+              ))}
+
+              {/* これから参加予定(まだ時間に集計されない) */}
+              {historyRows.future.length > 0 && (
+                <>
+                  <div style={{ fontSize:10, fontWeight:800, color:C.fade, letterSpacing:"0.08em", margin:"16px 0 10px" }}>{t.histUpcoming}</div>
+                  {historyRows.future.map((r) => (
+                    <div key={r.id} style={{ background:C.white, borderRadius:14, border:`1.5px solid ${C.line}`,
+                      padding:"12px 15px", marginBottom:10, opacity:0.75 }}>
+                      <div style={{ fontSize:13.5, fontWeight:800, color:C.ink, lineHeight:1.35, fontFamily:"Poppins,sans-serif" }}>{r.item.name}</div>
+                      <div style={{ display:"flex", gap:12, marginTop:5, fontSize:11, color:C.fade, flexWrap:"wrap", fontFamily:"Poppins,sans-serif" }}>
+                        {r.date && <span>🗓 {parseIso(r.date).getDate()} {t.months[parseIso(r.date).getMonth()]}</span>}
+                        <span>⏱ {r.item.dur}{t.histUnit}</span>
+                        <span>📍 {t.areas[r.item.area]}</span>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+            </>)}
+
+            {/* ===== 友達一覧ビュー ===== */}
+            {personalSub === "friends" && (<>
+              <h2 style={{ fontWeight:900, fontSize:22, color:C.ink, letterSpacing:"-0.02em", marginBottom:14 }}>
+                💛 {t.friendsListTitle}
+              </h2>
+
+              {(() => {
+                const friends = people.filter(pp => pp.friend);
+                return (
+                  <>
+                    {friends.length === 0 && (
+                      <p style={{ fontSize:12.5, color:C.fade, lineHeight:1.7, marginBottom:14, fontFamily:"Poppins,sans-serif" }}>{t.friendsNone}</p>
+                    )}
+                    {friends.map(f => {
+                      const co = f.history.filter(h => myHistory.includes(h)).length;
+                      return (
+                        <div key={f.id} style={{ display:"flex", alignItems:"center", gap:11,
+                          background:C.white, borderRadius:14, border:`1.5px solid ${C.line}`,
+                          padding:"11px 14px", marginBottom:9 }}>
+                          <div style={{ flexShrink:0, width:38, height:38, borderRadius:"50%", background:C.skyLight,
+                            display:"flex", alignItems:"center", justifyContent:"center", fontSize:19 }}>{f.emoji}</div>
+                          <div style={{ flex:1, minWidth:0 }}>
+                            <div style={{ display:"flex", alignItems:"center", gap:5 }}>
+                              <span style={{ fontSize:14, fontWeight:800, color:C.ink, fontFamily:"Poppins,sans-serif" }}>{f.name}</span>
+                              <span style={{ fontSize:13 }}>💛</span>
+                            </div>
+                            {co > 0 && (
+                              <div style={{ fontSize:10.5, fontWeight:700, color:C.leaf, marginTop:2, fontFamily:"Poppins,sans-serif" }}>
+                                🔁 {t.metAt(co)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {/* 友達一覧から新しい部屋を作る */}
+                    {friends.length > 0 && (
+                      <button onClick={() => { setNewRoomMembers([]); setNewRoomName(""); setShowNewRoom(true); }}
+                        style={{ width:"100%", padding:"13px", borderRadius:14, marginTop:6, marginBottom:10,
+                          border:`2px dashed ${C.sky}`, background:C.white, color:C.sky,
+                          fontWeight:900, fontSize:13.5, cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                        {t.newRoomBtn}
+                      </button>
+                    )}
+
+                    {/* QRでアカウント交換 */}
+                    <button onClick={() => setShowQR(true)}
+                      style={{ width:"100%", padding:"14px", borderRadius:16, marginBottom:10,
+                        background:`linear-gradient(110deg,${C.sky},#00D8EE)`, color:C.white,
+                        fontWeight:900, fontSize:14, border:"none", cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                      {t.swapQR}
+                    </button>
+                  </>
+                );
+              })()}
+            </>)}
           </div>
         )}
 
-        {/* ===== 友達ページ ===== */}
+        {/* ===== 友達ページ(部屋一覧) ===== */}
         {tab === "friends" && !openRoom && (
           <div style={{ padding:"16px 16px 0" }}>
+            {/* ---- 部屋一覧 ---- */}
             <h2 style={{ fontWeight:900, fontSize:22, color:C.ink, letterSpacing:"-0.02em", marginBottom:6 }}>
               👥 {t.roomsTitle}
             </h2>
             <p style={{ fontSize:12, color:C.fade, lineHeight:1.6, marginBottom:18, fontFamily:"Poppins,sans-serif" }}>{t.roomsHint}</p>
 
-            {GROUPS.map(g => {
+            {rooms.map(g => {
               const members = roomMembers(g.id);
               return (
-                <button key={g.id} onClick={() => { setOpenRoom(g.id); setRoomSelDay(iso(new Date())); }}
+                <button key={g.id} onClick={() => { setOpenRoom(g.id); setRoomSelDay(iso(new Date())); setRoomTab("calendar"); }}
                   style={{ width:"100%", textAlign:"left", background:C.white, borderRadius:18,
                     border:`1.5px solid ${C.line}`, padding:"16px 18px", marginBottom:12, cursor:"pointer",
                     display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                   <div>
                     <div style={{ fontWeight:800, fontSize:15, color:C.ink, fontFamily:"Poppins,sans-serif" }}>
-                      👥 {lang === "ja" ? g.ja : g.en}
+                      👥 {roomName(g)}
                     </div>
-                    <div style={{ fontSize:11, color:C.fade, marginTop:4, fontWeight:600 }}>{t.membersN(members.length + 1)}</div>
+                    <div style={{ display:"flex", alignItems:"center", gap:7, marginTop:4 }}>
+                      <span style={{ fontSize:11, color:C.fade, fontWeight:600 }}>{t.membersN(members.length + 1)}</span>
+                      {unreadOf(g.id) > 0 && (
+                        <span style={{ minWidth:17, height:17, borderRadius:999, background:"#E06B6B",
+                          color:C.white, fontSize:10, fontWeight:900, display:"inline-flex", alignItems:"center",
+                          justifyContent:"center", padding:"0 5px" }}>
+                          💬 {unreadOf(g.id)}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   {/* メンバーアイコンの重なり表示 */}
                   <div style={{ display:"flex" }}>
-                    <span style={{ fontSize:22, marginLeft:0, filter:"drop-shadow(0 0 1px white)" }}>⭐</span>
+                    <span style={{ fontSize:22, marginLeft:0, filter:"drop-shadow(0 0 1px white)" }}>{meAvatar}</span>
                     {members.slice(0, 3).map((f, i) => (
                       <span key={f.id} style={{ fontSize:22, marginLeft:-6 }}>{f.emoji}</span>
                     ))}
@@ -866,7 +2047,7 @@ function App() {
 
         {/* ===== 部屋のカレンダー ===== */}
         {tab === "friends" && openRoom && (() => {
-          const g = GROUPS.find(x => x.id === openRoom);
+          const g = rooms.find(x => x.id === openRoom);
           const members = roomMembers(openRoom);
           const dots = roomDots(openRoom);
           return (
@@ -878,12 +2059,12 @@ function App() {
               </button>
 
               <h2 style={{ fontWeight:900, fontSize:20, color:C.ink, marginBottom:4 }}>
-                👥 {lang === "ja" ? g.ja : g.en}
+                👥 {roomName(g)}
               </h2>
               {/* メンバー一覧 */}
               <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:16 }}>
                 <span style={{ display:"inline-flex", alignItems:"center", gap:4, background:C.sun,
-                  padding:"4px 10px", borderRadius:999, fontSize:11, fontWeight:800, color:C.sunText }}>⭐ {t.you}</span>
+                  padding:"4px 10px", borderRadius:999, fontSize:11, fontWeight:800, color:C.sunText }}>{meAvatar} {meName}</span>
                 {members.map(f => (
                   <span key={f.id} style={{ display:"inline-flex", alignItems:"center", gap:4, background:C.white,
                     border:`1.5px solid ${C.line}`, padding:"4px 10px", borderRadius:999, fontSize:11, fontWeight:700, color:C.ink }}>
@@ -892,7 +2073,35 @@ function App() {
                 ))}
               </div>
 
+              {/* 部屋の中のタブ: カレンダー / トーク(未読バッジ付き) */}
+              <div style={{ display:"flex", gap:8, marginBottom:16, background:C.white, padding:5,
+                borderRadius:14, border:`1.5px solid ${C.line}` }}>
+                <button onClick={() => setRoomTab("calendar")}
+                  style={{ flex:1, padding:"10px", borderRadius:10, fontSize:13, fontWeight:800, cursor:"pointer",
+                    border:"none", fontFamily:"Poppins,sans-serif",
+                    background: roomTab === "calendar" ? C.sky : "transparent",
+                    color: roomTab === "calendar" ? C.white : C.fade }}>
+                  {t.roomTabCal}
+                </button>
+                <button onClick={() => openTalk(openRoom)}
+                  style={{ flex:1, padding:"10px", borderRadius:10, fontSize:13, fontWeight:800, cursor:"pointer",
+                    border:"none", fontFamily:"Poppins,sans-serif", position:"relative",
+                    display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+                    background: roomTab === "talk" ? C.sky : "transparent",
+                    color: roomTab === "talk" ? C.white : C.fade }}>
+                  {t.roomTabTalk}
+                  {roomTab !== "talk" && unreadOf(openRoom) > 0 && (
+                    <span style={{ minWidth:18, height:18, borderRadius:999, background:"#E06B6B",
+                      color:C.white, fontSize:10.5, fontWeight:900, display:"flex", alignItems:"center",
+                      justifyContent:"center", padding:"0 5px" }}>
+                      {unreadOf(openRoom)}
+                    </span>
+                  )}
+                </button>
+              </div>
+
               {/* 月ナビ */}
+              {roomTab === "calendar" && (<>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
                 <button onClick={() => setRoomMonth(new Date(roomMonth.getFullYear(), roomMonth.getMonth()-1, 1))}
                   style={{ width:36, height:36, borderRadius:12, border:`1.5px solid ${C.line}`, background:C.white, cursor:"pointer", fontSize:16, color:C.sky, fontWeight:900 }}>‹</button>
@@ -982,14 +2191,71 @@ function App() {
                       </div>
                     )}
 
-                    <button onClick={() => { setTab("public"); setOpenId(ev.item.id); }}
-                      style={{ fontSize:12, fontWeight:800, color:C.sky, background:"none", border:"none",
-                        cursor:"pointer", padding:0, marginTop:10, fontFamily:"Poppins,sans-serif" }}>
-                      {t.viewDetail}
-                    </button>
+                    <div style={{ display:"flex", gap:8, alignItems:"center", marginTop:10, flexWrap:"wrap" }}>
+                      {ev.mine && !ev.applied && (
+                        <button onClick={() => doApply(ev.item)}
+                          style={{ padding:"8px 14px", borderRadius:10, fontSize:12, fontWeight:900,
+                            background:C.sun, color:C.sunText, border:"none", cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                          {t.calApply}
+                        </button>
+                      )}
+                      <button onClick={() => { setTab("public"); setOpenId(ev.item.id); }}
+                        style={{ padding:"8px 14px", borderRadius:10, fontSize:12, fontWeight:800,
+                          background:"none", color:C.sky, border:`1.5px solid ${C.line}`, cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                        {t.viewDetail}
+                      </button>
+                    </div>
                   </div>
                 );
               })}
+              </>)}
+
+              {/* ===== グループトーク ===== */}
+              {roomTab === "talk" && (
+              <div>
+                {/* メッセージ一覧(縦スクロール・高めに確保) */}
+                <div style={{ height:"52vh", minHeight:280, overflowY:"auto", WebkitOverflowScrolling:"touch",
+                  marginBottom:12, background:C.white, borderRadius:14, border:`1.5px solid ${C.line}`, padding:"12px 13px" }}>
+                  {(talks[openRoom] || []).length === 0 && (
+                    <p style={{ fontSize:12, color:C.fade, fontFamily:"Poppins,sans-serif" }}>{t.talkEmpty}</p>
+                  )}
+                  {(talks[openRoom] || []).map((m, i) => (
+                    <div key={i} style={{ display:"flex", gap:8, marginBottom:11,
+                      flexDirection: m.mine ? "row-reverse" : "row" }}>
+                      <span style={{ flexShrink:0, width:30, height:30, borderRadius:"50%",
+                        background: m.mine ? C.sun : C.skyLight, display:"flex", alignItems:"center",
+                        justifyContent:"center", fontSize:15 }}>{m.avatar}</span>
+                      <div style={{ maxWidth:"72%" }}>
+                        {!m.mine && (
+                          <div style={{ fontSize:9.5, fontWeight:800, color:C.fade, marginBottom:3, fontFamily:"Poppins,sans-serif" }}>{m.who}</div>
+                        )}
+                        <div style={{ padding:"8px 12px", borderRadius:14, fontSize:13, lineHeight:1.5,
+                          background: m.mine ? C.sky : C.skyPale,
+                          color: m.mine ? C.white : C.ink, fontFamily:"Poppins,sans-serif" }}>
+                          {m.text}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* 入力欄 */}
+                <div style={{ display:"flex", gap:8 }}>
+                  <input value={talkDraft} onChange={e => setTalkDraft(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter") sendTalk(openRoom); }}
+                    placeholder={t.talkPlaceholder}
+                    style={{ flex:1, minHeight:46, padding:"11px 14px", borderRadius:14,
+                      border:`1.5px solid ${C.line}`, fontSize:14, color:C.ink, background:C.white,
+                      fontFamily:"Poppins,sans-serif", outline:"none" }} />
+                  <button onClick={() => sendTalk(openRoom)}
+                    style={{ flexShrink:0, padding:"0 18px", minHeight:46, borderRadius:14,
+                      background:`linear-gradient(110deg,${C.sky},#00D8EE)`, color:C.white,
+                      fontWeight:900, fontSize:13, border:"none", cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                    {t.talkSend}
+                  </button>
+                </div>
+              </div>
+              )}
             </div>
           );
         })()}
@@ -1039,6 +2305,145 @@ function App() {
           </div>
         )}
 
+        {/* ===== 新しい部屋を作る ===== */}
+        {showNewRoom && (
+          <div onClick={() => setShowNewRoom(false)}
+            style={{ position:"fixed", inset:0, background:"rgba(14,40,48,0.5)", zIndex:60,
+              display:"flex", alignItems:"center", justifyContent:"center", padding:"20px" }}>
+            <div onClick={e => e.stopPropagation()}
+              style={{ width:"100%", maxWidth:380, maxHeight:"86vh", overflowY:"auto",
+                background:C.white, borderRadius:24, padding:"24px 22px", fontFamily:"Poppins,sans-serif" }}>
+              <h3 style={{ fontWeight:900, fontSize:20, color:C.ink, marginBottom:18 }}>👥 {t.newRoomTitle}</h3>
+
+              {/* 部屋の名前 */}
+              <div style={{ fontSize:10, fontWeight:800, color:C.sky, letterSpacing:"0.1em", marginBottom:7 }}>{t.newRoomNameLabel}</div>
+              <input value={newRoomName} onChange={e => setNewRoomName(e.target.value)}
+                placeholder={t.newRoomNamePh}
+                style={{ width:"100%", minHeight:46, padding:"11px 14px", borderRadius:14,
+                  border:`1.5px solid ${C.line}`, fontSize:14, color:C.ink, background:C.white,
+                  fontFamily:"Poppins,sans-serif", outline:"none", marginBottom:18 }} />
+
+              {/* メンバー選択 */}
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:8 }}>
+                <span style={{ fontSize:10, fontWeight:800, color:C.sky, letterSpacing:"0.1em" }}>{t.newRoomPick}</span>
+                <span style={{ fontSize:10.5, fontWeight:700, color:C.fade }}>{t.pickedN(newRoomMembers.length)}</span>
+              </div>
+              {people.filter(pp => pp.friend).map(f => {
+                const on = newRoomMembers.includes(f.id);
+                return (
+                  <button key={f.id}
+                    onClick={() => setNewRoomMembers(on ? newRoomMembers.filter(x => x !== f.id) : [...newRoomMembers, f.id])}
+                    style={{ width:"100%", display:"flex", alignItems:"center", gap:10, textAlign:"left",
+                      background: on ? C.skyLight : C.white, border:`2px solid ${on ? C.sky : C.line}`,
+                      borderRadius:12, padding:"9px 12px", marginBottom:8, cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                    <span style={{ width:32, height:32, borderRadius:"50%", background:C.skyPale,
+                      display:"flex", alignItems:"center", justifyContent:"center", fontSize:17, flexShrink:0 }}>{f.emoji}</span>
+                    <span style={{ flex:1, fontSize:13.5, fontWeight:800, color:C.ink }}>{f.name}</span>
+                    {on && <span style={{ color:C.sky, fontWeight:900, fontSize:15 }}>✓</span>}
+                  </button>
+                );
+              })}
+
+              <button onClick={createRoom}
+                disabled={!newRoomName.trim() || newRoomMembers.length === 0}
+                style={{ width:"100%", padding:"15px", borderRadius:16, marginTop:10,
+                  background: (!newRoomName.trim() || newRoomMembers.length === 0) ? C.line : `linear-gradient(110deg,${C.sky},#00D8EE)`,
+                  color:C.white, fontWeight:900, fontSize:15, border:"none",
+                  cursor: (!newRoomName.trim() || newRoomMembers.length === 0) ? "not-allowed" : "pointer",
+                  fontFamily:"Poppins,sans-serif" }}>
+                {t.newRoomCreate}
+              </button>
+              <button onClick={() => setShowNewRoom(false)}
+                style={{ width:"100%", padding:"12px", borderRadius:14, marginTop:9, background:"none",
+                  color:C.fade, fontWeight:800, fontSize:13, border:`1.5px solid ${C.line}`,
+                  cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                {t.newRoomCancel}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ===== QRでアカウント交換 ===== */}
+        {showQR && (
+          <div onClick={() => setShowQR(false)}
+            style={{ position:"fixed", inset:0, background:"rgba(14,40,48,0.5)", zIndex:60,
+              display:"flex", alignItems:"center", justifyContent:"center", padding:"20px" }}>
+            <div onClick={e => e.stopPropagation()}
+              style={{ width:"100%", maxWidth:360, maxHeight:"88vh", overflowY:"auto",
+                background:C.white, borderRadius:24, padding:"24px 22px", fontFamily:"Poppins,sans-serif" }}>
+              <h3 style={{ fontWeight:900, fontSize:20, color:C.ink, textAlign:"center", marginBottom:4 }}>{t.qrTitle}</h3>
+              <p style={{ fontSize:11.5, color:C.fade, textAlign:"center", marginBottom:16 }}>{t.qrMine}</p>
+
+              {/* 自分のQRコード(見た目のみのダミー) */}
+              <div style={{ display:"flex", justifyContent:"center", marginBottom:8 }}>
+                <div style={{ padding:14, background:C.white, borderRadius:18, border:`2px solid ${C.line}` }}>
+                  <svg width="150" height="150" viewBox="0 0 29 29" shapeRendering="crispEdges">
+                    <rect width="29" height="29" fill="#FFFFFF"/>
+                    {(() => {
+                      // 名前から決まるパターンで「それらしい」QRを描く(飾り)
+                      const seedStr = (meName || "V") + (meAvatar || "");
+                      let seed = 0; for (let i=0;i<seedStr.length;i++) seed = (seed*31 + seedStr.charCodeAt(i)) % 99991;
+                      const cells = [];
+                      const rnd = (n) => { seed = (seed*1103515245 + 12345) % 2147483648; return seed % n; };
+                      // 位置検出パターン(3隅)
+                      const finder = (ox, oy) => {
+                        const out = [];
+                        for (let y=0;y<7;y++) for (let x=0;x<7;x++) {
+                          const edge = x===0||x===6||y===0||y===6;
+                          const core = x>=2&&x<=4&&y>=2&&y<=4;
+                          if (edge||core) out.push(<rect key={`f${ox}-${oy}-${x}-${y}`} x={ox+x} y={oy+y} width="1" height="1" fill="#0E2830"/>);
+                        }
+                        return out;
+                      };
+                      cells.push(...finder(0,0), ...finder(22,0), ...finder(0,22));
+                      for (let y=0;y<29;y++) for (let x=0;x<29;x++) {
+                        const inFinder = (x<9&&y<9)||(x>20&&y<9)||(x<9&&y>20);
+                        if (inFinder) continue;
+                        if (rnd(100) < 45) cells.push(<rect key={`c${x}-${y}`} x={x} y={y} width="1" height="1" fill="#0E2830"/>);
+                      }
+                      return cells;
+                    })()}
+                  </svg>
+                </div>
+              </div>
+              <div style={{ textAlign:"center", marginBottom:20 }}>
+                <span style={{ fontSize:22 }}>{meAvatar}</span>
+                <span style={{ fontSize:15, fontWeight:800, color:C.ink, marginLeft:6 }}>{meName}</span>
+              </div>
+
+              {/* 相手のコードを読み取る(デモ: 候補から選ぶ) */}
+              <div style={{ borderTop:`1.5px solid ${C.line}`, paddingTop:16 }}>
+                <div style={{ fontSize:11, fontWeight:800, color:C.sky, marginBottom:4 }}>{t.qrScan}</div>
+                <p style={{ fontSize:11, color:C.fade, marginBottom:11 }}>{t.qrPick}</p>
+                {people.filter(pp => !pp.friend).slice(0, 5).map(pp => {
+                  const co = pp.history.filter(h => myHistory.includes(h)).length;
+                  return (
+                    <button key={pp.id} onClick={() => { addFriend(pp.id); setShowQR(false); }}
+                      style={{ width:"100%", display:"flex", alignItems:"center", gap:10, textAlign:"left",
+                        background:C.white, border:`1.5px solid ${C.line}`, borderRadius:12,
+                        padding:"9px 12px", marginBottom:8, cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                      <span style={{ width:32, height:32, borderRadius:"50%", background:C.skyLight,
+                        display:"flex", alignItems:"center", justifyContent:"center", fontSize:17, flexShrink:0 }}>{pp.emoji}</span>
+                      <span style={{ flex:1, minWidth:0 }}>
+                        <span style={{ display:"block", fontSize:13, fontWeight:800, color:C.ink }}>{pp.name}</span>
+                        {co > 0 && <span style={{ display:"block", fontSize:10, fontWeight:700, color:C.leaf, marginTop:1 }}>🔁 {t.metAt(co)}</span>}
+                      </span>
+                      <span style={{ flexShrink:0, fontSize:11, fontWeight:800, color:C.sky }}>{t.addFriendBtn}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button onClick={() => setShowQR(false)}
+                style={{ width:"100%", padding:"12px", borderRadius:14, marginTop:8, background:"none",
+                  color:C.fade, fontWeight:800, fontSize:13, border:`1.5px solid ${C.line}`,
+                  cursor:"pointer", fontFamily:"Poppins,sans-serif" }}>
+                {t.qrClose}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* ===== ブックマーク選択シート ===== */}
         {bmSheetFor && (
           <div onClick={() => setBmSheetFor(null)}
@@ -1063,7 +2468,7 @@ function App() {
 
               {/* グループ(自分のみ選択中は薄く無効化) */}
               <div style={{ opacity: bmDraft.includes("me") ? 0.4 : 1, pointerEvents: bmDraft.includes("me") ? "none" : "auto" }}>
-                {GROUPS.map(g => {
+                {rooms.map(g => {
                   const on = bmDraft.includes(g.id);
                   return (
                     <button key={g.id} onClick={() => toggleBmGroup(g.id)}
@@ -1071,7 +2476,7 @@ function App() {
                         border:`2px solid ${on ? C.sky : C.line}`,
                         background: on ? C.skyLight : C.white,
                         cursor:"pointer", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                      <span style={{ fontWeight:800, fontSize:14, color:C.ink }}>👥 {lang === "ja" ? g.ja : g.en}</span>
+                      <span style={{ fontWeight:800, fontSize:14, color:C.ink }}>👥 {roomName(g)}</span>
                       {on && <span style={{ color:C.sky, fontWeight:900 }}>✓</span>}
                     </button>
                   );
